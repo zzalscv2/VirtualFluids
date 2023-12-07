@@ -61,9 +61,6 @@ TEST(ParameterTest, check_all_Parameter_CanBePassedToConstructor)
     EXPECT_THAT(para.getCalcMean(), testing::Eq(true));
     EXPECT_THAT(para.getCalcCp(), testing::Eq(true));
     EXPECT_THAT(para.getCalcDragLift(), testing::Eq(true));
-    EXPECT_THAT(para.getWriteVeloASCIIfiles(), testing::Eq(true));
-    EXPECT_THAT(para.getCalcPlaneConc(), testing::Eq(true));
-    EXPECT_THAT(para.getConcFile(), testing::Eq(true));
     EXPECT_THAT(para.getUseMeasurePoints(), testing::Eq(true));
     EXPECT_THAT(para.getUseInitNeq(), testing::Eq(true));
 
@@ -73,15 +70,11 @@ TEST(ParameterTest, check_all_Parameter_CanBePassedToConstructor)
     EXPECT_THAT(para.getTimestepStartOut(), testing::Eq(11));
     EXPECT_THAT(para.getTimeCalcMedStart(), testing::Eq(22));
     EXPECT_THAT(para.getTimeCalcMedEnd(), testing::Eq(44));
-    EXPECT_THAT(para.getPressInID(), testing::Eq(25));
-    EXPECT_THAT(para.getPressOutID(), testing::Eq(26));
-    EXPECT_THAT(para.getPressInZ(), testing::Eq(27));
-    EXPECT_THAT(para.getPressOutZ(), testing::Eq(28));
 
     EXPECT_THAT(para.getDiffOn(), testing::Eq(true));
     EXPECT_THAT(para.getDiffusivity(), RealEq(1.11));
-    EXPECT_THAT(para.getTemperatureInit(), RealEq(2.22));
-    EXPECT_THAT(para.getTemperatureBC(), RealEq(3.33));
+    EXPECT_THAT(para.getConcentrationInit(), RealEq(2.22));
+    EXPECT_THAT(para.getConcentrationBC(), RealEq(3.33));
 
     EXPECT_THAT(para.getViscosity(), RealEq(4.44));
     EXPECT_THAT(para.getVelocity(), RealEq(5.55));
@@ -95,12 +88,9 @@ TEST(ParameterTest, check_all_Parameter_CanBePassedToConstructor)
     EXPECT_THAT(para.getFactorPressBC(), RealEq(0.3));
 
     EXPECT_THAT(para.getReadGeo(), testing::Eq(true));
-    EXPECT_THAT(para.getGeometryFileC(), testing::Eq("/pass/to/c"));
-    EXPECT_THAT(para.getGeometryFileM(), testing::Eq("/pass/to/m"));
-    EXPECT_THAT(para.getGeometryFileF(), testing::Eq("/pass/to/f"));
 
-    EXPECT_THAT(para.getclockCycleForMP(), RealEq(0.4));
-    EXPECT_THAT(para.getTimestepForMP(), testing::Eq(4));
+    EXPECT_THAT(para.getclockCycleForMeasurePoints(), RealEq(0.4));
+    EXPECT_THAT(para.getTimestepForMeasurePoints(), testing::Eq(4));
 
     std::vector<real> forces{ 2.0, 2.1, 2.2 };
     double *forces_actual = para.getForcesDouble();
@@ -123,9 +113,6 @@ TEST(ParameterTest, check_all_Parameter_CanBePassedToConstructor)
     EXPECT_THAT(para.getGridX(), testing::ElementsAreArray({ 100, 101 }));
     EXPECT_THAT(para.getGridY(), testing::ElementsAreArray({ 200, 201 }));
     EXPECT_THAT(para.getGridZ(), testing::ElementsAreArray({ 300, 301 }));
-    EXPECT_THAT(para.getDistX(), testing::ElementsAreArray({ 400, 401 }));
-    EXPECT_THAT(para.getDistY(), testing::ElementsAreArray({ 500, 501 }));
-    EXPECT_THAT(para.getDistZ(), testing::ElementsAreArray({ 600, 601 }));
 
     EXPECT_THAT(para.getMainKernel(), testing::Eq("KernelName"));
     EXPECT_THAT(para.getMultiKernelOn(), testing::Eq(true));
@@ -214,9 +201,6 @@ public:
         para->setGridX({ 2, 8 });
         para->setGridY({ 2, 8 });
         para->setGridZ({ 2, 8 });
-        para->setDistX({ 0, 0 });
-        para->setDistY({ 0, 0 });
-        para->setDistZ({ 0, 0 });
     }
     void allocArrays_CoordNeighborGeo() override{};
     void setBoundingBox() override{};
@@ -233,9 +217,6 @@ TEST(ParameterTest, whenCreatingParameterClassWithGridRefinement_afterCallingIni
     para->setGridX({ 2, 8 });
     para->setGridY({ 2, 8 });
     para->setGridZ({ 2, 8 });
-    para->setDistX({ 0, 0 });
-    para->setDistY({ 0, 0 });
-    para->setDistZ({ 0, 0 });
 
     EXPECT_THAT(para->getParH(1), testing::Eq(nullptr)); // Parameter initialization incomplete
     para->initLBMSimulationParameter();

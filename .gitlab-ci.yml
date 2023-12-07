@@ -1,6 +1,31 @@
-###############################################################################
-##                       VirtualFluids CI Pipeline                           ##
-###############################################################################
+# #######################################################################################
+# ____          ____    __    ______     __________   __      __       __        __
+# \    \       |    |  |  |  |   _   \  |___    ___| |  |    |  |     /  \      |  |
+#  \    \      |    |  |  |  |  |_)   |     |  |     |  |    |  |    /    \     |  |
+#   \    \     |    |  |  |  |   _   /      |  |     |  |    |  |   /  /\  \    |  |
+#    \    \    |    |  |  |  |  | \  \      |  |     |   \__/   |  /  ____  \   |  |____
+#     \    \   |    |  |__|  |__|  \__\     |__|      \________/  /__/    \__\  |_______|
+#      \    \  |    |   ________________________________________________________________
+#       \    \ |    |  |  ______________________________________________________________|
+#        \    \|    |  |  |         __          __     __     __     ______      _______
+#         \         |  |  |_____   |  |        |  |   |  |   |  |   |   _  \    /  _____)
+#          \        |  |   _____|  |  |        |  |   |  |   |  |   |  | \  \   \_______
+#           \       |  |  |        |  |_____   |   \_/   |   |  |   |  |_/  /    _____  |
+#            \ _____|  |__|        |________|   \_______/    |__|   |______/    (_______/
+#
+#  This file is part of VirtualFluids. VirtualFluids is free software: you can
+#  redistribute it and/or modify it under the terms of the GNU General Public
+#  License as published by the Free Software Foundation, either version 3 of
+#  the License, or (at your option) any later version.
+#
+#  VirtualFluids is distributed in the hope that it will be useful, but WITHOUT
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#  for more details.
+#
+#  You should have received a copy of the GNU General Public License along
+#  with VirtualFluids (see COPYING.txt). If not, see <http://www.gnu.org/licenses/>
+# #######################################################################################
 image: git.rz.tu-bs.de:4567/irmb/virtualfluids/ubuntu22_04:1.1
 
 stages:
@@ -405,7 +430,7 @@ trigger-hpc-regression-tests:
     - linux
 
   rules:
-    - if: '$CI_PROJECT_NAMESPACE == "irmb" && $CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_PROJECT_NAMESPACE == "irmb"'
       when: always
     - if: '$CI_PROJECT_NAMESPACE != "irmb"'
       when: manual
@@ -599,13 +624,14 @@ sanitizer-memory:
 ##                               Deploy                                      ##
 ###############################################################################
 # doxgen
+# This job only runs on the main branch of the parent repository, not on forks!
 pages:
   stage: deploy
 
   image: alpine
 
   only:
-    - develop@irmb/VirtualFluids_dev
+    - main@irmb/VirtualFluids
 
   needs: []
 
@@ -623,7 +649,7 @@ pages:
 
 # sonar-scanner runs sonar-project.properties
 # the reports in this file need to match the artifacts.
-# This job only runs on the development branch of the parent repository, not on forks!
+# This job only runs on the main branch of the parent repository, not on forks!
 sonar-scanner:
   stage: deploy
 
@@ -631,8 +657,7 @@ sonar-scanner:
     - linux
 
   only:
-    #- develop
-    - develop@irmb/VirtualFluids_dev
+    - main@irmb/VirtualFluids
 
   variables:
     SONAR_HOST_URL: "http://gitlab-runner01.irmb.bau.tu-bs.de/sonarqube/"

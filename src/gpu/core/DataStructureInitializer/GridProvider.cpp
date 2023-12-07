@@ -94,11 +94,11 @@ void GridProvider::setInitialNodeValues(uint numberOfNodes, int level) const
         //////////////////////////////////////////////////////////////////////////
 
         if (para->getCalcMean()) {
-            para->getParH(level)->vx_SP_Med[pos] = 0.0f;
-            para->getParH(level)->vy_SP_Med[pos] = 0.0f;
-            para->getParH(level)->vz_SP_Med[pos] = 0.0f;
-            para->getParH(level)->rho_SP_Med[pos] = 0.0f;
-            para->getParH(level)->press_SP_Med[pos] = 0.0f;
+            para->getParH(level)->meanVelocityInXdirection[pos] = 0.0f;
+            para->getParH(level)->meanVelocityInYdirection[pos] = 0.0f;
+            para->getParH(level)->meanVelocityInZdirection[pos] = 0.0f;
+            para->getParH(level)->meanDensity[pos] = 0.0f;
+            para->getParH(level)->meanPressure[pos] = 0.0f;
         }
 
         if (para->getIsBodyForce()) {
@@ -116,8 +116,6 @@ void GridProvider::setPressSizePerLevel(int level, int sizePerLevel) const
 {
     para->getParH(level)->pressureBC.numberOfBCnodes = sizePerLevel;
     para->getParD(level)->pressureBC.numberOfBCnodes = sizePerLevel;
-    para->getParH(level)->numberOfPressureBCnodesRead = sizePerLevel * para->getD3Qxx();
-    para->getParD(level)->numberOfPressureBCnodesRead = sizePerLevel * para->getD3Qxx();
 }
 
 
@@ -125,16 +123,12 @@ void GridProvider::setVelocitySizePerLevel(int level, int sizePerLevel) const
 {
     para->getParH(level)->velocityBC.numberOfBCnodes = sizePerLevel;
     para->getParD(level)->velocityBC.numberOfBCnodes = sizePerLevel;
-    para->getParH(level)->numberOfVeloBCnodesRead = sizePerLevel * para->getD3Qxx();
-    para->getParD(level)->numberOfVeloBCnodesRead = sizePerLevel * para->getD3Qxx();
 }
 
 void GridProvider::setOutflowSizePerLevel(int level, int sizePerLevel) const
 {
     para->getParH(level)->outflowBC.numberOfBCnodes = sizePerLevel;
     para->getParD(level)->outflowBC.numberOfBCnodes = sizePerLevel;
-    para->getParH(level)->numberOfOutflowBCnodesRead = sizePerLevel * para->getD3Qxx();
-    para->getParD(level)->numberOfOutflowBCnodesRead = sizePerLevel * para->getD3Qxx();
 }
 
 void GridProvider::allocAndCopyForcing()

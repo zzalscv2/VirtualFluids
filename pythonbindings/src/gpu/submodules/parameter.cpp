@@ -26,8 +26,6 @@
 //  You should have received a copy of the GNU General Public License along
 //  with VirtualFluids (see COPYING.txt). If not, see <http://www.gnu.org/licenses/>.
 //
-//! \file parameter.cpp
-//! \ingroup submodules
 //! \author Henry Korb
 //=======================================================================================
 #include <pybind11/pybind11.h>
@@ -62,7 +60,6 @@ namespace parameter
         .def("set_forcing", &Parameter::setForcing, py::arg("forcing_x"), py::arg("forcing_y"), py::arg("forcing_z"))
         .def("set_quadric_limiters", &Parameter::setQuadricLimiters, py::arg("quadric_limiter_p"), py::arg("quadric_limiter_m"), py::arg("quadric_limiter_d"))
         .def("set_diff_on", &Parameter::setDiffOn, py::arg("is_diff"))
-        .def("set_comp_on", &Parameter::setCompOn, py::arg("is_comp"))
         .def("set_max_level", &Parameter::setMaxLevel, py::arg("number_of_levels"))
         .def("set_timestep_end", &Parameter::setTimestepEnd, py::arg("tend"))
         .def("set_timestep_out", &Parameter::setTimestepOut, py::arg("tout"))
@@ -72,8 +69,8 @@ namespace parameter
         .def("set_output_path", &Parameter::setOutputPath, py::arg("o_path"))
         .def("set_output_prefix", &Parameter::setOutputPrefix, py::arg("o_prefix"))
         .def("set_print_files", &Parameter::setPrintFiles, py::arg("print_files"))
-        .def("set_temperature_init", &Parameter::setTemperatureInit, py::arg("temp"))
-        .def("set_temperature_BC", &Parameter::setTemperatureBC, py::arg("temp_bc"))
+        .def("set_concentration_init", &Parameter::setConcentrationInit, py::arg("concentration"))
+        .def("set_concentration_BC", &Parameter::setConcentrationBC, py::arg("concentrationBC"))
         .def("set_viscosity_LB", &Parameter::setViscosityLB, py::arg("viscosity"))
         .def("set_velocity_LB", &Parameter::setVelocityLB, py::arg("velocity"))
         .def("set_viscosity_ratio", &Parameter::setViscosityRatio, py::arg("viscosity_ratio"))

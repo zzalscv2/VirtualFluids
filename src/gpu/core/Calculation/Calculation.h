@@ -31,42 +31,16 @@
 #ifndef CALCULATION_H
 #define CALCULATION_H
 
-//////////////////////////////////////////////////////////////////////////
-#define GEO_FLUID_OLD    1
-#define GEO_VELO         2
-#define GEO_PRESS        4
-
 //////////////////////////
 //porous media
 #define GEO_PM_0         5
 #define GEO_PM_1         6
 #define GEO_PM_2         7
 //////////////////////////
-
 #define GEO_SOLID       15
 #define GEO_VOID        16
-
 #define GEO_FLUID       19
-#define OFFSET_BCsInGeo 20
-//////////////////////////////////////////////////////////////////////////
-
-#define LES false // LES Simulation
-
-#define STARTOFFX 16
-#define STARTOFFY 16
-#define STARTOFFZ 16
-
-#define X1PERIODIC true
-#define X2PERIODIC true
-#define X3PERIODIC true
-
-#define INTERFACE_E 0
-#define INTERFACE_W 1
-#define INTERFACE_N 2
-#define INTERFACE_S 3
-#define INTERFACE_T 4
-#define INTERFACE_B 5
-
+//////////////////////////
 
 #include <basics/DataTypes.h>
 
@@ -111,24 +85,6 @@ struct ICellNeigh
 
 using InterpolationCellNeighbor = ICellNeigh;
 
-// ADD IN FUTURE RELEASE
-struct Distributions6 
-{
-   real* g[6];
-};
-
-// ADD IN FUTURE RELEASE
-struct  Distributions7
-{
-   real* f[7];
-};
-
-// DEPRECATED
-struct  Distributions19
-{
-   real* f[19];
-};
-
 struct  Distributions27
 {
    real* f[27];
@@ -147,8 +103,6 @@ struct QforBoundaryConditions
 {
    int* k;
    int* kN;
-   long long* valueQ;
-   real* qread;
    real* q27[27];
    real* q19[19];
    unsigned int numberOfBCnodes=0;
@@ -176,31 +130,19 @@ struct QforPrecursorBoundaryConditions
    real velocityX, velocityY, velocityZ;
 };
 
-// ADD IN FUTURE RELEASE
-struct TempforBoundaryConditions
+struct AdvectionDiffusionNoSlipBoundaryConditions
 {
    int* k;
-   real* temp;
-   int kTemp=0;
+   real* concentration;
+   int numberOfBcNodes=0;
 };
 
-// ADD IN FUTURE RELEASE
-struct TempVelforBoundaryConditions
+struct AdvectionDiffusionDirichletBoundaryConditions
 {
    int* k;
-   real* temp;
-   real* tempPulse;
-   real* velo;
-   int kTemp=0;
-};
-
-// ADD IN FUTURE RELEASE
-struct TempPressforBoundaryConditions
-{
-   int* k;
-   real* temp;
-   real* velo;
-   int kTemp=0;
+   real* concentration;
+   real* concentrationBC;
+   int numberOfBcNodes=0;
 };
 
 // Settings for wall model used in StressBC
@@ -216,7 +158,6 @@ struct WallModelParameters
 };
 
 
-// ADD IN FUTURE RELEASE
 struct MeasurePoints
 {
    std::string name;
@@ -225,10 +166,6 @@ struct MeasurePoints
    std::vector<real> Vy;
    std::vector<real> Vz;
    std::vector<real> Rho;
-   //real* Vx;
-   //real* Vy;
-   //real* Vz;
-   //real* Rho;
 };
 
 
@@ -243,24 +180,5 @@ struct ProcessNeighbor27
    int numberOfFs;
 };
 
-// ADD IN FUTURE RELEASE
-struct ProcessNeighborF3
-{
-   real* g[6];
-   uint memsizeGs;
-   int* index;
-   uint memsizeIndex;
-   uint rankNeighbor;
-   int numberOfNodes;
-   int numberOfGs;
-};
-
-//////////////////////////////////////////////////////////////////////////
-// DEPRECATED
-inline int vectorPosition(int i, int j, int k, int Lx, int Ly)
-{
-   return((Lx+2*STARTOFFX)*((Ly+2*STARTOFFY)*(k+STARTOFFZ)+(j+STARTOFFY))+(i+STARTOFFX));
-}
-//////////////////////////////////////////////////////////////////////////
 
 #endif

@@ -69,8 +69,6 @@ public:
     void cudaCopySP(int lev);
     void cudaFreeSP(int lev);
 
-    void cudaAllocF3SP(int lev);
-
     void cudaAllocNeighborWSB(int lev);
     void cudaCopyNeighborWSB(int lev);
     void cudaFreeNeighborWSB(int lev);
@@ -128,27 +126,6 @@ public:
     virtual void cudaCopyProcessNeighborZIndex(int lev, unsigned int processNeighbor);
     void cudaFreeProcessNeighborZ(int lev, unsigned int processNeighbor);
 
-    //////////////////////////////////////////////////////////////////////////
-
-    //////////////////////////////////////////////////////////////////////////
-    // 3D domain decomposition F3
-    void cudaAllocProcessNeighborF3X(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3XFsHD(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3XFsDH(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3XIndex(int lev, unsigned int processNeighbor);
-    void cudaFreeProcessNeighborF3X(int lev, unsigned int processNeighbor);
-    //
-    void cudaAllocProcessNeighborF3Y(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3YFsHD(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3YFsDH(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3YIndex(int lev, unsigned int processNeighbor);
-    void cudaFreeProcessNeighborF3Y(int lev, unsigned int processNeighbor);
-    //
-    void cudaAllocProcessNeighborF3Z(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3ZFsHD(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3ZFsDH(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborF3ZIndex(int lev, unsigned int processNeighbor);
-    void cudaFreeProcessNeighborF3Z(int lev, unsigned int processNeighbor);
     //////////////////////////////////////////////////////////////////////////
 
     void cudaAllocTurbulentViscosity(int lev);
@@ -211,23 +188,6 @@ public:
     void cudaCopyGeomValuesBC(int lev);
     void cudaFreeGeomValuesBC(int lev);
 
-    void cudaAllocGeomNormals(int lev);
-    void cudaCopyGeomNormals(int lev);
-    void cudaFreeGeomNormals(int lev);
-
-    void cudaAllocInflowNormals(int lev);
-    void cudaCopyInflowNormals(int lev);
-    void cudaFreeInflowNormals(int lev);
-
-    void cudaAllocOutflowNormals(int lev);
-    void cudaCopyOutflowNormals(int lev);
-    void cudaFreeOutflowNormals(int lev);
-
-    void cudaAllocTestRE(int lev, unsigned int size);
-    void cudaCopyTestREtoDevice(int lev, unsigned int size);
-    void cudaCopyTestREtoHost(int lev, unsigned int size);
-    void cudaFreeTestRE(int lev);
-
     void cudaAllocCpTop(int lev);
     void cudaCopyCpTopInit(int lev);
     void cudaCopyCpTop(int lev);
@@ -246,20 +206,6 @@ public:
     void cudaAllocConcFile(int lev);
     void cudaCopyConcFile(int lev);
     void cudaFreeConcFile(int lev);
-
-    void cudaAllocInlet(int lev);
-    void cudaCopyInlet(int lev);
-    void cudaFreeInlet(int lev);
-    void cudaAllocOutlet(int lev);
-    void cudaCopyOutlet(int lev);
-    void cudaFreeOutlet(int lev);
-
-    void cudaAllocPressX0(int lev);
-    void cudaCopyPressX0(int lev);
-    void cudaFreePressX0(int lev);
-    void cudaAllocPressX1(int lev);
-    void cudaCopyPressX1(int lev);
-    void cudaFreePressX1(int lev);
 
     void cudaAllocMeasurePointsIndex(int lev);
     void cudaCopyMeasurePointsIndex(int lev);
@@ -291,47 +237,20 @@ public:
     void cudaCopyHigherMoments(int lev, int numofelem);
     void cudaFreeHigherMoments(int lev);
 
-    void cudaAllocForceVelo(int lev, int numofelem);
-    void cudaCopyForceVelo(int lev, int numofelem);
-    void cudaFreeForceVelo(int lev);
-
-    void cudaAlloc2ndOrderDerivitivesIsoTest(int lev);
-    void cudaCopy2ndOrderDerivitivesIsoTestDH(int lev);
-    void cudaCopy2ndOrderDerivitivesIsoTestHD(int lev);
-    void cudaFree2ndOrderDerivitivesIsoTest(int lev);
-
     void cudaAllocConcentration(int lev);
     void cudaCopyConcentrationDeviceToHost(int lev);
     void cudaCopyConcentrationHostToDevice(int lev);
     void cudaFreeConcentration(int lev);
 
-    void cudaAllocTempFs(int lev);
+    void cudaAllocConcentrationFs(int lev);
 
-    void cudaAllocTempPressBC(int lev);
-    void cudaCopyTempPressBCHD(int lev);
-    void cudaFreeTempPressBC(int lev);
+    void cudaAllocConcentrationDirichletBC(int lev);
+    void cudaCopyConcentrationDirichletBCHostToDevice(int lev);
+    void cudaFreeConcentrationDirichletBC(int lev);
 
-    void cudaAllocTempVeloBC(int lev);
-    void cudaCopyTempVeloBCHD(int lev);
-    void cudaFreeTempVeloBC(int lev);
-
-    void cudaAllocTempNoSlipBC(int lev);
-    void cudaCopyTempNoSlipBCHD(int lev);
-    void cudaFreeTempNoSlipBC(int lev);
-
-    void cudaAllocPlaneConcIn(int lev, int numofelem);
-    void cudaCopyPlaneConcIn(int lev, int numofelem);
-    void cudaAllocPlaneConcOut1(int lev, int numofelem);
-    void cudaCopyPlaneConcOut1(int lev, int numofelem);
-    void cudaAllocPlaneConcOut2(int lev, int numofelem);
-    void cudaCopyPlaneConcOut2(int lev, int numofelem);
-    void cudaFreePlaneConc(int lev);
-
-    void cudaAllocProcessNeighbor(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborFsHD(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborFsDH(int lev, unsigned int processNeighbor);
-    void cudaCopyProcessNeighborIndex(int lev, unsigned int processNeighbor);
-    void cudaFreeProcessNeighbor(int lev, unsigned int processNeighbor);
+    void cudaAllocConcentrationNoSlipBC(int lev);
+    void cudaCopyConcentrationNoSlipBCHD(int lev);
+    void cudaFreeConcentrationNoSlipBC(int lev);
 
     void cudaAllocProcessNeighborADX(int lev, unsigned int processNeighbor);
     void cudaCopyProcessNeighborADXFsHD(int lev, unsigned int processNeighbor);
@@ -344,6 +263,7 @@ public:
     void cudaCopyProcessNeighborADYFsDH(int lev, unsigned int processNeighbor);
     void cudaCopyProcessNeighborADYIndex(int lev, unsigned int processNeighbor);
     void cudaFreeProcessNeighborADY(int lev, unsigned int processNeighbor);
+
     void cudaAllocProcessNeighborADZ(int lev, unsigned int processNeighbor);
     void cudaCopyProcessNeighborADZFsHD(int lev, unsigned int processNeighbor);
     void cudaCopyProcessNeighborADZFsDH(int lev, unsigned int processNeighbor);

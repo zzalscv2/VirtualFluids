@@ -59,11 +59,11 @@ void initLattice(SPtr<Parameter> para, SPtr<PreProcessor> preProcessor, SPtr<Pre
         if (para->getCalcMean()) {
             constexpr uint tdiff = 1;
             calculateMacrosopicMean(
-                para->getParD(lev)->vx_SP_Med, 
-                para->getParD(lev)->vy_SP_Med, 
-                para->getParD(lev)->vz_SP_Med,
-                para->getParD(lev)->rho_SP_Med, 
-                para->getParD(lev)->press_SP_Med, 
+                para->getParD(lev)->meanVelocityInXdirection, 
+                para->getParD(lev)->meanVelocityInYdirection, 
+                para->getParD(lev)->meanVelocityInZdirection,
+                para->getParD(lev)->meanDensity, 
+                para->getParD(lev)->meanPressure, 
                 para->getParD(lev)->typeOfGridNode,
                 para->getParD(lev)->neighborX, 
                 para->getParD(lev)->neighborY,
@@ -79,7 +79,7 @@ void initLattice(SPtr<Parameter> para, SPtr<PreProcessor> preProcessor, SPtr<Pre
             cudaMemoryManager->cudaAllocConcentration(lev);
 
             for (size_t index = 0; index < para->getParH(lev)->numberOfNodes; index++) {
-                para->getParH(lev)->concentration[index] = para->getTemperatureInit();
+                para->getParH(lev)->concentration[index] = para->getConcentrationInit();
             }
 
             preProcessorAD->init(para, lev);
