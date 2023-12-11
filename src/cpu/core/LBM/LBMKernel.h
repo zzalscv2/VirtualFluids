@@ -91,12 +91,6 @@ public:
     bool getWithForcing() const override;
     void setWithForcing(bool val);
 
-    bool getWithSpongeLayer() const;
-    void setWithSpongeLayer(bool val);
-
-    void setSpongeLayer(const mu::Parser &parser);
-    void setSpongeLayer(const std::string &muParserString);
-
     void setBlock(SPtr<Block3D> block);
     SPtr<Block3D> getBlock() const;
 
@@ -106,30 +100,6 @@ public:
 
     void setNX(std::array<int, 3> nx);
     std::array<int, 3> getNX();
-
-    ///////// Extra methods for the multiphase kernel ////////////
-
-    void setCollisionFactorMultiphase(real collFactorL, real collFactorG);
-    real getCollisionFactorL() const;
-    real getCollisionFactorG() const;
-    void setDensityRatio(real densityRatio);
-    real getDensityRatio() const;
-    void setMultiphaseModelParameters(real beta, real kappa);
-    void getMultiphaseModelParameters(real &beta, real &kappa);
-    void setContactAngle(real contactAngle);
-    real getContactAngle() const;
-    void setPhiL(real phiL);
-    void setPhiH(real phiH);
-    real getPhiL() const;
-    real getPhiH() const;
-    void setPhaseFieldRelaxation(real tauH);
-    real getPhaseFieldRelaxation() const;
-    void setMobility(real mob);
-    real getMobility() const;
-    void setInterfaceWidth(real w);
-    real getInterfaceWidth() const;
-    void setSigma(real sigma);
-    real getSigma() const;
 
 protected:
     SPtr<DataSet3D> dataSet;
@@ -146,27 +116,9 @@ protected:
     int ix1, ix2, ix3;
     real deltaT{ 1.0 };
 
-    // sponge layer
-    bool withSpongeLayer{ false };
-    mu::Parser muSpongeLayer;
-
     WPtr<Block3D> block;
 
     std::array<int, 3> nx;
-
-    // Multiphase model
-    real collFactorL;
-    real collFactorG;
-    real densityRatio;
-    real beta;
-    real kappa;
-    real sigma;
-    real contactAngle;
-    real phiL;
-    real phiH;
-    real tauH;
-    real mob;
-    real interfaceWidth { 4.0 };
 
 private:
     void checkFunction(mu::Parser fct);

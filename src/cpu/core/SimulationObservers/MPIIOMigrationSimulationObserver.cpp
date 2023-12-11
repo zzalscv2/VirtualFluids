@@ -63,7 +63,7 @@ MPIIOMigrationSimulationObserver::MPIIOMigrationSimulationObserver(SPtr<Grid3D> 
     //-------------------------   define MPI types  ---------------------------------
 
     MPI_Datatype typesDataSet[3] = { MPI_DOUBLE, MPI_INT, MPI_CHAR };
-    int blocksDataSet[3]         = { 5, 2, 2 };
+    int blocksDataSet[3]         = { 2, 2, 2 };
     MPI_Aint offsetsDatatSet[3], lbDataSet, extentDataSet;
 
     offsetsDatatSet[0] = 0;
@@ -201,9 +201,6 @@ void MPIIOMigrationSimulationObserver::writeDataSet(int step)
             dataSetArray[ic].deltaT = kernel->getDeltaT();
             dataSetArray[ic].compressible = kernel->getCompressible();
             dataSetArray[ic].withForcing = kernel->getWithForcing();
-            dataSetArray[ic].collFactorL = kernel->getCollisionFactorL();
-            dataSetArray[ic].collFactorG = kernel->getCollisionFactorG();
-            dataSetArray[ic].densityRatio = kernel->getDensityRatio();
 
             D3Q27EsoTwist3DSplittedVectorPtrF = dynamicPointerCast<EsoSplit>(block->getKernel()->getDataSet()->getFdistributions());
             localDistributionsF = D3Q27EsoTwist3DSplittedVectorPtrF->getLocalDistributions();
@@ -1172,8 +1169,6 @@ void MPIIOMigrationSimulationObserver::readDataSet(int step)
         kernel->setDeltaT(dataSetArray[n].deltaT);
         kernel->setCompressible(dataSetArray[n].compressible);
         kernel->setWithForcing(dataSetArray[n].withForcing);
-        kernel->setCollisionFactorMultiphase(dataSetArray[n].collFactorL, dataSetArray[n].collFactorG);
-        kernel->setDensityRatio(dataSetArray[n].densityRatio);
 
          SPtr<DataSet3D> dataSetPtr = SPtr<DataSet3D>(new DataSet3D());
         dataSetPtr->setFdistributions(mFdistributions);
