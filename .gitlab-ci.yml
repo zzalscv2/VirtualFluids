@@ -26,7 +26,7 @@
 #  You should have received a copy of the GNU General Public License along
 #  with VirtualFluids (see COPYING.txt). If not, see <http://www.gnu.org/licenses/>
 # #######################################################################################
-image: git.rz.tu-bs.de:4567/irmb/virtualfluids/ubuntu22_04:1.1
+image: git.rz.tu-bs.de:4567/irmb/virtualfluids/ubuntu22_04:1.2
 
 stages:
   - build
@@ -296,7 +296,7 @@ regression_test_4gpu:
     - hpc-rocket cancel regression-tests/multigpu_test/rocket4GPU.yml --read-jobid-from hpcrocket4GPU.log
 
   artifacts:
-    when: always
+    when: on_failure
     paths:
       - output/4GPU/*
       - hpcrocket4GPU.log
@@ -331,7 +331,7 @@ regression_test_8gpu:
     - hpc-rocket cancel regression-tests/multigpu_test/rocket8GPU.yml --read-jobid-from hpcrocket8GPU.log
 
   artifacts:
-    when: always
+    when: on_failure
     paths:
       - output/8GPU/*
       - hpcrocket8GPU.log
@@ -373,7 +373,11 @@ gpu_numerical_tests:
     - cd /tmp
     - git clone --depth 1 --filter=blob:none --sparse https://github.com/irmb/test_data
     - cd test_data
-    - git sparse-checkout set numerical_tests_gpu/grids numerical_tests_gpu/grids
+    - git sparse-checkout set numerical_tests_gpu/grids numerical_tests_gpu/grids 
+    - cd /tmp && wget https://fftw.org/fftw-3.3.10.tar.gz
+    - tar -xzf fftw-3.3.10.tar.gz && cd fftw-3.3.10
+    - ./configure && make && make install
+    - apt-get update && apt-get install -y pkg-config # used for finding fftw in cmake
     - export CCACHE_BASEDIR=$CI_PROJECT_DIR
     - export CCACHE_DIR=$CI_PROJECT_DIR/cache
     - ccache -s
@@ -435,59 +439,6 @@ trigger-hpc-regression-tests:
     - if: '$CI_PROJECT_NAMESPACE != "irmb"'
       when: manual
       allow_failure: true
-
-
-clang_build_analyzer:
-  extends: .analyze_template
-
-  before_script:
-    - export CC=clang
-    - export CXX=clang++
-    - $CXX --version
-    - cd /tmp
-    - git clone https://github.com/aras-p/ClangBuildAnalyzer.git
-    - cd ClangBuildAnalyzer
-    - cmake .
-    - make
-    - export PATH+=:$(pwd)
-
-  script:
-    - mkdir -p $CI_PROJECT_DIR/build
-    - cd $CI_PROJECT_DIR/build
-    - cmake ..
-      --preset=make_all
-      -DCMAKE_CUDA_ARCHITECTURES=60
-      -DCMAKE_CXX_FLAGS=-ftime-trace
-    - ClangBuildAnalyzer --start .
-    - make
-    - ClangBuildAnalyzer --stop . CBA
-    - ClangBuildAnalyzer --analyze CBA
-
-###############################################################################
-include_what_you_use_clang_15:
-  extends: .analyze_template
-
-  before_script:
-    - apt-get update && apt-get install -y libclang-15-dev llvm-15-dev
-    - export CC=clang
-    - export CXX=clang++
-    - $CXX --version
-    - cd /tmp
-    - git clone https://github.com/include-what-you-use/include-what-you-use.git
-    - cd include-what-you-use
-    - git checkout clang_15
-    - cmake . -DCMAKE_PREFIX_PATH=/usr/lib/llvm-15
-    - make
-    - export PATH+=:$(pwd)/bin
-
-  script:
-    - mkdir -p $CI_PROJECT_DIR/build
-    - cd $CI_PROJECT_DIR/build
-    - cmake ..
-      --preset=make_all
-      -DCMAKE_CUDA_ARCHITECTURES=60
-      -DVF_ENABLE_INCLUDE_WHAT_YOU_USE=ON
-    - make
 
 ###############################################################################
 cppcheck:
@@ -628,16 +579,16 @@ sanitizer-memory:
 pages:
   stage: deploy
 
-  image: alpine
-
-  only:
-    - main@irmb/VirtualFluids
+  rules:
+    - if: '$CI_PROJECT_NAMESPACE == "irmb"'
 
   needs: []
 
+  before_script:
+    - doxygen --version
+
   script:
-  - apk update && apk add doxygen
-  - doxygen docs/Doxyfile
+  - doxygen docs/doxygen/Doxyfile
   - mv docs/build/html/ public/
 
   artifacts:
@@ -656,8 +607,8 @@ sonar-scanner:
   tags:
     - linux
 
-  only:
-    - main@irmb/VirtualFluids
+  rules:
+    - if: '$CI_PROJECT_NAMESPACE == "irmb"'
 
   variables:
     SONAR_HOST_URL: "http://gitlab-runner01.irmb.bau.tu-bs.de/sonarqube/"
