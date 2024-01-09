@@ -134,7 +134,6 @@ public:
     void setWritePrecision(uint writePrecision){ this->writePrecision=writePrecision;}
     
 private:
-    void init() override;
     WbWriterVtkXmlImageBinary* getWriter(){ return WbWriterVtkXmlImageBinary::getInstance(); };
     void write(int level, uint numberOfTimestepsBuffered);
 

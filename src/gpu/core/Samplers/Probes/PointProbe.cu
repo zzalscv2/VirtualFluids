@@ -94,6 +94,7 @@ void PointProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
     const real* coordinateY = para->getParH(level)->coordinateY;
     const real* coordinateZ = para->getParH(level)->coordinateZ;
     const real deltaX = para->getScaledLengthRatio(level);
+
     for (size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
         for (uint point = 0; point < this->pointCoordsX.size(); point++) {
             const real pointCoordX = this->pointCoordsX[point];

@@ -88,9 +88,9 @@ enum class Statistic{
 typedef struct PostProcessingVariable{
     std::string name;
     std::function<real(int)> conversionFactor;
-    PostProcessingVariable( std::string _name, 
-                            std::function<real(int)>  _conversionFactor): 
-    name(_name), conversionFactor(_conversionFactor){};
+    PostProcessingVariable( std::string name, 
+                            std::function<real(int)>  conversionFactor): 
+    name(name), conversionFactor(conversionFactor){};
 } PostProcessingVariable;
 
 struct ProbeStruct{
@@ -180,7 +180,7 @@ protected:
     real getNondimensionalConversionFactor(int level);
 
 private:
-    virtual bool isAvailableStatistic(Statistic _variable) = 0;
+    virtual bool isAvailableStatistic(Statistic variable) = 0;
 
     virtual std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) = 0;
 
@@ -205,7 +205,7 @@ private:
     std::string makeParallelFileName(int id, int t);
     std::string makeTimeseriesFileName(int leve, int id);
 
-    virtual uint getNumberOfTimestepsInTimeseries(int level){ (void)para; (void)level; return 1; }
+    virtual uint getNumberOfTimestepsInTimeseries(int level){ return 1; }
 
 protected:
     const std::string probeName;
