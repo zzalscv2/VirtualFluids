@@ -167,7 +167,7 @@ public:
 
     SPtr<ProbeStruct> getProbeStruct(int level){ return this->probeParams[level]; }
 
-    void addStatistic(Statistic _variable);
+    void addStatistic(Statistic variable);
     void addAllAvailableStatistics();
     
     bool getHasDeviceQuantityArray();

@@ -58,15 +58,6 @@ bool WallModelProbe::isAvailableStatistic(Statistic variable)
         case Statistic::SpatialMeans:
         case Statistic::SpatioTemporalMeans:
             return true;
-        case Statistic::Instantaneous:
-        case Statistic::Means:
-        case Statistic::Variances:
-        case Statistic::SpatialCovariances:
-        case Statistic::SpatioTemporalCovariances:
-        case Statistic::SpatialSkewness:
-        case Statistic::SpatioTemporalSkewness:
-        case Statistic::SpatialFlatness:
-        case Statistic::SpatioTemporalFlatness:
         default:
             return false;
     }

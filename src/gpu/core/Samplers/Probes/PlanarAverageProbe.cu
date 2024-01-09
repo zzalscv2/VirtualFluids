@@ -137,9 +137,6 @@ bool PlanarAverageProbe::isAvailableStatistic(Statistic variable)
         case Statistic::SpatialFlatness:
         case Statistic::SpatioTemporalFlatness:
             return true;
-        case Statistic::Instantaneous:
-        case Statistic::Means:
-        case Statistic::Variances:
         default:
             return false;
     }

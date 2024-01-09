@@ -51,14 +51,6 @@ bool PointProbe::isAvailableStatistic(Statistic variable)
         case Statistic::Means:
         case Statistic::Variances:
             return true;
-        case Statistic::SpatialMeans:
-        case Statistic::SpatioTemporalMeans:
-        case Statistic::SpatialCovariances:
-        case Statistic::SpatioTemporalCovariances:
-        case Statistic::SpatialSkewness:
-        case Statistic::SpatioTemporalSkewness:
-        case Statistic::SpatialFlatness:
-        case Statistic::SpatioTemporalFlatness:
         default:
             return false;
     }
@@ -101,7 +93,7 @@ void PointProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
     const real* coordinateX = para->getParH(level)->coordinateX;
     const real* coordinateY = para->getParH(level)->coordinateY;
     const real* coordinateZ = para->getParH(level)->coordinateZ;
-    const real dx = abs(coordinateX[1] - coordinateX[para->getParH(level)->neighborX[1]]);
+    const real deltaX = para->getScaledLengthRatio(level);
     for (size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
         for (uint point = 0; point < this->pointCoordsX.size(); point++) {
             const real pointCoordX = this->pointCoordsX[point];
@@ -110,11 +102,11 @@ void PointProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
             const real distX = pointCoordX - coordinateX[pos];
             const real distY = pointCoordY - coordinateY[pos];
             const real distZ = pointCoordZ - coordinateZ[pos];
-            if (distX <= dx && distY <= dx && distZ <= dx && distX > c0o1 && distY > c0o1 && distZ > c0o1) {
+            if (distX <= deltaX && distY <= deltaX && distZ <= deltaX && distX > c0o1 && distY > c0o1 && distZ > c0o1) {
                 probeIndices.push_back((int)pos);
-                distancesX.push_back(distX / dx);
-                distancesY.push_back(distY / dx);
-                distancesZ.push_back(distZ / dx);
+                distancesX.push_back(distX / deltaX);
+                distancesY.push_back(distY / deltaX);
+                distancesZ.push_back(distZ / deltaX);
                 pointCoordsX.push_back(pointCoordX);
                 pointCoordsY.push_back(pointCoordY);
                 pointCoordsZ.push_back(pointCoordZ);
