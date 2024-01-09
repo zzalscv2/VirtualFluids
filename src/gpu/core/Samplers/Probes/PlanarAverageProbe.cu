@@ -124,17 +124,10 @@ __global__ void moveIndicesInNegNormalDir( uint* pointIndices, uint nPoints, uin
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-bool PlanarAverageProbe::isAvailableStatistic(Statistic _variable)
+bool PlanarAverageProbe::isAvailableStatistic(Statistic variable)
 {
-    bool isAvailable;
-
-    switch (_variable)
+    switch (variable)
     {
-        case Statistic::Instantaneous:
-        case Statistic::Means:
-        case Statistic::Variances:
-            isAvailable = false;
-            break;
         case Statistic::SpatialMeans:
         case Statistic::SpatioTemporalMeans:
         case Statistic::SpatialCovariances:
@@ -143,12 +136,13 @@ bool PlanarAverageProbe::isAvailableStatistic(Statistic _variable)
         case Statistic::SpatioTemporalSkewness:
         case Statistic::SpatialFlatness:
         case Statistic::SpatioTemporalFlatness:
-            isAvailable =  true;
-            break;
+            return true;
+        case Statistic::Instantaneous:
+        case Statistic::Means:
+        case Statistic::Variances:
         default:
-            isAvailable =  false;
+            return false;
     }
-    return isAvailable;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////

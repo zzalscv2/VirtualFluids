@@ -43,16 +43,14 @@
 #include "Cuda/CudaMemoryManager.h"
 
 
-bool PlaneProbe::isAvailableStatistic(Statistic _variable)
+bool PlaneProbe::isAvailableStatistic(Statistic variable)
 {
-    bool isAvailable;
-    switch (_variable)
+    switch (variable)
     {
         case Statistic::Instantaneous:
         case Statistic::Means:
         case Statistic::Variances:
-            isAvailable = true;
-            break;
+            return true;
         case Statistic::SpatialMeans:
         case Statistic::SpatioTemporalMeans:
         case Statistic::SpatialCovariances:
@@ -61,12 +59,9 @@ bool PlaneProbe::isAvailableStatistic(Statistic _variable)
         case Statistic::SpatioTemporalSkewness:
         case Statistic::SpatialFlatness:
         case Statistic::SpatioTemporalFlatness:
-            isAvailable = false;
-            break;
         default:
-            isAvailable = false;
+            return false;
     }
-    return isAvailable;
 }
 
 
@@ -76,22 +71,22 @@ std::vector<PostProcessingVariable> PlaneProbe::getPostProcessingVariables(Stati
     switch (statistic)
     {
     case Statistic::Instantaneous:
-        postProcessingVariables.push_back( PostProcessingVariable("vx",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vy",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vz",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("rho", this->densityRatio ) );
+        postProcessingVariables.emplace_back("vx",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vy",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vz",  this->velocityRatio);
+        postProcessingVariables.emplace_back("rho", this->densityRatio );
         break;
     case Statistic::Means:
-        postProcessingVariables.push_back( PostProcessingVariable("vx_mean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vy_mean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vz_mean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("rho_mean", this->densityRatio ) );
+        postProcessingVariables.emplace_back("vx_mean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vy_mean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vz_mean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("rho_mean", this->densityRatio );
         break;
     case Statistic::Variances:
-        postProcessingVariables.push_back( PostProcessingVariable("vx_var",  this->stressRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vy_var",  this->stressRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vz_var",  this->stressRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("rho_var", this->densityRatio) );
+        postProcessingVariables.emplace_back("vx_var",  this->stressRatio);
+        postProcessingVariables.emplace_back("vy_var",  this->stressRatio);
+        postProcessingVariables.emplace_back("vz_var",  this->stressRatio);
+        postProcessingVariables.emplace_back("rho_var", this->densityRatio);
         break;
 
     default:

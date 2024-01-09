@@ -51,33 +51,25 @@ using namespace vf::basics::constant;
 typedef thrust::device_vector<real>::iterator valIterator;
 typedef thrust::device_vector<uint>::iterator indIterator;
 ///////////////////////////////////////////////////////////////////////////////////
-bool WallModelProbe::isAvailableStatistic(Statistic _variable)
+bool WallModelProbe::isAvailableStatistic(Statistic variable)
 {
-    bool isAvailable;
-
-    switch (_variable)
+    switch (variable)
     {
+        case Statistic::SpatialMeans:
+        case Statistic::SpatioTemporalMeans:
+            return true;
         case Statistic::Instantaneous:
         case Statistic::Means:
         case Statistic::Variances:
-            isAvailable = false;
-            break;
-        case Statistic::SpatialMeans:
-        case Statistic::SpatioTemporalMeans:
-            isAvailable =  true;
-            break;
         case Statistic::SpatialCovariances:
         case Statistic::SpatioTemporalCovariances:
         case Statistic::SpatialSkewness:
         case Statistic::SpatioTemporalSkewness:
         case Statistic::SpatialFlatness:
         case Statistic::SpatioTemporalFlatness:
-            isAvailable =  false;
-            break;
         default:
-            isAvailable =  false;
+            return false;
     }
-    return isAvailable;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -88,39 +80,39 @@ std::vector<PostProcessingVariable> WallModelProbe::getPostProcessingVariables(S
     switch (statistic)
     {
     case Statistic::SpatialMeans:
-        postProcessingVariables.push_back( PostProcessingVariable("vx_el_spatMean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vy_el_spatMean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vz_el_spatMean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vx1_spatMean",    this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vy1_spatMean",    this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vz1_spatMean",    this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("u_star_spatMean", this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("Fx_spatMean",     this->outputStress? this->stressRatio: this->forceRatio) ); 
-        postProcessingVariables.push_back( PostProcessingVariable("Fy_spatMean",     this->outputStress? this->stressRatio: this->forceRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("Fz_spatMean",     this->outputStress? this->stressRatio: this->forceRatio) );
+        postProcessingVariables.emplace_back("vx_el_spatMean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vy_el_spatMean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vz_el_spatMean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vx1_spatMean",    this->velocityRatio);
+        postProcessingVariables.emplace_back("vy1_spatMean",    this->velocityRatio);
+        postProcessingVariables.emplace_back("vz1_spatMean",    this->velocityRatio);
+        postProcessingVariables.emplace_back("u_star_spatMean", this->velocityRatio);
+        postProcessingVariables.emplace_back("Fx_spatMean",     this->outputStress? this->stressRatio: this->forceRatio);
+        postProcessingVariables.emplace_back("Fy_spatMean",     this->outputStress? this->stressRatio: this->forceRatio);
+        postProcessingVariables.emplace_back("Fz_spatMean",     this->outputStress? this->stressRatio: this->forceRatio);
         if(this->evaluatePressureGradient)
         {
-            postProcessingVariables.push_back( PostProcessingVariable("dpdx_spatMean",     this->forceRatio) ); 
-            postProcessingVariables.push_back( PostProcessingVariable("dpdy_spatMean",     this->forceRatio) );
-            postProcessingVariables.push_back( PostProcessingVariable("dpdz_spatMean",     this->forceRatio) );
+            postProcessingVariables.emplace_back("dpdx_spatMean",     this->forceRatio);
+            postProcessingVariables.emplace_back("dpdy_spatMean",     this->forceRatio);
+            postProcessingVariables.emplace_back("dpdz_spatMean",     this->forceRatio);
         }
         break;
     case Statistic::SpatioTemporalMeans:
-        postProcessingVariables.push_back( PostProcessingVariable("vx_el_spatTmpMean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vy_el_spatTmpMean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vz_el_spatTmpMean",  this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vx1_spatTmpMean",    this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vy1_spatTmpMean",    this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("vz1_spatTmpMean",    this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("u_star_spatTmpMean", this->velocityRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("Fx_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("Fy_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio) );
-        postProcessingVariables.push_back( PostProcessingVariable("Fz_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio) );
+        postProcessingVariables.emplace_back("vx_el_spatTmpMean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vy_el_spatTmpMean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vz_el_spatTmpMean",  this->velocityRatio);
+        postProcessingVariables.emplace_back("vx1_spatTmpMean",    this->velocityRatio);
+        postProcessingVariables.emplace_back("vy1_spatTmpMean",    this->velocityRatio);
+        postProcessingVariables.emplace_back("vz1_spatTmpMean",    this->velocityRatio);
+        postProcessingVariables.emplace_back("u_star_spatTmpMean", this->velocityRatio);
+        postProcessingVariables.emplace_back("Fx_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio);
+        postProcessingVariables.emplace_back("Fy_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio);
+        postProcessingVariables.emplace_back("Fz_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio);
         if(this->evaluatePressureGradient)
         {
-            postProcessingVariables.push_back( PostProcessingVariable("dpdx_spatTmpMean",     this->forceRatio) ); 
-            postProcessingVariables.push_back( PostProcessingVariable("dpdy_spatTmpMean",     this->forceRatio) );
-            postProcessingVariables.push_back( PostProcessingVariable("dpdz_spatTmpMean",     this->forceRatio) );
+            postProcessingVariables.emplace_back("dpdx_spatTmpMean",     this->forceRatio);
+            postProcessingVariables.emplace_back("dpdy_spatTmpMean",     this->forceRatio);
+            postProcessingVariables.emplace_back("dpdz_spatTmpMean",     this->forceRatio);
         }
         break;
 
