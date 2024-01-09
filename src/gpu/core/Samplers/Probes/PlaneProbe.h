@@ -29,53 +29,60 @@
 //! \addtogroup gpu_PreCollisionInteractor PreCollisionInteractor
 //! \ingroup gpu_core core
 //! \{
-//! \author Henrik Asmuth
+//! \author Henry Korb, Henrik Asmuth
 //! \date 13/05/2022
-//! \brief Probe computing statistics of all relevant wall model quantities used in the StressBC kernels
+//! \brief Probe computing point-wise statistics for a set of points across a plane
 //!
-//! Computes spatial statistics for all grid points of the StressBC 
-//! The spatial statistics can additionally be averaged in time.
+//! The set of points can be defined by providing a list or on an x-normal plane.
+//! All statistics are temporal.
 //!
 //=======================================================================================
 
-#ifndef WallModelProbe_H
-#define WallModelProbe_H
+#ifndef PlaneProbe_H
+#define PlaneProbe_H
 
-#include <basics/PointerDefinitions.h>
+#include <logger/Logger.h>
 
 #include "Probe.h"
 
-///////////////////////////////////////////////////////////////////////////////////
-
-class WallModelProbe : public Probe
+class PlaneProbe : public Probe
 {
 public: 
-    WallModelProbe(
+    PlaneProbe(
+        SPtr<Parameter> para,
+        SPtr<CudaMemoryManager> cudaMemoryManager,
         const std::string probeName,
         const std::string outputPath,
         uint tStartAvg,
-        uint tStartTmpAvg,
         uint tAvg,
         uint tStartOut,
         uint tOut
-    ):  Probe(probeName, 
-            outputPath,
-            tStartAvg,
-            tStartTmpAvg,
-            tAvg,
-            tStartOut, 
-            tOut,
-            false,
-            true)
+    ): Probe(para,
+        cudaMemoryManager,
+        probeName, 
+             outputPath,
+             tStartAvg, 
+             tStartAvg+1,
+             tAvg,
+             tStartOut, 
+             tOut,
+             true,
+             false)
+    {}
+
+    ~PlaneProbe() = default;
+
+    void setProbePlane(real posX, real posY, real posZ, real deltaX, real deltaY, real deltaZ)
     {
-        if (tStartTmpAvg<tStartAvg)   throw std::runtime_error("Probe: tStartTmpAvg must be larger than tStartAvg!");
+        this->posX = posX; 
+        this->posY = posY; 
+        this->posZ = posZ;         
+        this->deltaX = deltaX; 
+        this->deltaY = deltaY; 
+        this->deltaZ = deltaZ; 
     }
 
-    ~WallModelProbe() = default;
-
-
-    void setForceOutputToStress(bool _outputStress){ this->outputStress = _outputStress; }
-    void setEvaluatePressureGradient(bool _evalPressGrad){ this->evaluatePressureGradient = _evalPressGrad; }
+    void getTaggedFluidNodes(GridProvider* gridProvider) override;
 
 private:
     bool isAvailableStatistic(Statistic _variable) override;
@@ -87,12 +94,10 @@ private:
                     std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
                     int level) override;
     void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
-    void getTaggedFluidNodes(GridProvider* gridProvider) override {};
-    uint getNumberOfTimestepsInTimeseries(int level) override;
 
 private:
-    bool outputStress = false; //!> if true, output wall force is converted to a stress 
-    bool evaluatePressureGradient = false; //!> if true, mean global pressure gradient will also be evaluated
+    real posX, posY, posZ;
+    real deltaX, deltaY, deltaZ;
 };
 
 #endif

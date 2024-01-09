@@ -275,7 +275,7 @@ void Probe::addProbeStruct(std::vector<int>& probeIndices,
 
 }
 
-void Probe::interact(int level, uint t)
+void Probe::sample(int level, uint t)
 {
     uint t_level = para->getTimeStep(level, t, false);
 

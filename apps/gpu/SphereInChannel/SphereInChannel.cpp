@@ -69,8 +69,8 @@
 #include "gpu/core/Calculation/Simulation.h"
 #include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
-#include "gpu/core/PreCollisionInteractor/Probes/PlaneProbe.h"
-#include "gpu/core/PreCollisionInteractor/Probes/PointProbe.h"
+#include "gpu/core/Samplers/Probes/PlaneProbe.h"
+#include "gpu/core/Samplers/Probes/PointProbe.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -188,12 +188,13 @@ int main(int argc, char* argv[])
         //////////////////////////////////////////////////////////////////////////
         // setup probe(s)
         //////////////////////////////////////////////////////////////////////////
+        auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
 
         const uint tStartAveraging = 0;
         const uint tAveraging = 100;
         const uint tStartOutProbe = 0;
         const uint tOutProbe = para->getTimestepOut();
-        SPtr<PointProbe> pointProbe = std::make_shared<PointProbe>("pointProbe", para->getOutputPath(), tStartAveraging,
+        SPtr<PointProbe> pointProbe = std::make_shared<PointProbe>(para, cudaMemoryManager, "pointProbe", para->getOutputPath(), tStartAveraging,
                                                                    tAveraging, tStartOutProbe, tOutProbe);
         std::vector<real> probeCoordsX = { 0.3, 0.5 };
         std::vector<real> probeCoordsY = { 0.0, 0.0 };
@@ -203,13 +204,13 @@ int main(int argc, char* argv[])
         pointProbe->addStatistic(Statistic::Instantaneous);
         pointProbe->addStatistic(Statistic::Means);
         pointProbe->addStatistic(Statistic::Variances);
-        para->addProbe(pointProbe);
+        para->addSampler(pointProbe);
 
-        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>("planeProbe", para->getOutputPath(), tStartAveraging,
+        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, "planeProbe", para->getOutputPath(), tStartAveraging,
                                                                    tAveraging, tStartOutProbe, tOutProbe);
         planeProbe->setProbePlane(0.4, 0, 0, 0.3, 0.01, 0.1);
         planeProbe->addStatistic(Statistic::Instantaneous);
-        para->addProbe(planeProbe);
+        para->addSampler(planeProbe);
 
         //////////////////////////////////////////////////////////////////////////
         // initial state of the flow field
@@ -226,7 +227,6 @@ int main(int argc, char* argv[])
         // set copy mesh to simulation
         //////////////////////////////////////////////////////////////////////////
 
-        auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
         SPtr<GridProvider> gridGenerator =
             GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
 

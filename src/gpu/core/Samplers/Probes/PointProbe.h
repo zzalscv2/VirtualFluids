@@ -29,41 +29,52 @@
 //! \addtogroup gpu_PreCollisionInteractor PreCollisionInteractor
 //! \ingroup gpu_core core
 //! \{
-//! \author Henrik Asmuth
+//! \author Henry Korb, Henrik Asmuth
 //! \date 13/05/2022
-//! \brief Probe computing statistics across planes spanning the entire domain
+//! \brief Probe computing statistics for a set of points in space
 //!
-//! Computes spatial statistics across x, y or z-normal planes defined by planeNormal. 
-//! The planes include all points of the domain at each respective position along that normal direction.
-//! The spatial statistics can additionally be averaged in time.
+//! The set of points can be defined by providing a list or on an x-normal plane (the latter being somewhat redundant with PlaneProbe)
+//! All statistics are temporal.
 //!
 //=======================================================================================
 
-#ifndef PlanarAverageProbe_H
-#define PlanarAverageProbe_H
+#ifndef PointProbe_H
+#define PointProbe_H
 
 #include "Probe.h"
 
-__global__ void moveIndicesInNegNormalDir( uint* pointIndices, uint nPoints, uint* neighborWSB, uint* neighborInplane1, uint* neighborInplane2, real* coordsX, real* coordsY, real* coordsZ ); 
-
-__global__ void moveIndicesInPosNormalDir( uint* pointIndices, uint nPoints, uint* neighborNormal, real* coordsX, real* coordsY, real* coordsZ );
-
-///////////////////////////////////////////////////////////////////////////////////
-
-class PlanarAverageProbe : public Probe
+class PointProbe: public Probe
 {
 public:
-    PlanarAverageProbe(const std::string probeName, const std::string outputPath, uint tStartAvg, uint tStartTmpAvg,
-                       uint tAvg, uint tStartOut, uint tOut, char planeNormal)
-        : Probe(probeName, outputPath, tStartAvg, tStartTmpAvg, tAvg, tStartOut, tOut, false, false),
-          planeNormal(planeNormal)
-    {
-        if (tStartTmpAvg<tStartAvg)   throw std::runtime_error("Probe: tStartTmpAvg must be larger than tStartAvg!");
-        if(!(planeNormal == 'x' || planeNormal == 'y' || planeNormal == 'z')) 
-            throw std::runtime_error("PlanarAverageProbe: planeNormal must be 'x', 'y' or 'z'!");
-    }
-    ~PlanarAverageProbe() = default;
+    PointProbe(
+        SPtr<Parameter> para,
+        SPtr<CudaMemoryManager> cudaMemoryManager,
+        const std::string probeName,
+        const std::string outputPath,
+        uint tStartAvg,
+        uint tAvg,
+        uint tStartOut,
+        uint tOut,
+        bool outputTimeseries = false
+    ): Probe(
+        para,
+        cudaMemoryManager,probeName, 
+             outputPath,
+             tStartAvg, 
+             0,
+             tAvg,
+             tStartOut, 
+             tOut,
+             true,
+             outputTimeseries)
+    {}
 
+    ~PointProbe() = default;
+
+    void addProbePoint(real pointCoordX, real pointCoordY, real pointCoordZ);
+    void addProbePointsFromList(std::vector<real>& _pointCoordsX, std::vector<real>& _pointCoordsY, std::vector<real>& _pointCoordsZ);
+    void getTaggedFluidNodes(GridProvider* gridProvider) override;
+    
 private:
     bool isAvailableStatistic(Statistic _variable) override;
 
@@ -73,14 +84,16 @@ private:
                     std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
                     std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
                     int level) override;
-    void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
-    void getTaggedFluidNodes(GridProvider* gridProvider) override {};
 
+    void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
 
 private:
-    real posX, posY, posZ;
-    real deltaX, deltaY, deltaZ;
-    char planeNormal;
+    std::vector<real> pointCoordsX, pointCoordsY, pointCoordsZ;
+    uint getNumberOfTimestepsInTimeseries(int level) override
+    {
+        (void)para;
+        return outputTimeSeries ? tOut * exp2(level) : 1;
+    }
 };
 
 #endif

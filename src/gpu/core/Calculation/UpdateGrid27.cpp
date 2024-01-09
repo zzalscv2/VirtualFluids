@@ -62,7 +62,7 @@ void UpdateGrid27::updateGrid(int level, unsigned int t)
 
     //////////////////////////////////////////////////////////////////////////
     
-    interactWithProbes(level, t);
+    sample(level, t);
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -92,7 +92,7 @@ void UpdateGrid27::updateGrid(int level, unsigned int t)
 
     //////////////////////////////////////////////////////////////////////////
     
-    interactWithActuators(level, t);
+    interact(level, t);
 
 }
 
@@ -326,19 +326,19 @@ void UpdateGrid27::coarseToFine(int level, InterpolationCells* coarseToFine, ICe
     this->gridScalingKernelManager->runCoarseToFineKernelLB(level, coarseToFine, neighborCoarseToFine, streamIndex);
 }
 
-void UpdateGrid27::interactWithActuators(int level, unsigned int t)
+void UpdateGrid27::interact(int level, unsigned int t)
 {
-    for( SPtr<PreCollisionInteractor> actuator: para->getActuators() )
+    for( SPtr<PreCollisionInteractor> interactor: para->getInteractors() )
     {
-        actuator->interact(level, t);
+        interactor->interact(level, t);
     }
 }
 
-void  UpdateGrid27::interactWithProbes(int level, unsigned int t)
+void  UpdateGrid27::sample(int level, unsigned int t)
 {
-    for( SPtr<PreCollisionInteractor> probe: para->getProbes() )
+    for( SPtr<Sampler> sampler: para->getSamplers() )
     {
-        probe->interact(level, t);
+        sampler->sample(level, t);
     }
 }
 

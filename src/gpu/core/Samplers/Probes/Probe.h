@@ -45,12 +45,11 @@
 #ifndef Probe_H
 #define Probe_H
 
+#include "Samplers/Sampler.h"
 #include <cuda.h>
 
 #include <basics/PointerDefinitions.h>
 #include "basics/writer/WbWriterVtkXmlBinary.h"
-
-#include "gpu/core/PreCollisionInteractor/PreCollisionInteractor.h"
 
 //=======================================================================================
 //! \note How to add new Statistics 
@@ -137,10 +136,12 @@ __global__ void interpAndCalcQuantitiesKernel(   uint* pointIndices,
 
 uint calcOldTimestep(uint currentTimestep, uint lastTimestepInOldSeries);
 
-class Probe : public PreCollisionInteractor 
+class Probe : public Sampler
 {
 public:
     Probe(
+        SPtr<Parameter> para,
+        SPtr<CudaMemoryManager> cudaMemoryManager,
         const std::string probeName,
         const std::string outputPath,
         const uint tStartAvg,
@@ -150,7 +151,8 @@ public:
         const uint tOut,
         const bool hasDeviceQuantityArray,
         const bool outputTimeSeries
-    ):  probeName(probeName),
+    ):  
+        probeName(probeName),
         outputPath(outputPath + (outputPath.back() == '/' ? "" : "/")),
         tStartAvg(tStartAvg),
         tStartTmpAveraging(tStartTmpAvg),
@@ -158,13 +160,16 @@ public:
         tStartOut(tStartOut),
         tOut(tOut),
         hasDeviceQuantityArray(hasDeviceQuantityArray),
-        outputTimeSeries(outputTimeSeries)
+        outputTimeSeries(outputTimeSeries),
+        Sampler(para, cudaMemoryManager)
     {
         if (tStartOut < tStartAvg) throw std::runtime_error("Probe: tStartOut must be larger than tStartAvg!");
     }
 
-    ~Probe();
-    void interact(int level, uint t) override;
+    virtual ~Probe();
+
+    void init();
+    void sample(int level, uint t) override;
 
     SPtr<ProbeStruct> getProbeStruct(int level){ return this->probeParams[level]; }
 
@@ -181,7 +186,6 @@ protected:
     real getNondimensionalConversionFactor(int level);
 
 private:
-    void init() override;
     virtual bool isAvailableStatistic(Statistic _variable) = 0;
 
     virtual std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) = 0;

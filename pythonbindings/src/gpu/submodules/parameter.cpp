@@ -133,7 +133,7 @@ namespace parameter
             );
         }, py::arg("u_star"), py::arg("z0"), py::arg("length_x"), py::arg("length_z"), py::arg("height"), py::arg("velocity_ratio"))
         .def("add_actuator", &Parameter::addActuator, py::arg("actuator"))
-        .def("add_probe", &Parameter::addProbe, py::arg("probe"))
+        .def("add_probe", &Parameter::addSampler, py::arg("probe"))
         .def("get_output_path", &Parameter::getOutputPath)
         .def("get_output_prefix", &Parameter::getOutputPrefix)
         .def("get_velocity", &Parameter::getVelocity)

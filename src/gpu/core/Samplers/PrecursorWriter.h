@@ -51,8 +51,8 @@
 #include <logger/Logger.h>
 
 #include "Calculation/Calculation.h"
-#include "PreCollisionInteractor.h"
 #include "WbWriterVtkXmlImageBinary.h"
+#include "Sampler.h"
 
 class GridProvider;
 
@@ -87,10 +87,12 @@ struct PrecursorStruct
     cudaStream_t stream;
 };
 
-class PrecursorWriter : public PreCollisionInteractor
+class PrecursorWriter : public Sampler
 {
 public:
     PrecursorWriter(
+        SPtr<Parameter> para,
+        SPtr<CudaMemoryManager> cudaMemoryManager,
         const std::string fileName,
         const std::string outputPath,
         real xPos,
@@ -111,7 +113,8 @@ public:
     tStartOut(tStartOut), 
     tSave(tSave),
     outputVariable(outputVariable),
-    maxtimestepsPerFile(maxTimestepsPerFile)
+    maxtimestepsPerFile(maxTimestepsPerFile),
+    Sampler(para, cudaMemoryManager)
     {
         nodedatanames = determineNodeDataNames();
         writeFuture = std::async([](){});
@@ -119,7 +122,7 @@ public:
 
     ~PrecursorWriter();
 
-    void interact(int level, uint t) override;
+    void sample(int level, uint t) override;
     void getTaggedFluidNodes(GridProvider* gridProvider) override;
 
     OutputVariable getOutputVariable(){ return this->outputVariable; }

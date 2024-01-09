@@ -237,7 +237,7 @@ void PrecursorWriter::init()
 }
 
 
-void PrecursorWriter::interact(int level, uint t)
+void PrecursorWriter::sample(int level, uint t)
 {
     uint t_level         = para->getTimeStep(level, t, true);
     uint tStartOut_level = tStartOut*pow(2, level);

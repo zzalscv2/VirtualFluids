@@ -45,8 +45,8 @@
 #include "Parameter/Parameter.h"
 #include "CudaStreamManager.h"
 #include "PreCollisionInteractor/Actuator/ActuatorFarm.h"
-#include "PreCollisionInteractor/Probes/Probe.h"
-#include "PreCollisionInteractor/PrecursorWriter.h"
+#include "Samplers/Probes/Probe.h"
+#include "Samplers/PrecursorWriter.h"
 
 void CudaMemoryManager::cudaCopyPrint(int lev)
 {
