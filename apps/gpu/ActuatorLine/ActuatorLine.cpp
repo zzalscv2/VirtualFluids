@@ -72,6 +72,7 @@
 #include "gpu/core/TurbulenceModels/TurbulenceModelFactory.h"
 
 //////////////////////////////////////////////////////////////////////////
+const std::string defaultConfigFile = "actuatorline.cfg";
 
 void run(vf::basics::ConfigurationFile& config)
 {
@@ -313,7 +314,7 @@ int main(int argc, char* argv[])
         return 0;
 
     try {
-        auto config = vf::basics::loadConfig(argc, argv, "./actuatorline.cfg");
+        auto config = vf::basics::loadConfig(argc, argv, defaultConfigFile);
         run(config);
     } catch (const spdlog::spdlog_ex& ex) {
         std::cout << "Log initialization failed: " << ex.what() << std::endl;
