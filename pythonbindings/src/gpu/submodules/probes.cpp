@@ -30,12 +30,12 @@
 //=======================================================================================
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <gpu/core/PreCollisionInteractor/Probes/Probe.h>
-#include <gpu/core/PreCollisionInteractor/Probes/PointProbe.h>
-#include <gpu/core/PreCollisionInteractor/Probes/PlaneProbe.h>
-#include <gpu/core/PreCollisionInteractor/Probes/WallModelProbe.h>
-#include <gpu/core/PreCollisionInteractor/Probes/PlanarAverageProbe.h>
-#include <gpu/core/PreCollisionInteractor/PreCollisionInteractor.h>
+#include <gpu/core/Samplers/Probes/Probe.h>
+#include <gpu/core/Samplers/Probes/PointProbe.h>
+#include <gpu/core/Samplers/Probes/PlaneProbe.h>
+#include <gpu/core/Samplers/Probes/WallModelProbe.h>
+#include <gpu/core/Samplers/Probes/PlanarAverageProbe.h>
+#include <gpu/core/Samplers/Sampler.h>
 
 namespace probes
 {
@@ -58,13 +58,14 @@ namespace probes
         .value("SpatialFlatness", Statistic::SpatialFlatness)
         .value("SpatioTemporalFlatness", Statistic::SpatioTemporalFlatness);
 
-        py::class_<Probe, PreCollisionInteractor, std::shared_ptr<Probe>>(probeModule, "Probe")
+        py::class_<Probe, Sampler, std::shared_ptr<Probe>>(probeModule, "Probe")
         .def("add_statistic", &Probe::addStatistic, py::arg("variable"))
         .def("set_file_name_to_n_out", &Probe::setFileNameToNOut)
         .def("add_all_available_statistics", &Probe::addAllAvailableStatistics);
 
         py::class_<PointProbe, Probe, std::shared_ptr<PointProbe>>(probeModule, "PointProbe")
-        .def(py::init<
+        .def(py::init<  SPtr<Parameter>,
+                        SPtr<CudaMemoryManager>,
                         const std::string,
                         const std::string,
                         uint,
@@ -72,6 +73,8 @@ namespace probes
                         uint,
                         uint,
                         bool>(), 
+                        py::arg("para"),
+                        py::arg("cuda_memory_manager"),
                         py::arg("probe_name"),
                         py::arg("output_path"),
                         py::arg("t_start_avg"),
@@ -83,13 +86,16 @@ namespace probes
         .def("add_probe_points_from_list", &PointProbe::addProbePointsFromList, py::arg("point_coords_x"), py::arg("point_coords_y"), py::arg("point_coords_z"));
 
         py::class_<PlaneProbe, Probe, std::shared_ptr<PlaneProbe>>(probeModule, "PlaneProbe")
-        .def(py::init<
+        .def(py::init<  SPtr<Parameter>,
+                        SPtr<CudaMemoryManager>,
                         const std::string,
                         const std::string,
                         uint,
                         uint, 
                         uint,
                         uint>(), 
+                        py::arg("para"),
+                        py::arg("cuda_memory_manager"),
                         py::arg("probe_name"),
                         py::arg("output_path"),
                         py::arg("t_start_avg"),
@@ -99,7 +105,8 @@ namespace probes
         .def("set_probe_plane", &PlaneProbe::setProbePlane, py::arg("pos_x"), py::arg("pos_y"), py::arg("pos_z"), py::arg("delta_x"), py::arg("delta_y"), py::arg("delta_z"));
 
         py::class_<PlanarAverageProbe, Probe, std::shared_ptr<PlanarAverageProbe>>(probeModule, "PlanarAverageProbe")
-        .def(py::init<
+        .def(py::init<  SPtr<Parameter>,
+                        SPtr<CudaMemoryManager>,
                         const std::string,
                         const std::string,
                         uint,
@@ -108,6 +115,8 @@ namespace probes
                         uint,
                         uint,
                         char>(),
+                        py::arg("para"),
+                        py::arg("cuda_memory_manager"),
                         py::arg("probe_name"),
                         py::arg("output_path"),
                         py::arg("t_start_avg"),
@@ -119,14 +128,17 @@ namespace probes
 
 
         py::class_<WallModelProbe, Probe, std::shared_ptr<WallModelProbe>>(probeModule, "WallModelProbe")
-        .def(py::init<
+        .def(py::init<  SPtr<Parameter>,
+                        SPtr<CudaMemoryManager>,
                         const std::string,
                         const std::string,
                         uint,
                         uint, 
                         uint,
                         uint,
-                        uint>(), 
+                        uint>(),
+                        py::arg("para"),
+                        py::arg("cuda_memory_manager"),
                         py::arg("probe_name"),
                         py::arg("output_path"),
                         py::arg("t_start_avg"),
