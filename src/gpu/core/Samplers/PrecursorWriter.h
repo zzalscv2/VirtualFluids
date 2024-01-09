@@ -44,14 +44,15 @@
 #include <future>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
-#include <basics/PointerDefinitions.h>
 #include <basics/DataTypes.h>
+#include <basics/PointerDefinitions.h>
+#include <basics/writer/WbWriterVtkXmlImageBinary.h>
 
 #include <logger/Logger.h>
 
 #include "Calculation/Calculation.h"
-#include "WbWriterVtkXmlImageBinary.h"
 #include "Sampler.h"
 
 class GridProvider;
@@ -147,7 +148,6 @@ private:
         case OutputVariable::Distributions:
             return {"fP00", "fPP0", "fPM0", "fP0P", "fP0M", "fPPP", "fPMP", "fPPM", "fPMM"};
             break;
-        
         default:
             throw std::runtime_error("Invalid OutputVariable for PrecursorWriter");
             break;

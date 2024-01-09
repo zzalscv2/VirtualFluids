@@ -168,7 +168,7 @@ public:
 
     virtual ~Probe();
 
-    void init();
+    void init() override;
     void sample(int level, uint t) override;
 
     SPtr<ProbeStruct> getProbeStruct(int level){ return this->probeParams[level]; }

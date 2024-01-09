@@ -34,8 +34,10 @@
 //! \brief Base class for all samplers
 //=======================================================================================
 
-#ifndef SAMPLER_H_
-#define SAMPLER_H_
+#ifndef SAMPLER_H
+#define SAMPLER_H
+
+#include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
 
 class Parameter;
