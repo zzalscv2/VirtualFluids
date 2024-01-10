@@ -321,7 +321,7 @@ void PlanarAverageProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint
     thrust::device_ptr<real> nut_thrust = thrust::device_pointer_cast(para->getParD(level)->turbViscosity);
 
     real N = (real)probeStruct->nIndices;
-    real invNumberOfTimestepsInTmpAvg = c1o1/real(probeStruct->timestepInTimeAverage+1);
+    real invNumberOfTimestepsInTmpAvg = c1o1/real(probeStruct->numberOfAveragedValues+1);
     uint nPoints = probeStruct->nPoints;
     // Permutation iterators for direct iteration over the velocities of the planes
     typedef thrust::device_vector<real>::iterator valIterator;

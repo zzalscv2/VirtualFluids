@@ -121,7 +121,7 @@ void PlaneProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int 
     const GridParams gridParams = getGridParams(probeStruct.get(), para->getParD(level).get());
     const ProbeArray probeArray = getProbeArray(probeStruct.get());
     vf::cuda::CudaGrid grid = vf::cuda::CudaGrid(para->getParH(level)->numberofthreads, probeStruct->nPoints);
-    calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->nTimesteps, gridParams, probeArray);
+    calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->numberOfAveragedValues, gridParams, probeArray);
 }
 
 void PlaneProbe::getTaggedFluidNodes(GridProvider* gridProvider)

@@ -108,7 +108,7 @@ struct ProbeStruct
     uint nPoints, nIndices, nArrays;
     uint nTimesteps = 1;
     uint timestepInTimeseries = 0;
-    uint timestepInTimeAverage = 0;
+    uint numberOfAveragedValues = 0;
     uint lastTimestepInOldTimeseries = 0;
     uint *pointIndicesH, *pointIndicesD;
     real *pointCoordsX, *pointCoordsY, *pointCoordsZ;
@@ -125,6 +125,7 @@ struct GridParams
     uint* gridNodeIndices;
     real *velocityX, *velocityY, *velocityZ, *density;
 };
+
 GridParams getGridParams(ProbeStruct* probeStruct, LBMSimulationParameter* para);
 
 struct ProbeArray
@@ -134,6 +135,7 @@ struct ProbeArray
     bool* statistics;
     uint numberOfPoints;
 };
+
 ProbeArray getProbeArray(ProbeStruct* probeStruct);
 
 struct InterpolationParams
@@ -141,25 +143,27 @@ struct InterpolationParams
     real *distanceX, *distanceY, *distanceZ;
     uint *neighborX, *neighborY, *neighborZ;
 };
+
 InterpolationParams getInterpolationParams(ProbeStruct* probeStruct, LBMSimulationParameter* para);
 
 struct TimeseriesParams
 {
     uint lastTimestep, numberOfTimesteps;
 };
+
 TimeseriesParams getTimeseriesParams(ProbeStruct* probeStruct);
 
 __host__ __device__ int calcArrayIndex(int node, int nNodes, int timestep, int nTimesteps, int array);
 
-__global__ void calculateQuantitiesKernel(uint lastCount, GridParams gridParams, ProbeArray array);
+__global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array);
 
-__global__ void interpolateAndCalculateQuantitiesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+__global__ void interpolateAndCalculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
                                                    InterpolationParams interpolationParams);
 
-__global__ void calculateQuantitiesInTimeseriesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+__global__ void calculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
                                                       TimeseriesParams timeseriesParams);
 
-__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
                                                                     InterpolationParams interpolationParams,
                                                                     TimeseriesParams timeseriesParams);
 

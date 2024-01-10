@@ -73,10 +73,10 @@ __host__ __device__ real computeMean(real oldMean, real newValue, real inverseCo
     return oldMean + (newValue - oldMean) * inverseCount;
 }
 
-__host__ __device__ real computeVariance(real oldVariance, real oldMean, real newMean, real currentValue, uint lastCount,
+__host__ __device__ real computeVariance(real oldVariance, real oldMean, real newMean, real currentValue, uint numberOfAveragedValues,
                                          real inverseCount)
 {
-    return lastCount * oldVariance + (currentValue - oldMean) * (currentValue - newMean) * inverseCount;
+    return numberOfAveragedValues * oldVariance + (currentValue - oldMean) * (currentValue - newMean) * inverseCount;
 }
 
 __device__ real computeAndSaveMean(real* quantityArray, real oldValue, uint index, real currentValue, real invCount)
@@ -87,77 +87,19 @@ __device__ real computeAndSaveMean(real* quantityArray, real oldValue, uint inde
 }
 
 __device__ real computeAndSaveVariance(real* quantityArray, real oldVariance, uint indexNew, real currentValue, real oldMean,
-                                       real newMean, uint lastCount, real inverseCount)
+                                       real newMean, uint numberOfAveragedValues, real inverseCount)
 {
-    const real newVariance = computeVariance(oldVariance, oldMean, newMean, currentValue, lastCount, inverseCount);
+    const real newVariance = computeVariance(oldVariance, oldMean, newMean, currentValue, numberOfAveragedValues, inverseCount);
     quantityArray[indexNew] = newVariance;
     return newVariance;
 }
 
-__device__ void calculatePointwiseQuantitiesInTimeseries(uint lastCount, TimeseriesParams timeseriesParams, ProbeArray array,
-                                                         uint node, real vx, real vy, real vz, real rho)
-{
-    const uint currentTimestep = timeseriesParams.lastTimestep + 1;
-    const uint nTimesteps = timeseriesParams.numberOfTimesteps;
-    const uint lastTimestep = timeseriesParams.lastTimestep;
-    const real invCount = c1o1 / real(lastCount + 1);
-    const real nPoints = array.numberOfPoints;
-
-    if (array.statistics[int(Statistic::Instantaneous)]) {
-        const uint arrayOffset = array.offsets[int(Statistic::Instantaneous)];
-        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 0)] = vx;
-        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 1)] = vy;
-        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 2)] = vz;
-        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 3)] = rho;
-    }
-
-    if (array.statistics[int(Statistic::Means)]) {
-
-        real vxMeanOld, vxMeanNew, vyMeanOld, vyMeanNew, vzMeanOld, vzMeanNew, rhoMeanOld, rhoMeanNew;
-        {
-            const uint arrayOffset = array.offsets[int(Statistic::Means)];
-            const uint indexVx = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 0);
-            const uint indexVy = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 1);
-            const uint indexVz = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 2);
-            const uint indexRho = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 3);
-
-            vxMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 0)];
-            vyMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 1)];
-            vzMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 2)];
-            rhoMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 3)];
-
-            vxMeanNew = computeAndSaveMean(array.data, vxMeanOld, indexVx, vx, invCount);
-            vyMeanNew = computeAndSaveMean(array.data, vyMeanOld, indexVy, vy, invCount);
-            vzMeanNew = computeAndSaveMean(array.data, vzMeanOld, indexVz, vz, invCount);
-            rhoMeanNew = computeAndSaveMean(array.data, rhoMeanOld, indexRho, rho, invCount);
-        }
-
-        if (array.statistics[int(Statistic::Variances)]) {
-            const uint arrayOffset = array.offsets[int(Statistic::Variances)];
-            const uint indexVx = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 0);
-            const uint indexVy = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 1);
-            const uint indexVz = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 2);
-            const uint indexRho = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 3);
-
-            const real vxVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 0)];
-            const real vyVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 1)];
-            const real vzVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 2)];
-            const real rhoVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 3)];
-
-            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, vx, vxMeanOld, vxMeanNew, lastCount, invCount);
-            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, vy, vyMeanOld, vyMeanNew, lastCount, invCount);
-            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, vz, vzMeanOld, vzMeanNew, lastCount, invCount);
-            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, rho, rhoMeanOld, rhoMeanNew, lastCount, invCount);
-        }
-    }
-}
-
-__device__ void calculatePointwiseQuantities(uint lastCount, ProbeArray array, uint node, real velocityX, real velocityY,
+__device__ void calculatePointwiseQuantities(uint numberOfAveragedValues, ProbeArray array, uint node, real velocityX, real velocityY,
                                              real velocityZ, real density)
 {
     //"https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm"
     // also has extensions for higher order and covariances
-    const real invCount = c1o1 / real(lastCount + 1);
+    const real invCount = c1o1 / real(numberOfAveragedValues + 1);
     const uint nPoints = array.numberOfPoints;
 
     if (array.statistics[int(Statistic::Instantaneous)]) {
@@ -201,16 +143,75 @@ __device__ void calculatePointwiseQuantities(uint lastCount, ProbeArray array, u
             const real vzVarianceOld = array.data[indexVz];
             const real rhoVarianceOld = array.data[indexRho];
 
-            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, velocityX, vxMeanOld, vxMeanNew, lastCount, invCount);
-            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, velocityY, vyMeanOld, vyMeanNew, lastCount, invCount);
-            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, velocityZ, vzMeanOld, vzMeanNew, lastCount, invCount);
-            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, density, rhoMeanOld, rhoMeanNew, lastCount,
+            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, velocityX, vxMeanOld, vxMeanNew, numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, velocityY, vyMeanOld, vyMeanNew, numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, velocityZ, vzMeanOld, vzMeanNew, numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, density, rhoMeanOld, rhoMeanNew, numberOfAveragedValues,
                                    invCount);
         }
     }
 }
 
-__global__ void calculateQuantitiesKernel(uint lastCount, GridParams gridParams, ProbeArray array)
+__device__ void calculatePointwiseQuantitiesInTimeseries(uint numberOfAveragedValues, TimeseriesParams timeseriesParams, ProbeArray array,
+                                                         uint node, real vx, real vy, real vz, real rho)
+{
+    const uint currentTimestep = timeseriesParams.lastTimestep + 1;
+    const uint nTimesteps = timeseriesParams.numberOfTimesteps;
+    const uint lastTimestep = timeseriesParams.lastTimestep;
+    const real invCount = c1o1 / real(numberOfAveragedValues + 1);
+    const real nPoints = array.numberOfPoints;
+
+    if (array.statistics[int(Statistic::Instantaneous)]) {
+        const uint arrayOffset = array.offsets[int(Statistic::Instantaneous)];
+        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 0)] = vx;
+        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 1)] = vy;
+        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 2)] = vz;
+        array.data[calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 3)] = rho;
+    }
+
+    if (array.statistics[int(Statistic::Means)]) {
+
+        real vxMeanOld, vxMeanNew, vyMeanOld, vyMeanNew, vzMeanOld, vzMeanNew, rhoMeanOld, rhoMeanNew;
+        {
+            const uint arrayOffset = array.offsets[int(Statistic::Means)];
+            const uint indexVx = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 0);
+            const uint indexVy = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 1);
+            const uint indexVz = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 2);
+            const uint indexRho = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 3);
+
+            vxMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 0)];
+            vyMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 1)];
+            vzMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 2)];
+            rhoMeanOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 3)];
+
+            vxMeanNew = computeAndSaveMean(array.data, vxMeanOld, indexVx, vx, invCount);
+            vyMeanNew = computeAndSaveMean(array.data, vyMeanOld, indexVy, vy, invCount);
+            vzMeanNew = computeAndSaveMean(array.data, vzMeanOld, indexVz, vz, invCount);
+            rhoMeanNew = computeAndSaveMean(array.data, rhoMeanOld, indexRho, rho, invCount);
+        }
+
+        if (array.statistics[int(Statistic::Variances)]) {
+            const uint arrayOffset = array.offsets[int(Statistic::Variances)];
+            const uint indexVx = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 0);
+            const uint indexVy = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 1);
+            const uint indexVz = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 2);
+            const uint indexRho = calcArrayIndex(node, nPoints, currentTimestep, nTimesteps, arrayOffset + 3);
+
+            const real vxVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 0)];
+            const real vyVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 1)];
+            const real vzVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 2)];
+            const real rhoVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 3)];
+
+            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, vx, vxMeanOld, vxMeanNew, numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, vy, vyMeanOld, vyMeanNew, numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, vz, vzMeanOld, vzMeanNew, numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, rho, rhoMeanOld, rhoMeanNew, numberOfAveragedValues, invCount);
+        }
+    }
+}
+
+
+__global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array)
 {
     const uint nodeIndex = vf::gpu::getNodeIndex();
 
@@ -219,12 +220,12 @@ __global__ void calculateQuantitiesKernel(uint lastCount, GridParams gridParams,
 
     const uint gridNodeIndex = gridParams.gridNodeIndices[nodeIndex];
 
-    calculatePointwiseQuantities(lastCount, array, nodeIndex, gridParams.velocityX[gridNodeIndex],
+    calculatePointwiseQuantities(numberOfAveragedValues, array, nodeIndex, gridParams.velocityX[gridNodeIndex],
                                  gridParams.velocityY[gridNodeIndex], gridParams.velocityZ[gridNodeIndex],
                                  gridParams.density[gridNodeIndex]);
 }
 
-__global__ void interpolateAndCalculateQuantitiesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+__global__ void interpolateAndCalculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
                                                         InterpolationParams interpolationParams)
 {
     const uint node = vf::gpu::getNodeIndex();
@@ -232,29 +233,29 @@ __global__ void interpolateAndCalculateQuantitiesKernel(uint lastCount, GridPara
     if (node >= array.numberOfPoints)
         return;
 
-    const uint index_MMM = gridParams.gridNodeIndices[node];
+    const uint k_MMM = gridParams.gridNodeIndices[node];
 
-    uint index_PMM, index_MPM, index_MMP, index_PPM, index_PMP, index_MPP, index_PPP;
-    getNeighborIndicesOfBSW(index_MMM, index_PMM, index_MPM, index_MMP, index_PPM, index_PMP, index_MPP, index_PPP,
-                            interpolationParams.neighborX, interpolationParams.neighborY, interpolationParams.neighborZ);
+    uint k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP;
+    getNeighborIndicesOfBSW(k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, interpolationParams.neighborX,
+                            interpolationParams.neighborY, interpolationParams.neighborZ);
 
     const real dXM = interpolationParams.distanceX[node];
     const real dYM = interpolationParams.distanceY[node];
     const real dZM = interpolationParams.distanceZ[node];
 
-    const real velocityX = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                  index_PMP, index_MPP, index_PPP, gridParams.velocityX);
-    const real velocityY = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                  index_PMP, index_MPP, index_PPP, gridParams.velocityY);
-    const real velocityZ = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                  index_PMP, index_MPP, index_PPP, gridParams.velocityZ);
-    const real density = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                index_PMP, index_MPP, index_PPP, gridParams.density);
+    const real velocityX =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.velocityX);
+    const real velocityY =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.velocityY);
+    const real velocityZ =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.velocityZ);
+    const real density =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.density);
 
-    calculatePointwiseQuantities(lastCount, array, node, velocityX, velocityY, velocityZ, density);
+    calculatePointwiseQuantities(numberOfAveragedValues, array, node, velocityX, velocityY, velocityZ, density);
 }
 
-__global__ void calculateQuantitiesKernelInTimeseries(uint lastCount, GridParams gridParams, ProbeArray array,
+__global__ void calculateQuantitiesKernelInTimeseries(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
                                                       TimeseriesParams timeseriesParams)
 {
     const uint nodeIndex = vf::gpu::getNodeIndex();
@@ -264,12 +265,12 @@ __global__ void calculateQuantitiesKernelInTimeseries(uint lastCount, GridParams
 
     const uint gridNodeIndex = gridParams.gridNodeIndices[nodeIndex];
 
-    calculatePointwiseQuantitiesInTimeseries(lastCount, timeseriesParams, array, nodeIndex,
+    calculatePointwiseQuantitiesInTimeseries(numberOfAveragedValues, timeseriesParams, array, nodeIndex,
                                              gridParams.velocityX[gridNodeIndex], gridParams.velocityY[gridNodeIndex],
                                              gridParams.velocityZ[gridNodeIndex], gridParams.density[gridNodeIndex]);
 }
 
-__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
                                                                     InterpolationParams interpolationParams,
                                                                     TimeseriesParams timeseriesParams)
 {
@@ -278,26 +279,26 @@ __global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint lastCou
     if (node >= array.numberOfPoints)
         return;
 
-    const uint index_MMM = gridParams.gridNodeIndices[node];
+    const uint k_MMM = gridParams.gridNodeIndices[node];
 
-    uint index_PMM, index_MPM, index_MMP, index_PPM, index_PMP, index_MPP, index_PPP;
-    getNeighborIndicesOfBSW(index_MMM, index_PMM, index_MPM, index_MMP, index_PPM, index_PMP, index_MPP, index_PPP,
-                            interpolationParams.neighborX, interpolationParams.neighborY, interpolationParams.neighborZ);
+    uint k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP;
+    getNeighborIndicesOfBSW(k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, interpolationParams.neighborX,
+                            interpolationParams.neighborY, interpolationParams.neighborZ);
 
     const real dXM = interpolationParams.distanceX[node];
     const real dYM = interpolationParams.distanceY[node];
     const real dZM = interpolationParams.distanceZ[node];
 
-    const real velocityX = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                  index_PMP, index_MPP, index_PPP, gridParams.velocityX);
-    const real velocityY = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                  index_PMP, index_MPP, index_PPP, gridParams.velocityY);
-    const real velocityZ = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                  index_PMP, index_MPP, index_PPP, gridParams.velocityZ);
-    const real density = trilinearInterpolation(dXM, dYM, dZM, index_MMM, index_PMM, index_MPM, index_MMP, index_PPM,
-                                                index_PMP, index_MPP, index_PPP, gridParams.density);
+    const real velocityX =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.velocityX);
+    const real velocityY =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.velocityY);
+    const real velocityZ =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.velocityZ);
+    const real density =
+        trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.density);
 
-    calculatePointwiseQuantitiesInTimeseries(lastCount, timeseriesParams, array, node, velocityX, velocityY, velocityZ,
+    calculatePointwiseQuantitiesInTimeseries(numberOfAveragedValues, timeseriesParams, array, node, velocityX, velocityY, velocityZ,
                                              density);
 }
 
@@ -426,7 +427,7 @@ void Probe::sample(int level, uint t)
         this->calculateQuantities(probeStruct, t_level, level);
 
         if (t > this->tStartTmpAveraging)
-            probeStruct->timestepInTimeAverage++;
+            probeStruct->numberOfAveragedValues++;
         if (this->outputTimeSeries && (t_level >= tStartOut_level))
             probeStruct->timestepInTimeseries++;
     }

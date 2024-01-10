@@ -124,9 +124,9 @@ void PointProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int 
     if (outputTimeSeries) {
         TimeseriesParams timeseriesParams = getTimeseriesParams(probeStruct.get());
         interpolateAndCalculateQuantitiesInTimeseriesKernel<<<grid.grid, grid.threads>>>(
-            probeStruct->nTimesteps, gridParams, probeArray, interpolationParams, timeseriesParams);
+            probeStruct->numberOfAveragedValues, gridParams, probeArray, interpolationParams, timeseriesParams);
     } else {
-        interpolateAndCalculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->nTimesteps, gridParams, probeArray,
+        interpolateAndCalculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->numberOfAveragedValues, gridParams, probeArray,
                                                                              interpolationParams);
     }
 }
