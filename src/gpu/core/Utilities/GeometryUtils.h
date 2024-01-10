@@ -87,8 +87,8 @@ __inline__ __host__ __device__ real trilinearInterpolation( real dXM, real dYM, 
     const real dYP = c1o1 - dYM;
     const real dZP = c1o1 - dZM;
     return  dXP*dYP*dZP*quantity[kMMM] + dXM*dYP*dZP*quantity[kPMM]
-          + dXP*dYM*dZP*quantity[kMPM] + dXM*dYM*dZP*quantity[kPMP]
-          + dXP*dYP*dZM*quantity[kMMP] + dXM*dYP*dZM*quantity[kPMP]
+          + dXP*dYM*dZP*quantity[kMPM] + dXP*dYP*dZM*quantity[kMMP]
+          + dXM*dYM*dZP*quantity[kPPM] + dXM*dYP*dZM*quantity[kPMP]
           + dXP*dYM*dZM*quantity[kMPP] + dXM*dYM*dZM*quantity[kPPP];
 }
 
