@@ -42,17 +42,17 @@
 
 using namespace vf::basics::constant;
 
-__inline__ __host__ __device__ void getNeighborIndicesOfBSW(  uint k, //index of dMMM node
-                                        uint &ke, uint &kn, uint &kt, uint &kne, uint &kte,uint &ktn, uint &ktne,
-                                        const uint* neighborX, const uint* neighborY, const uint* neighborZ)
+__inline__ __host__ __device__ void getNeighborIndicesOfBSW(uint k_MMM, uint& k_PMM, uint& k_MPM, uint& k_MMP, uint& k_PPM,
+                                                            uint& k_PMP, uint& k_MPP, uint& k_PPP, const uint* neighborX,
+                                                            const uint* neighborY, const uint* neighborZ)
 {
-    ke   = neighborX[k];
-    kn   = neighborY[k];
-    kt   = neighborZ[k];
-    kne  = neighborY[ke];
-    kte  = neighborZ[ke];
-    ktn  = neighborZ[kn];
-    ktne = neighborX[ktn];
+    k_PMM = neighborX[k_MMM];
+    k_MPM = neighborY[k_MMM];
+    k_MMP = neighborZ[k_MMM];
+    k_PPM = neighborY[k_PMM];
+    k_PMP = neighborZ[k_PMM];
+    k_MPP = neighborZ[k_MPM];
+    k_PPP = neighborX[k_MPP];
 }
 
 __inline__ __host__ __device__ uint findNearestCellBSW(const uint index, 
