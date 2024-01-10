@@ -29,24 +29,25 @@
 //! \addtogroup gpu_PreCollisionInteractor PreCollisionInteractor
 //! \ingroup gpu_core core
 //! \{
-#include "Probe.h"
 #include "PlaneProbe.h"
+#include "Probe.h"
+
+#include <stdexcept>
 
 #include <cuda_helper/CudaGrid.h>
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <helper_cuda.h>
+#include <basics/DataTypes.h>
+#include <basics/constants/NumericConstants.h>
 
-#include "Parameter/Parameter.h"
-#include "DataStructureInitializer/GridProvider.h"
 #include "Cuda/CudaMemoryManager.h"
+#include "DataStructureInitializer/GridProvider.h"
+#include "Parameter/Parameter.h"
 
+using namespace vf::basics::constant;
 
 bool PlaneProbe::isAvailableStatistic(Statistic variable)
 {
-    switch (variable)
-    {
+    switch (variable) {
         case Statistic::Instantaneous:
         case Statistic::Means:
         case Statistic::Variances:
@@ -56,63 +57,62 @@ bool PlaneProbe::isAvailableStatistic(Statistic variable)
     }
 }
 
-
 std::vector<PostProcessingVariable> PlaneProbe::getPostProcessingVariables(Statistic statistic)
 {
     std::vector<PostProcessingVariable> postProcessingVariables;
-    switch (statistic)
-    {
-    case Statistic::Instantaneous:
-        postProcessingVariables.emplace_back("vx",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vy",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vz",  this->velocityRatio);
-        postProcessingVariables.emplace_back("rho", this->densityRatio );
-        break;
-    case Statistic::Means:
-        postProcessingVariables.emplace_back("vx_mean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vy_mean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vz_mean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("rho_mean", this->densityRatio );
-        break;
-    case Statistic::Variances:
-        postProcessingVariables.emplace_back("vx_var",  this->stressRatio);
-        postProcessingVariables.emplace_back("vy_var",  this->stressRatio);
-        postProcessingVariables.emplace_back("vz_var",  this->stressRatio);
-        postProcessingVariables.emplace_back("rho_var", this->densityRatio);
-        break;
+    switch (statistic) {
+        case Statistic::Instantaneous:
+            postProcessingVariables.emplace_back("vx", this->velocityRatio);
+            postProcessingVariables.emplace_back("vy", this->velocityRatio);
+            postProcessingVariables.emplace_back("vz", this->velocityRatio);
+            postProcessingVariables.emplace_back("rho", this->densityRatio);
+            break;
+        case Statistic::Means:
+            postProcessingVariables.emplace_back("vx_mean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vy_mean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vz_mean", this->velocityRatio);
+            postProcessingVariables.emplace_back("rho_mean", this->densityRatio);
+            break;
+        case Statistic::Variances:
+            postProcessingVariables.emplace_back("vx_var", this->stressRatio);
+            postProcessingVariables.emplace_back("vy_var", this->stressRatio);
+            postProcessingVariables.emplace_back("vz_var", this->stressRatio);
+            postProcessingVariables.emplace_back("rho_var", this->densityRatio);
+            break;
 
-    default:
-        throw std::runtime_error("PlaneProbe::getPostProcessingVariables: Statistic unavailable!");
-        break;
+        default:
+            throw std::runtime_error("PlaneProbe::getPostProcessingVariables: Statistic unavailable!");
+            break;
     }
     return postProcessingVariables;
 }
 
-void PlaneProbe::findPoints(std::vector<int>& probeIndices_level,
-                            std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
-                            std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
-                            int level)
+void PlaneProbe::findPoints(std::vector<int>& probeIndices_level, std::vector<real>& distX_level,
+                            std::vector<real>& distY_level, std::vector<real>& distZ_level,
+                            std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level,
+                            std::vector<real>& pointCoordsZ_level, int level)
 {
-    real dx = abs(para->getParH(level)->coordinateX[1]-para->getParH(level)->coordinateX[para->getParH(level)->neighborX[1]]);
-    for(size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++ )
-    {
-        real pointCoordX = para->getParH(level)->coordinateX[pos];
-        real pointCoordY = para->getParH(level)->coordinateY[pos];
-        real pointCoordZ = para->getParH(level)->coordinateZ[pos];
-        real distX = pointCoordX - this->posX;
-        real distY = pointCoordY - this->posY;
-        real distZ = pointCoordZ - this->posZ;
+    const real* coordinateX = para->getParH(level)->coordinateX;
+    const real* coordinateY = para->getParH(level)->coordinateY;
+    const real* coordinateZ = para->getParH(level)->coordinateZ;
+    const real deltaX = coordinateX[para->getParH(level)->neighborX[1]] - coordinateX[1];
+    for (size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
+        const real pointCoordX = para->getParH(level)->coordinateX[pos];
+        const real pointCoordY = para->getParH(level)->coordinateY[pos];
+        const real pointCoordZ = para->getParH(level)->coordinateZ[pos];
+        const real distX = pointCoordX - this->posX;
+        const real distY = pointCoordY - this->posY;
+        const real distZ = pointCoordZ - this->posZ;
 
-        if( distX <= this->deltaX && distY <= this->deltaY && distZ <= this->deltaZ &&
-            distX >=0.f && distY >=0.f && distZ >=0.f)
-        {
+        if (distX <= this->deltaX && distY <= this->deltaY && distZ <= this->deltaZ && distX >= c0o1 && distY >= c0o1 &&
+            distZ >= c0o1) {
             probeIndices_level.push_back((int)pos);
-            distX_level.push_back( distX/dx );
-            distY_level.push_back( distY/dx );
-            distZ_level.push_back( distZ/dx );
-            pointCoordsX_level.push_back( pointCoordX );
-            pointCoordsY_level.push_back( pointCoordY );
-            pointCoordsZ_level.push_back( pointCoordZ );
+            distX_level.push_back(distX / deltaX);
+            distY_level.push_back(distY / deltaX);
+            distZ_level.push_back(distZ / deltaX);
+            pointCoordsX_level.push_back(pointCoordX);
+            pointCoordsY_level.push_back(pointCoordY);
+            pointCoordsZ_level.push_back(pointCoordZ);
         }
     }
 }
@@ -120,30 +120,18 @@ void PlaneProbe::findPoints(std::vector<int>& probeIndices_level,
 void PlaneProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level)
 {
     vf::cuda::CudaGrid grid = vf::cuda::CudaGrid(para->getParH(level)->numberofthreads, probeStruct->nPoints);
-    calcQuantitiesKernel<<<grid.grid, grid.threads>>>(  probeStruct->pointIndicesD,
-                                                        probeStruct->nPoints,
-                                                        0,
-                                                        0,
-                                                        probeStruct->timestepInTimeAverage,
-                                                        probeStruct->nTimesteps,
-                                                        para->getParD(level)->velocityX,
-                                                        para->getParD(level)->velocityY,
-                                                        para->getParD(level)->velocityZ,
-                                                        para->getParD(level)->rho,
-
-                                                        probeStruct->quantitiesD,
-                                                        probeStruct->arrayOffsetsD,
-                                                        probeStruct->quantitiesArrayD
-                                                        );
+    calcQuantitiesKernel<<<grid.grid, grid.threads>>>(
+        probeStruct->pointIndicesD, probeStruct->nPoints, 0, 0, probeStruct->timestepInTimeAverage, probeStruct->nTimesteps,
+        para->getParD(level)->velocityX, para->getParD(level)->velocityY, para->getParD(level)->velocityZ,
+        para->getParD(level)->rho, probeStruct->quantitiesD, probeStruct->arrayOffsetsD, probeStruct->quantitiesArrayD);
 }
 
 void PlaneProbe::getTaggedFluidNodes(GridProvider* gridProvider)
 {
-    for(int level=0; level<=para->getMaxLevel(); level++)
-    {
+    for (int level = 0; level <= para->getMaxLevel(); level++) {
         SPtr<ProbeStruct> probeStruct = this->getProbeStruct(level);
-        std::vector<uint> probeIndices( probeStruct->pointIndicesH, probeStruct->pointIndicesH+probeStruct->nIndices);
-        gridProvider->tagFluidNodeIndices( probeIndices, CollisionTemplate::WriteMacroVars, level);
+        std::vector<uint> probeIndices(probeStruct->pointIndicesH, probeStruct->pointIndicesH + probeStruct->nIndices);
+        gridProvider->tagFluidNodeIndices(probeIndices, CollisionTemplate::WriteMacroVars, level);
     }
 }
 //! \}
