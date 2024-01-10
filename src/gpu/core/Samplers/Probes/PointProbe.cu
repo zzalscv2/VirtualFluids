@@ -118,16 +118,17 @@ void PointProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int 
 {
     vf::cuda::CudaGrid grid = vf::cuda::CudaGrid(para->getParH(level)->numberofthreads, probeStruct->nPoints);
 
-    int oldTimestepInTimeseries = this->outputTimeSeries ? calcOldTimestep(probeStruct->timestepInTimeseries, probeStruct->lastTimestepInOldTimeseries) : 0;
-    int currentTimestep = this->outputTimeSeries ? probeStruct->timestepInTimeseries : 0;
-
-    interpAndCalcQuantitiesKernel<<<grid.grid, grid.threads>>>(
-        probeStruct->pointIndicesD, probeStruct->nPoints, oldTimestepInTimeseries, currentTimestep,
-        probeStruct->timestepInTimeAverage, probeStruct->nTimesteps, probeStruct->distXD, probeStruct->distYD,
-        probeStruct->distZD, para->getParD(level)->velocityX, para->getParD(level)->velocityY,
-        para->getParD(level)->velocityZ, para->getParD(level)->rho, para->getParD(level)->neighborX,
-        para->getParD(level)->neighborY, para->getParD(level)->neighborZ, probeStruct->quantitiesD,
-        probeStruct->arrayOffsetsD, probeStruct->quantitiesArrayD);
+    InterpolationParams interpolationParams = getInterpolationParams(probeStruct.get(), para->getParD(level).get());
+    GridParams gridParams = getGridParams(probeStruct.get(), para->getParD(level).get());
+    ProbeArray probeArray = getProbeArray(probeStruct.get());
+    if (outputTimeSeries) {
+        TimeseriesParams timeseriesParams = getTimeseriesParams(probeStruct.get());
+        interpolateAndCalculateQuantitiesInTimeseriesKernel<<<grid.grid, grid.threads>>>(
+            probeStruct->nTimesteps, gridParams, probeArray, interpolationParams, timeseriesParams);
+    } else {
+        interpolateAndCalculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->nTimesteps, gridParams, probeArray,
+                                                                             interpolationParams);
+    }
 }
 
 void PointProbe::addProbePoint(real pointCoordX, real pointCoordY, real pointCoordZ)

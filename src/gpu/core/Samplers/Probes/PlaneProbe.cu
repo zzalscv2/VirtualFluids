@@ -87,10 +87,9 @@ std::vector<PostProcessingVariable> PlaneProbe::getPostProcessingVariables(Stati
     return postProcessingVariables;
 }
 
-void PlaneProbe::findPoints(std::vector<int>& probeIndices_level, std::vector<real>& distX_level,
-                            std::vector<real>& distY_level, std::vector<real>& distZ_level,
-                            std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level,
-                            std::vector<real>& pointCoordsZ_level, int level)
+void PlaneProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& distancesX, std::vector<real>& distancesY,
+                            std::vector<real>& distancesZ, std::vector<real>& pointCoordsX, std::vector<real>& pointCoordsY,
+                            std::vector<real>& pointCoordsZ, int level)
 {
     const real* coordinateX = para->getParH(level)->coordinateX;
     const real* coordinateY = para->getParH(level)->coordinateY;
@@ -100,30 +99,29 @@ void PlaneProbe::findPoints(std::vector<int>& probeIndices_level, std::vector<re
         const real pointCoordX = para->getParH(level)->coordinateX[pos];
         const real pointCoordY = para->getParH(level)->coordinateY[pos];
         const real pointCoordZ = para->getParH(level)->coordinateZ[pos];
-        const real distX = pointCoordX - this->posX;
-        const real distY = pointCoordY - this->posY;
-        const real distZ = pointCoordZ - this->posZ;
+        const real distanceX = pointCoordX - this->posX;
+        const real distanceY = pointCoordY - this->posY;
+        const real distanceZ = pointCoordZ - this->posZ;
 
-        if (distX <= this->deltaX && distY <= this->deltaY && distZ <= this->deltaZ && distX >= c0o1 && distY >= c0o1 &&
-            distZ >= c0o1) {
-            probeIndices_level.push_back((int)pos);
-            distX_level.push_back(distX / deltaX);
-            distY_level.push_back(distY / deltaX);
-            distZ_level.push_back(distZ / deltaX);
-            pointCoordsX_level.push_back(pointCoordX);
-            pointCoordsY_level.push_back(pointCoordY);
-            pointCoordsZ_level.push_back(pointCoordZ);
+        if (distanceX <= this->deltaX && distanceY <= this->deltaY && distanceZ <= this->deltaZ && distanceX >= c0o1 &&
+            distanceY >= c0o1 && distanceZ >= c0o1) {
+            probeIndices.push_back((int)pos);
+            distancesX.push_back(distanceX / deltaX);
+            distancesY.push_back(distanceY / deltaX);
+            distancesZ.push_back(distanceZ / deltaX);
+            pointCoordsX.push_back(pointCoordX);
+            pointCoordsY.push_back(pointCoordY);
+            pointCoordsZ.push_back(pointCoordZ);
         }
     }
 }
 
 void PlaneProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level)
 {
+    const GridParams gridParams = getGridParams(probeStruct.get(), para->getParD(level).get());
+    const ProbeArray probeArray = getProbeArray(probeStruct.get());
     vf::cuda::CudaGrid grid = vf::cuda::CudaGrid(para->getParH(level)->numberofthreads, probeStruct->nPoints);
-    calcQuantitiesKernel<<<grid.grid, grid.threads>>>(
-        probeStruct->pointIndicesD, probeStruct->nPoints, 0, 0, probeStruct->timestepInTimeAverage, probeStruct->nTimesteps,
-        para->getParD(level)->velocityX, para->getParD(level)->velocityY, para->getParD(level)->velocityZ,
-        para->getParD(level)->rho, probeStruct->quantitiesD, probeStruct->arrayOffsetsD, probeStruct->quantitiesArrayD);
+    calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->nTimesteps, gridParams, probeArray);
 }
 
 void PlaneProbe::getTaggedFluidNodes(GridProvider* gridProvider)

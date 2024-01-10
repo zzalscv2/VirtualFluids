@@ -40,36 +40,42 @@
 
 #include "Samplers/Sampler.h"
 
-#include <functional>
-#include <string>
-#include <stdexcept>
 #include <cuda.h>
+#include <functional>
+#include <stdexcept>
+#include <string>
 
+#include "basics/writer/WbWriterVtkXmlBinary.h"
 #include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
-#include "basics/writer/WbWriterVtkXmlBinary.h"
+
+struct LBMSimulationParameter;
 
 //=======================================================================================
-//! \note How to add new Statistics 
-//! Generally, the Statistic enum refers to the type of statistic to be calculated. 
-//! It then depends on the derived probe class, which of these statistics are available. 
-//! Some type of statistics are only suitable for a certain probe class, others might 
+//! \note How to add new Statistics
+//! Generally, the Statistic enum refers to the type of statistic to be calculated.
+//! It then depends on the derived probe class, which of these statistics are available.
+//! Some type of statistics are only suitable for a certain probe class, others might
 //! simply not have been implemented, yet.
-//! For the same reasons it is also probe-specific, for which quantities (e.g. velocities, rho, etc.) these statistics are computed. 
-//! The specific quantity (e.g., mean of vx, or variance of rho) is defined as PostProcessingVariable in getPostProcessingVariables of each respective probe.
-//! PostProcessingVariable also holds the name and conversionFactor of the quantity that is required when writing the data to file
-//! 
+//! For the same reasons it is also probe-specific, for which quantities (e.g. velocities, rho, etc.) these statistics are
+//! computed. The specific quantity (e.g., mean of vx, or variance of rho) is defined as PostProcessingVariable in
+//! getPostProcessingVariables of each respective probe. PostProcessingVariable also holds the name and conversionFactor of
+//! the quantity that is required when writing the data to file
+//!
 //! To add new Statistics:
 //!     1. Add enum here, LAST has to stay last
-//!     2. For PointProbe and PlaneProbe: add the computation of the statistic in switch statement in calculatePointwiseQuantities. 
+//!     2. For PointProbe and PlaneProbe: add the computation of the statistic in switch statement in
+//!     calculatePointwiseQuantities.
 //!     3. For PlanarAverageProbe and WallModelProbe: add the computation directly in calculateQuantities.
-//!     4. In getPostProcessingVariables add the static in the switch statement and add the corresponding PostProcessingVariables
+//!     4. In getPostProcessingVariables add the static in the switch statement and add the corresponding
+//!     PostProcessingVariables
 //!     5. Add Statistic to isAvailableStatistic of the respective probe
 //!
-//!  When adding new quantities to existing statistics (e.g., add rho to PlanarAverageProbe which currently only computes stats of velocity) only do steps 2 to 4
+//!  When adding new quantities to existing statistics (e.g., add rho to PlanarAverageProbe which currently only computes
+//!  stats of velocity) only do steps 2 to 4
 //!
 
-enum class Statistic{ 
+enum class Statistic {
     // Variables currently available in Point and Plane probe (all temporal pointwise statistics)
     Instantaneous,
     Means,
@@ -89,23 +95,24 @@ enum class Statistic{
     LAST,
 };
 
-struct PostProcessingVariable{
+struct PostProcessingVariable
+{
     std::string name;
     std::function<real(int)> conversionFactor;
-    PostProcessingVariable( std::string name, 
-                            std::function<real(int)>  conversionFactor): 
-    name(name), conversionFactor(conversionFactor){};
+    PostProcessingVariable(std::string name, std::function<real(int)> conversionFactor)
+        : name(name), conversionFactor(conversionFactor) {};
 };
 
-struct ProbeStruct{
+struct ProbeStruct
+{
     uint nPoints, nIndices, nArrays;
-    uint nTimesteps=1;
-    uint timestepInTimeseries=0;
-    uint timestepInTimeAverage=0;
-    uint lastTimestepInOldTimeseries=0;
+    uint nTimesteps = 1;
+    uint timestepInTimeseries = 0;
+    uint timestepInTimeAverage = 0;
+    uint lastTimestepInOldTimeseries = 0;
     uint *pointIndicesH, *pointIndicesD;
     real *pointCoordsX, *pointCoordsY, *pointCoordsZ;
-    bool hasDistances=false;
+    bool hasDistances = false;
     real *distXH, *distYH, *distZH, *distXD, *distYD, *distZD;
     real *quantitiesArrayH, *quantitiesArrayD;
     bool *quantitiesH, *quantitiesD;
@@ -113,54 +120,64 @@ struct ProbeStruct{
     bool isEvenTAvg = true;
 };
 
+struct GridParams
+{
+    uint* gridNodeIndices;
+    real *velocityX, *velocityY, *velocityZ, *density;
+};
+GridParams getGridParams(ProbeStruct* probeStruct, LBMSimulationParameter* para);
+
+struct ProbeArray
+{
+    real* data;
+    uint* offsets;
+    bool* statistics;
+    uint numberOfPoints;
+};
+ProbeArray getProbeArray(ProbeStruct* probeStruct);
+
+struct InterpolationParams
+{
+    real *distanceX, *distanceY, *distanceZ;
+    uint *neighborX, *neighborY, *neighborZ;
+};
+InterpolationParams getInterpolationParams(ProbeStruct* probeStruct, LBMSimulationParameter* para);
+
+struct TimeseriesParams
+{
+    uint lastTimestep, numberOfTimesteps;
+};
+TimeseriesParams getTimeseriesParams(ProbeStruct* probeStruct);
+
 __host__ __device__ int calcArrayIndex(int node, int nNodes, int timestep, int nTimesteps, int array);
 
-__global__ void calcQuantitiesKernel(   uint* pointIndices,
-                                    uint nPoints, uint oldTimestepInTimeseries, uint timestepInTimeseries, uint timestepInAverage, uint nTimesteps,
-                                    real* vx, real* vy, real* vz, real* rho,
-                                    bool* quantities,
-                                    uint* quantityArrayOffsets, real* quantityArray
-                                );
+__global__ void calculateQuantitiesKernel(uint lastCount, GridParams gridParams, ProbeArray array);
 
-__global__ void interpAndCalcQuantitiesKernel(   uint* pointIndices,
-                                    uint nPoints, uint oldTimestepInTimeseries, uint timestepInTimeseries, uint timestepInAverage, uint nTimesteps,
-                                    real* distX, real* distY, real* distZ,
-                                    real* vx, real* vy, real* vz, real* rho,            
-                                    uint* neighborX, uint* neighborY, uint* neighborZ,
-                                    bool* quantities,
-                                    uint* quantityArrayOffsets, real* quantityArray
-                                );
+__global__ void interpolateAndCalculateQuantitiesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+                                                   InterpolationParams interpolationParams);
+
+__global__ void calculateQuantitiesInTimeseriesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+                                                      TimeseriesParams timeseriesParams);
+
+__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint lastCount, GridParams gridParams, ProbeArray array,
+                                                                    InterpolationParams interpolationParams,
+                                                                    TimeseriesParams timeseriesParams);
 
 uint calcOldTimestep(uint currentTimestep, uint lastTimestepInOldSeries);
 
 class Probe : public Sampler
 {
 public:
-    Probe(
-        SPtr<Parameter> para,
-        SPtr<CudaMemoryManager> cudaMemoryManager,
-        const std::string probeName,
-        const std::string outputPath,
-        const uint tStartAvg,
-        const uint tStartTmpAvg,
-        const uint tAvg,
-        const uint tStartOut,
-        const uint tOut,
-        const bool hasDeviceQuantityArray,
-        const bool outputTimeSeries
-    ):  
-        probeName(probeName),
-        outputPath(outputPath + (outputPath.back() == '/' ? "" : "/")),
-        tStartAvg(tStartAvg),
-        tStartTmpAveraging(tStartTmpAvg),
-        tAvg(tAvg),
-        tStartOut(tStartOut),
-        tOut(tOut),
-        hasDeviceQuantityArray(hasDeviceQuantityArray),
-        outputTimeSeries(outputTimeSeries),
-        Sampler(para, cudaMemoryManager)
+    Probe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
+          const std::string outputPath, const uint tStartAvg, const uint tStartTmpAvg, const uint tAvg, const uint tStartOut,
+          const uint tOut, const bool hasDeviceQuantityArray, const bool outputTimeSeries)
+        : probeName(probeName), outputPath(outputPath + (outputPath.back() == '/' ? "" : "/")), tStartAvg(tStartAvg),
+          tStartTmpAveraging(tStartTmpAvg), tAvg(tAvg), tStartOut(tStartOut), tOut(tOut),
+          hasDeviceQuantityArray(hasDeviceQuantityArray), outputTimeSeries(outputTimeSeries),
+          Sampler(para, cudaMemoryManager)
     {
-        if (tStartOut < tStartAvg) throw std::runtime_error("Probe: tStartOut must be larger than tStartAvg!");
+        if (tStartOut < tStartAvg)
+            throw std::runtime_error("Probe: tStartOut must be larger than tStartAvg!");
     }
 
     virtual ~Probe();
@@ -168,34 +185,48 @@ public:
     void init() override;
     void sample(int level, uint t) override;
 
-    SPtr<ProbeStruct> getProbeStruct(int level){ return this->probeParams[level]; }
+    SPtr<ProbeStruct> getProbeStruct(int level)
+    {
+        return this->probeParams[level];
+    }
 
     void addStatistic(Statistic variable);
     void addAllAvailableStatistics();
-    
-    bool getHasDeviceQuantityArray();
-    uint getTStartTmpAveraging(){return this->tStartTmpAveraging;}
 
-    void setFileNameToNOut(){this->fileNameLU = false;}
+    bool getHasDeviceQuantityArray();
+    uint getTStartTmpAveraging()
+    {
+        return this->tStartTmpAveraging;
+    }
+
+    void setFileNameToNOut()
+    {
+        this->fileNameLU = false;
+    }
 
 protected:
-    virtual WbWriterVtkXmlBinary* getWriter(){ return WbWriterVtkXmlBinary::getInstance(); };
+    virtual WbWriterVtkXmlBinary* getWriter()
+    {
+        return WbWriterVtkXmlBinary::getInstance();
+    };
     real getNondimensionalConversionFactor(int level);
+
 
 private:
     virtual bool isAvailableStatistic(Statistic variable) = 0;
 
     virtual std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) = 0;
-    std::vector<PostProcessingVariable> getPostProcessingVariables(int statistic){ return getPostProcessingVariables(static_cast<Statistic>(statistic)); };
+    std::vector<PostProcessingVariable> getPostProcessingVariables(int statistic)
+    {
+        return getPostProcessingVariables(static_cast<Statistic>(statistic));
+    };
 
-    virtual void findPoints(std::vector<int>& probeIndices_level,
-                       std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
-                       std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
-                       int level) = 0;
-    void addProbeStruct(std::vector<int>& probeIndices,
-                        std::vector<real>& distX, std::vector<real>& distY, std::vector<real>& distZ,   
-                        std::vector<real>& pointCoordsX, std::vector<real>& pointCoordsY, std::vector<real>& pointCoordsZ,
-                        int level);
+    virtual void findPoints(std::vector<int>& probeIndices, std::vector<real>& distancesX, std::vector<real>& distancesY,
+                            std::vector<real>& distancesZ, std::vector<real>& pointCoordsX, std::vector<real>& pointCoordsY,
+                            std::vector<real>& pointCoordsZ, int level) = 0;
+    void addProbeStruct(std::vector<int>& probeIndices, std::vector<real>& distX, std::vector<real>& distY,
+                        std::vector<real>& distZ, std::vector<real>& pointCoordsX, std::vector<real>& pointCoordsY,
+                        std::vector<real>& pointCoordsZ, int level);
     virtual void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) = 0;
 
     virtual void write(int level, int t);
@@ -209,7 +240,12 @@ private:
     std::string makeParallelFileName(int id, int t);
     std::string makeTimeseriesFileName(int leve, int id);
 
-    virtual uint getNumberOfTimestepsInTimeseries(int level){ return 1; }
+    virtual uint getNumberOfTimestepsInTimeseries(int level)
+    {
+        return 1;
+    }
+
+
 
 protected:
     const std::string probeName;
@@ -217,15 +253,25 @@ protected:
 
     std::vector<SPtr<ProbeStruct>> probeParams;
     bool quantities[int(Statistic::LAST)] = {};
-    const bool hasDeviceQuantityArray;    //!> flag initiating memCopy in Point and PlaneProbe. Other probes are only based on thrust reduce functions and therefore dont need explict memCopy in interact()
-    const bool outputTimeSeries;        //!> flag initiating time series output in Point and WallModelProbe.
+    //! flag initiating memCopy in Point and PlaneProbe. Other probes are only based on
+    //! thrust reduce functions and therefore dont need explict memCopy in interact()
+    const bool hasDeviceQuantityArray;
+
+    //! flag initiating time series output in Point and WallModelProbe.
+    const bool outputTimeSeries;
     std::vector<std::string> fileNamesForCollectionFile;
     std::vector<std::string> timeseriesFileNames;
 
-    bool fileNameLU = true; //!> if true, written file name contains time step in LU, else is the number of the written probe files
+    //! if true, written file name contains time step in LU, else is the number of the written probe files
+    bool fileNameLU = true;
     const uint tStartAvg;
-    const uint tStartTmpAveraging; //!> only non-zero in PlanarAverageProbe and WallModelProbe to switch on Spatio-temporal averaging (while only doing spatial averaging for t<tStartTmpAveraging) 
-    const uint tAvg;  //! for tAvg==1 the probe will be evaluated in every sub-timestep of each respective level, else, the probe will only be evaluated in each synchronous time step 
+
+    //! only non-zero in PlanarAverageProbe and WallModelProbe to switch on Spatio-temporal
+    //! averaging (while only doing spatial averaging for t<tStartTmpAveraging)
+    const uint tStartTmpAveraging;
+    //! for tAvg==1 the probe will be evaluated in every sub-timestep of each respective level, else, the
+    //! probe will only be evaluated in each synchronous time step
+    const uint tAvg;
     const uint tStartOut;
     const uint tOut;
 

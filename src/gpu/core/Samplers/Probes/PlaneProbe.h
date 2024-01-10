@@ -47,39 +47,23 @@
 
 class PlaneProbe : public Probe
 {
-public: 
-    PlaneProbe(
-        SPtr<Parameter> para,
-        SPtr<CudaMemoryManager> cudaMemoryManager,
-        const std::string probeName,
-        const std::string outputPath,
-        uint tStartAvg,
-        uint tAvg,
-        uint tStartOut,
-        uint tOut
-    ): Probe(para,
-        cudaMemoryManager,
-        probeName, 
-             outputPath,
-             tStartAvg, 
-             tStartAvg+1,
-             tAvg,
-             tStartOut, 
-             tOut,
-             true,
-             false)
-    {}
+public:
+    PlaneProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
+               const std::string outputPath, uint tStartAvg, uint tAvg, uint tStartOut, uint tOut)
+        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, tStartAvg + 1, tAvg, tStartOut, tOut, true, false)
+    {
+    }
 
     ~PlaneProbe() = default;
 
     void setProbePlane(real posX, real posY, real posZ, real deltaX, real deltaY, real deltaZ)
     {
-        this->posX = posX; 
-        this->posY = posY; 
-        this->posZ = posZ;         
-        this->deltaX = deltaX; 
-        this->deltaY = deltaY; 
-        this->deltaZ = deltaZ; 
+        this->posX = posX;
+        this->posY = posY;
+        this->posZ = posZ;
+        this->deltaX = deltaX;
+        this->deltaY = deltaY;
+        this->deltaZ = deltaZ;
     }
 
     void getTaggedFluidNodes(GridProvider* gridProvider) override;
@@ -89,10 +73,9 @@ private:
 
     std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) override;
 
-    void findPoints(std::vector<int>& probeIndices_level,
-                    std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
-                    std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
-                    int level) override;
+    void findPoints(std::vector<int>& probeIndices, std::vector<real>& distancesX, std::vector<real>& distancesY,
+                    std::vector<real>& distancesZ, std::vector<real>& pointCoordsX, std::vector<real>& pointCoordsY,
+                    std::vector<real>& pointCoordsZ, int level) override;
     void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
 
 private:

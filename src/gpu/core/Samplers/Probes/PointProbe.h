@@ -33,8 +33,8 @@
 //! \date 13/05/2022
 //! \brief Probe computing statistics for a set of points in space
 //!
-//! The set of points can be defined by providing a list or on an x-normal plane (the latter being somewhat redundant with PlaneProbe)
-//! All statistics are temporal.
+//! The set of points can be defined by providing a list or on an x-normal plane (the latter being somewhat redundant with
+//! PlaneProbe) All statistics are temporal.
 //!
 //=======================================================================================
 
@@ -43,47 +43,31 @@
 
 #include "Probe.h"
 
-class PointProbe: public Probe
+class PointProbe : public Probe
 {
 public:
-    PointProbe(
-        SPtr<Parameter> para,
-        SPtr<CudaMemoryManager> cudaMemoryManager,
-        const std::string probeName,
-        const std::string outputPath,
-        uint tStartAvg,
-        uint tAvg,
-        uint tStartOut,
-        uint tOut,
-        bool outputTimeseries = false
-    ): Probe(
-        para,
-        cudaMemoryManager,probeName, 
-             outputPath,
-             tStartAvg, 
-             0,
-             tAvg,
-             tStartOut, 
-             tOut,
-             true,
-             outputTimeseries)
-    {}
+    PointProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
+               const std::string outputPath, uint tStartAvg, uint tAvg, uint tStartOut, uint tOut,
+               bool outputTimeseries = false)
+        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, 0, tAvg, tStartOut, tOut, true, outputTimeseries)
+    {
+    }
 
     ~PointProbe() = default;
 
     void addProbePoint(real pointCoordX, real pointCoordY, real pointCoordZ);
-    void addProbePointsFromList(std::vector<real>& _pointCoordsX, std::vector<real>& _pointCoordsY, std::vector<real>& _pointCoordsZ);
+    void addProbePointsFromList(std::vector<real>& _pointCoordsX, std::vector<real>& _pointCoordsY,
+                                std::vector<real>& _pointCoordsZ);
     void getTaggedFluidNodes(GridProvider* gridProvider) override;
-    
+
 private:
     bool isAvailableStatistic(Statistic _variable) override;
 
     std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) override;
 
-    void findPoints(std::vector<int>& probeIndices_level,
-                    std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
-                    std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
-                    int level) override;
+    void findPoints(std::vector<int>& probeIndices, std::vector<real>& distancesX, std::vector<real>& distancesY,
+                    std::vector<real>& distancesZ, std::vector<real>& pointCoordsX, std::vector<real>& pointCoordsY,
+                    std::vector<real>& pointCoordsZ, int level) override;
 
     void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
 
