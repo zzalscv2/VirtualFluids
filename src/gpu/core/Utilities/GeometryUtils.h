@@ -38,6 +38,9 @@
 #include <cuda_runtime.h>
 
 #include <basics/DataTypes.h>
+#include <basics/constants/NumericConstants.h>
+
+using namespace vf::basics::constant;
 
 __inline__ __host__ __device__ void getNeighborIndicesOfBSW(  uint k, //index of dMMM node
                                         uint &ke, uint &kn, uint &kt, uint &kne, uint &kte,uint &ktn, uint &ktne,
@@ -76,25 +79,17 @@ __inline__ __host__ __device__ uint findNearestCellBSW(const uint index,
     return neighborsWSB[new_index];
 }
 
-__inline__ __host__ __device__ void getInterpolationWeights(real &dW, real &dE, real &dN, real &dS, real &dT, real &dB,
-                                        real tmpX, real tmpY, real tmpZ)
-{
-    dW = tmpX;      
-    dE = 1.f - dW;        
-    dS = tmpY;    
-    dN = 1.f - dS;      
-    dB = tmpZ;         
-    dT = 1.f - dB;     
-}
-
-__inline__ __host__ __device__ real trilinearInterpolation( real dW, real dE, real dN, real dS, real dT, real dB,
-                                        uint k,  uint ke, uint kn, uint kt, uint kne, uint kte, uint ktn, uint ktne,
+__inline__ __host__ __device__ real trilinearInterpolation( real dXM, real dYM, real dZM,
+                                        uint kMMM,  uint kPMM, uint kMPM, uint kMMP, uint kPPM, uint kPMP, uint kMPP, uint kPPP,
                                         const real* quantity )
 {
-    return  (   dE*dN*dT*quantity[k]    + dW*dN*dT*quantity[ke]
-              + dE*dS*dT*quantity[kn]   + dW*dS*dT*quantity[kne]
-              + dE*dN*dB*quantity[kt]   + dW*dN*dB*quantity[kte]
-              + dE*dS*dB*quantity[ktn]  + dW*dS*dB*quantity[ktne] );
+    const real dXP = c1o1 - dXM;
+    const real dYP = c1o1 - dYM;
+    const real dZP = c1o1 - dZM;
+    return  dXP*dYP*dZP*quantity[kMMM] + dXM*dYP*dZP*quantity[kPMM]
+          + dXP*dYM*dZP*quantity[kMPM] + dXM*dYM*dZP*quantity[kPMP]
+          + dXP*dYP*dZM*quantity[kMMP] + dXM*dYP*dZM*quantity[kPMP]
+          + dXP*dYM*dZM*quantity[kMPP] + dXM*dYM*dZM*quantity[kPPP];
 }
 
 __inline__ __host__ __device__ void translate2D(real posX, real posY, real &newPosX, real &newPosY, real translationX, real translationY)

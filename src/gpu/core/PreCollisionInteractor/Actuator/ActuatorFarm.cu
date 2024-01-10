@@ -104,22 +104,18 @@ __global__ void interpolateVelocities(const GridData gridData, const TurbineData
     getNeighborIndicesOfBSW(k, ke, kn, kt, kne, kte, ktn, ktne, gridData.neighborsX, gridData.neighborsY,
                             gridData.neighborsZ);
 
-    real dW, dE, dN, dS, dT, dB;
-
     const real distX = gridData.inverseDeltaX * (coordX - gridData.coordsX[k]);
     const real distY = gridData.inverseDeltaX * (coordY - gridData.coordsY[k]);
     const real distZ = gridData.inverseDeltaX * (coordZ - gridData.coordsZ[k]);
 
-    getInterpolationWeights(dW, dE, dN, dS, dT, dB, distX, distY, distZ);
-
     componentData.velocitiesX[nodeIndex] =
-        trilinearInterpolation(dW, dE, dN, dS, dT, dB, k, ke, kn, kt, kne, kte, ktn, ktne, gridData.vx) *
+        trilinearInterpolation(distX, distY, distZ, k, ke, kn, kt, kne, kte, ktn, ktne, gridData.vx) *
         gridData.velocityRatio;
     componentData.velocitiesY[nodeIndex] =
-        trilinearInterpolation(dW, dE, dN, dS, dT, dB, k, ke, kn, kt, kne, kte, ktn, ktne, gridData.vy) *
+        trilinearInterpolation(distX, distY, distZ, k, ke, kn, kt, kne, kte, ktn, ktne, gridData.vy) *
         gridData.velocityRatio;
     componentData.velocitiesZ[nodeIndex] =
-        trilinearInterpolation(dW, dE, dN, dS, dT, dB, k, ke, kn, kt, kne, kte, ktn, ktne, gridData.vz) *
+        trilinearInterpolation(distX, distY, distZ, k, ke, kn, kt, kne, kte, ktn, ktne, gridData.vz) *
         gridData.velocityRatio;
 }
 

@@ -130,9 +130,7 @@ void PlaneProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int 
                                                         para->getParD(level)->velocityY,
                                                         para->getParD(level)->velocityZ,
                                                         para->getParD(level)->rho,
-                                                        para->getParD(level)->neighborX,
-                                                        para->getParD(level)->neighborY,
-                                                        para->getParD(level)->neighborZ,
+
                                                         probeStruct->quantitiesD,
                                                         probeStruct->arrayOffsetsD,
                                                         probeStruct->quantitiesArrayD

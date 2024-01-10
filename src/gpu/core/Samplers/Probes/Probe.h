@@ -40,8 +40,12 @@
 
 #include "Samplers/Sampler.h"
 
+#include <functional>
+#include <string>
+#include <stdexcept>
 #include <cuda.h>
 
+#include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
 #include "basics/writer/WbWriterVtkXmlBinary.h"
 
@@ -85,13 +89,13 @@ enum class Statistic{
     LAST,
 };
 
-typedef struct PostProcessingVariable{
+struct PostProcessingVariable{
     std::string name;
     std::function<real(int)> conversionFactor;
     PostProcessingVariable( std::string name, 
                             std::function<real(int)>  conversionFactor): 
     name(name), conversionFactor(conversionFactor){};
-} PostProcessingVariable;
+};
 
 struct ProbeStruct{
     uint nPoints, nIndices, nArrays;
@@ -113,8 +117,7 @@ __host__ __device__ int calcArrayIndex(int node, int nNodes, int timestep, int n
 
 __global__ void calcQuantitiesKernel(   uint* pointIndices,
                                     uint nPoints, uint oldTimestepInTimeseries, uint timestepInTimeseries, uint timestepInAverage, uint nTimesteps,
-                                    real* vx, real* vy, real* vz, real* rho,            
-                                    uint* neighborX, uint* neighborY, uint* neighborZ,
+                                    real* vx, real* vy, real* vz, real* rho,
                                     bool* quantities,
                                     uint* quantityArrayOffsets, real* quantityArray
                                 );
@@ -183,6 +186,7 @@ private:
     virtual bool isAvailableStatistic(Statistic variable) = 0;
 
     virtual std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) = 0;
+    std::vector<PostProcessingVariable> getPostProcessingVariables(int statistic){ return getPostProcessingVariables(static_cast<Statistic>(statistic)); };
 
     virtual void findPoints(std::vector<int>& probeIndices_level,
                        std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
@@ -219,8 +223,6 @@ protected:
     std::vector<std::string> timeseriesFileNames;
 
     bool fileNameLU = true; //!> if true, written file name contains time step in LU, else is the number of the written probe files
-
-protected:
     const uint tStartAvg;
     const uint tStartTmpAveraging; //!> only non-zero in PlanarAverageProbe and WallModelProbe to switch on Spatio-temporal averaging (while only doing spatial averaging for t<tStartTmpAveraging) 
     const uint tAvg;  //! for tAvg==1 the probe will be evaluated in every sub-timestep of each respective level, else, the probe will only be evaluated in each synchronous time step 
