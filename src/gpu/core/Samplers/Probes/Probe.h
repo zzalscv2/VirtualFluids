@@ -238,11 +238,10 @@ private:
     virtual void writeGridFile(int level, int t, uint part);
     std::string writeTimeseriesHeader(int level);
     void appendTimeseriesFile(int level, int t);
+    std::vector<real> getTimestepData(real time, uint length, int timestep, ProbeStruct* probeStruct, int level);
 
     std::vector<std::string> getVarNames();
-    std::string makeGridFileName(int level, int id, int t, uint part);
-    std::string makeParallelFileName(int id, int t);
-    std::string makeTimeseriesFileName(int leve, int id);
+
 
     virtual uint getNumberOfTimestepsInTimeseries(int level)
     {
@@ -286,6 +285,10 @@ protected:
     std::function<real(int)> viscosityRatio;
     std::function<real(int)> nondimensional;
 };
+
+std::string makeGridFileName(std::string probeName, int level, int id, int t, uint part);
+std::string makeParallelFileName(std::string probeName, int id, int t);
+std::string makeTimeseriesFileName(std::string probeName, int level, int id);
 
 #endif
 //! \}

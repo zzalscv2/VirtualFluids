@@ -39,7 +39,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 
 #include <basics/DataTypes.h>
 #include <basics/StringUtilities/StringUtil.h>
@@ -73,29 +72,30 @@ __host__ __device__ real computeMean(real oldMean, real newValue, real inverseCo
     return oldMean + (newValue - oldMean) * inverseCount;
 }
 
-__host__ __device__ real computeVariance(real oldVariance, real oldMean, real newMean, real currentValue, uint numberOfAveragedValues,
-                                         real inverseCount)
-{
-    return numberOfAveragedValues * oldVariance + (currentValue - oldMean) * (currentValue - newMean) * inverseCount;
-}
-
-__device__ real computeAndSaveMean(real* quantityArray, real oldValue, uint index, real currentValue, real invCount)
+__host__ __device__ real computeAndSaveMean(real* quantityArray, real oldValue, uint index, real currentValue, real invCount)
 {
     const real newValue = computeMean(oldValue, currentValue, invCount);
     quantityArray[index] = newValue;
     return newValue;
 }
 
-__device__ real computeAndSaveVariance(real* quantityArray, real oldVariance, uint indexNew, real currentValue, real oldMean,
-                                       real newMean, uint numberOfAveragedValues, real inverseCount)
+__host__ __device__ real computeVariance(real oldVariance, real oldMean, real newMean, real currentValue,
+                                         uint numberOfAveragedValues, real inverseCount)
 {
-    const real newVariance = computeVariance(oldVariance, oldMean, newMean, currentValue, numberOfAveragedValues, inverseCount);
+    return numberOfAveragedValues * oldVariance + (currentValue - oldMean) * (currentValue - newMean) * inverseCount;
+}
+
+__host__ __device__ real computeAndSaveVariance(real* quantityArray, real oldVariance, uint indexNew, real currentValue,
+                                                real oldMean, real newMean, uint numberOfAveragedValues, real inverseCount)
+{
+    const real newVariance =
+        computeVariance(oldVariance, oldMean, newMean, currentValue, numberOfAveragedValues, inverseCount);
     quantityArray[indexNew] = newVariance;
     return newVariance;
 }
 
-__device__ void calculatePointwiseQuantities(uint numberOfAveragedValues, ProbeArray array, uint node, real velocityX, real velocityY,
-                                             real velocityZ, real density)
+__device__ void calculatePointwiseQuantities(uint numberOfAveragedValues, ProbeArray array, uint node, real velocityX,
+                                             real velocityY, real velocityZ, real density)
 {
     //"https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm"
     // also has extensions for higher order and covariances
@@ -143,17 +143,20 @@ __device__ void calculatePointwiseQuantities(uint numberOfAveragedValues, ProbeA
             const real vzVarianceOld = array.data[indexVz];
             const real rhoVarianceOld = array.data[indexRho];
 
-            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, velocityX, vxMeanOld, vxMeanNew, numberOfAveragedValues, invCount);
-            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, velocityY, vyMeanOld, vyMeanNew, numberOfAveragedValues, invCount);
-            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, velocityZ, vzMeanOld, vzMeanNew, numberOfAveragedValues, invCount);
-            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, density, rhoMeanOld, rhoMeanNew, numberOfAveragedValues,
-                                   invCount);
+            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, velocityX, vxMeanOld, vxMeanNew,
+                                   numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, velocityY, vyMeanOld, vyMeanNew,
+                                   numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, velocityZ, vzMeanOld, vzMeanNew,
+                                   numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, density, rhoMeanOld, rhoMeanNew,
+                                   numberOfAveragedValues, invCount);
         }
     }
 }
 
-__device__ void calculatePointwiseQuantitiesInTimeseries(uint numberOfAveragedValues, TimeseriesParams timeseriesParams, ProbeArray array,
-                                                         uint node, real vx, real vy, real vz, real rho)
+__device__ void calculatePointwiseQuantitiesInTimeseries(uint numberOfAveragedValues, TimeseriesParams timeseriesParams,
+                                                         ProbeArray array, uint node, real vx, real vy, real vz, real rho)
 {
     const uint currentTimestep = timeseriesParams.lastTimestep + 1;
     const uint nTimesteps = timeseriesParams.numberOfTimesteps;
@@ -202,14 +205,17 @@ __device__ void calculatePointwiseQuantitiesInTimeseries(uint numberOfAveragedVa
             const real vzVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 2)];
             const real rhoVarianceOld = array.data[calcArrayIndex(node, nPoints, lastTimestep, nTimesteps, arrayOffset + 3)];
 
-            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, vx, vxMeanOld, vxMeanNew, numberOfAveragedValues, invCount);
-            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, vy, vyMeanOld, vyMeanNew, numberOfAveragedValues, invCount);
-            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, vz, vzMeanOld, vzMeanNew, numberOfAveragedValues, invCount);
-            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, rho, rhoMeanOld, rhoMeanNew, numberOfAveragedValues, invCount);
+            computeAndSaveVariance(array.data, vxVarianceOld, indexVx, vx, vxMeanOld, vxMeanNew, numberOfAveragedValues,
+                                   invCount);
+            computeAndSaveVariance(array.data, vyVarianceOld, indexVy, vy, vyMeanOld, vyMeanNew, numberOfAveragedValues,
+                                   invCount);
+            computeAndSaveVariance(array.data, vzVarianceOld, indexVz, vz, vzMeanOld, vzMeanNew, numberOfAveragedValues,
+                                   invCount);
+            computeAndSaveVariance(array.data, rhoVarianceOld, indexRho, rho, rhoMeanOld, rhoMeanNew, numberOfAveragedValues,
+                                   invCount);
         }
     }
 }
-
 
 __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array)
 {
@@ -270,7 +276,8 @@ __global__ void calculateQuantitiesKernelInTimeseries(uint numberOfAveragedValue
                                              gridParams.velocityZ[gridNodeIndex], gridParams.density[gridNodeIndex]);
 }
 
-__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
+__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams,
+                                                                    ProbeArray array,
                                                                     InterpolationParams interpolationParams,
                                                                     TimeseriesParams timeseriesParams)
 {
@@ -298,8 +305,8 @@ __global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint numberO
     const real density =
         trilinearInterpolation(dXM, dYM, dZM, k_MMM, k_PMM, k_MPM, k_MMP, k_PPM, k_PMP, k_MPP, k_PPP, gridParams.density);
 
-    calculatePointwiseQuantitiesInTimeseries(numberOfAveragedValues, timeseriesParams, array, node, velocityX, velocityY, velocityZ,
-                                             density);
+    calculatePointwiseQuantitiesInTimeseries(numberOfAveragedValues, timeseriesParams, array, node, velocityX, velocityY,
+                                             velocityZ, density);
 }
 
 bool Probe::getHasDeviceQuantityArray()
@@ -314,13 +321,12 @@ real Probe::getNondimensionalConversionFactor(int level)
 
 void Probe::init()
 {
-    using std::placeholders::_1;
-    this->velocityRatio = std::bind(&Parameter::getScaledVelocityRatio, para, _1);
-    this->densityRatio = std::bind(&Parameter::getScaledDensityRatio, para, _1);
-    this->forceRatio = std::bind(&Parameter::getScaledForceRatio, para, _1);
-    this->stressRatio = std::bind(&Parameter::getScaledStressRatio, para, _1);
-    this->viscosityRatio = std::bind(&Parameter::getScaledViscosityRatio, para, _1);
-    this->nondimensional = std::bind(&Probe::getNondimensionalConversionFactor, this, _1);
+    this->velocityRatio = [this](int level) { return para->getScaledVelocityRatio(level); };
+    this->densityRatio = [this](int level) { return para->getScaledDensityRatio(level); };
+    this->forceRatio = [this](int level) { return para->getScaledForceRatio(level); };
+    this->stressRatio = [this](int level) { return para->getScaledStressRatio(level); };
+    this->viscosityRatio = [this](int level) { return para->getScaledViscosityRatio(level); };
+    this->nondimensional = [](int level) { return c1o1; };
 
     probeParams.resize(para->getMaxLevel() + 1);
 
@@ -476,28 +482,6 @@ void Probe::addStatistic(Statistic variable)
     }
 }
 
-template <typename T>
-std::string nameComponent(std::string name, T value)
-{
-    return "_" + name + "_" + StringUtil::toString<T>(value);
-}
-
-std::string Probe::makeParallelFileName(int id, int t)
-{
-    return this->probeName + "_bin" + nameComponent("ID", id) + nameComponent("t", t) + ".vtk";
-}
-
-std::string Probe::makeGridFileName(int level, int id, int t, uint part)
-{
-    return this->probeName + "_bin" + nameComponent("lev", level) + nameComponent("ID", id) +
-           nameComponent<int>("Part", part) + nameComponent("t", t) + ".vtk";
-}
-
-std::string Probe::makeTimeseriesFileName(int level, int id)
-{
-    return this->probeName + "_timeseries" + nameComponent("lev", level) + nameComponent("ID", id) + ".txt";
-}
-
 void Probe::addAllAvailableStatistics()
 {
     for (int var = 0; var < int(Statistic::LAST); var++) {
@@ -525,7 +509,7 @@ void Probe::write(int level, int t)
 void Probe::writeParallelFile(int t)
 {
     const int t_write = this->fileNameLU ? t : t / this->tOut;
-    const std::string filename = this->outputPath + this->makeParallelFileName(para->getMyProcessID(), t_write);
+    const std::string filename = this->outputPath + makeParallelFileName(probeName, para->getMyProcessID(), t_write);
 
     std::vector<std::string> nodedatanames = this->getVarNames();
     std::vector<std::string> cellNames;
@@ -537,7 +521,7 @@ void Probe::writeParallelFile(int t)
 
 void Probe::writeGridFile(int level, int t, uint part)
 {
-    const std::string fname = this->outputPath + this->makeGridFileName(level, para->getMyProcessID(), t, part);
+    const std::string fname = this->outputPath + makeGridFileName(probeName, level, para->getMyProcessID(), t, part);
 
     std::vector<UbTupleFloat3> nodes;
     std::vector<std::string> nodedatanames = this->getVarNames();
@@ -601,7 +585,7 @@ std::string Probe::writeTimeseriesHeader(int level)
     */
     auto probeStruct = this->getProbeStruct(level);
     std::filesystem::create_directories(this->outputPath);
-    const std::string fname = this->outputPath + this->makeTimeseriesFileName(level, para->getMyProcessID());
+    const std::string fname = this->outputPath + makeTimeseriesFileName(probeName, level, para->getMyProcessID());
     std::ofstream out(fname.c_str(), std::ios::out | std::ios::binary);
 
     if (!out.is_open())
@@ -624,46 +608,51 @@ std::string Probe::writeTimeseriesHeader(int level)
     return fname;
 }
 
+std::vector<real> Probe::getTimestepData(real time, uint numberOfValues, int timestep, ProbeStruct* probeStruct, int level)
+{
+    std::vector<real> timestepData(1 + numberOfValues);
+    timestepData[0] = time;
+
+    int valueIndex = 1;
+
+    for (int statistic = 0; statistic < int(Statistic::LAST); statistic++) {
+        if (!this->quantities[statistic])
+            continue;
+
+        std::vector<PostProcessingVariable> variables = this->getPostProcessingVariables(statistic);
+        const uint offsetStatistic = probeStruct->arrayOffsetsH[statistic];
+
+        for (uint variable = 0; variable < uint(variables.size()); variable++) {
+            const real conversionFactor = variables[variable].conversionFactor(level);
+            const real variableIndex = offsetStatistic + variable;
+            const uint startIndex =
+                calcArrayIndex(0, probeStruct->nPoints, timestep, probeStruct->nTimesteps, variableIndex);
+
+            for (uint point = 0; point < probeStruct->nPoints; point++) {
+                timestepData[valueIndex + point] = probeStruct->quantitiesArrayH[startIndex + point] * conversionFactor;
+            }
+            valueIndex += probeStruct->nPoints;
+        }
+    }
+    return timestepData;
+}
+
 void Probe::appendTimeseriesFile(int level, int t)
 {
     std::ofstream out(this->timeseriesFileNames[level], std::ios::app | std::ios::binary);
 
     const uint tAvg_level = this->tAvg == 1 ? this->tAvg : this->tAvg * exp2(-level);
     const real deltaT = para->getTimeRatio() * tAvg_level;
-    auto probeStruct = this->getProbeStruct(level);
+    auto probeStruct = this->getProbeStruct(level).get();
 
     const real tStart = (t - this->tOut) * para->getTimeRatio();
 
-    const int valuesPerTimestep = probeStruct->nPoints * probeStruct->nArrays + 1;
-
-    std::vector<real> values(valuesPerTimestep);
+    const int valuesPerTimestep = probeStruct->nPoints * probeStruct->nArrays;
 
     for (uint timestep = 0; timestep < probeStruct->timestepInTimeseries; timestep++) {
-        values[0] = tStart + timestep * deltaT;
-
-        int valueIndex = 1;
-
-        for (int statistic = 0; statistic < int(Statistic::LAST); statistic++) {
-            if (!this->quantities[statistic])
-                continue;
-
-            std::vector<PostProcessingVariable> variables = this->getPostProcessingVariables(statistic);
-            const uint offsetStatistic = probeStruct->arrayOffsetsH[statistic];
-
-            for (uint variable = 0; variable < uint(variables.size()); variable++) {
-                const real conversionFactor = variables[variable].conversionFactor(level);
-                const real variableIndex = offsetStatistic + variable;
-                const uint startIndex =
-                    calcArrayIndex(0, probeStruct->nPoints, timestep, probeStruct->nTimesteps, variableIndex);
-
-                for (uint point = 0; point < probeStruct->nPoints; point++) {
-                    values[valueIndex + point] = probeStruct->quantitiesArrayH[startIndex + point] * conversionFactor;
-                }
-
-                valueIndex += probeStruct->nPoints;
-            }
-        }
-        out.write((char*)values.data(), sizeof(real) * valuesPerTimestep);
+        const real time = tStart + timestep * deltaT;
+        std::vector<real> timestepData = this->getTimestepData(time, valuesPerTimestep, timestep, probeStruct, level);
+        out.write((char*)timestepData.data(), sizeof(real) * valuesPerTimestep);
     }
     out.close();
 }
@@ -708,4 +697,25 @@ ProbeArray getProbeArray(ProbeStruct* probeStruct)
                         probeStruct->nPoints };
 }
 
+template <typename T>
+std::string nameComponent(std::string name, T value)
+{
+    return "_" + name + "_" + StringUtil::toString<T>(value);
+}
+
+std::string makeParallelFileName(const std::string probeName, int id, int t)
+{
+    return probeName + "_bin" + nameComponent("ID", id) + nameComponent("t", t) + ".vtk";
+}
+
+std::string makeGridFileName(const std::string probeName, int level, int id, int t, uint part)
+{
+    return probeName + "_bin" + nameComponent("lev", level) + nameComponent("ID", id) + nameComponent<int>("Part", part) +
+           nameComponent("t", t) + ".vtk";
+}
+
+std::string makeTimeseriesFileName(const std::string probeName, int level, int id)
+{
+    return probeName + "_timeseries" + nameComponent("lev", level) + nameComponent("ID", id) + ".txt";
+}
 //! \}
