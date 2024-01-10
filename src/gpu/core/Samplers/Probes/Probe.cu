@@ -610,7 +610,8 @@ std::string Probe::writeTimeseriesHeader(int level)
 
 std::vector<real> Probe::getTimestepData(real time, uint numberOfValues, int timestep, ProbeStruct* probeStruct, int level)
 {
-    std::vector<real> timestepData(1 + numberOfValues);
+    std::vector<real> timestepData;
+    timestepData.resize(numberOfValues+1);
     timestepData[0] = time;
 
     int valueIndex = 1;
