@@ -32,13 +32,11 @@
 #include "PointProbe.h"
 #include "Probe.h"
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <helper_cuda.h>
+#include <stdexcept>
 
 #include <cuda_helper/CudaGrid.h>
 
-#include <basics/constants/NumericConstants.h>
+#include <basics/DataTypes.h>
 
 #include "Cuda/CudaMemoryManager.h"
 #include "DataStructureInitializer/GridProvider.h"
@@ -93,7 +91,7 @@ void PointProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
     const real* coordinateX = para->getParH(level)->coordinateX;
     const real* coordinateY = para->getParH(level)->coordinateY;
     const real* coordinateZ = para->getParH(level)->coordinateZ;
-    const real deltaX = para->getScaledLengthRatio(level);
+    const real deltaX = coordinateX[para->getParH(level)->neighborX[1]] - coordinateX[1];
 
     for (size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
         for (uint point = 0; point < this->pointCoordsX.size(); point++) {
@@ -148,7 +146,7 @@ void PointProbe::addProbePointsFromList(std::vector<real>& pointCoordsX, std::ve
     this->pointCoordsX.insert(this->pointCoordsX.end(), pointCoordsX.begin(), pointCoordsX.end());
     this->pointCoordsY.insert(this->pointCoordsY.end(), pointCoordsY.begin(), pointCoordsY.end());
     this->pointCoordsZ.insert(this->pointCoordsZ.end(), pointCoordsZ.begin(), pointCoordsZ.end());
-    printf("Added list of %u  points \n", uint(pointCoordsX.size()));
+    VF_LOG_INFO("Added list of {}  points", uint(pointCoordsX.size()));
 }
 
 void PointProbe::getTaggedFluidNodes(GridProvider* gridProvider)
