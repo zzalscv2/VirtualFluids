@@ -145,7 +145,7 @@ __global__ void fillArrayDistributions( uint numberOfPrecursorNodes,
 void PrecursorWriter::init()
 {
     VF_LOG_INFO("PrecursorWriter: Start initializing...");
-    VF_LOG_INFO("Writing yz-planes at x={}m every {}. timestep, starting at t={}", this->xPos, this->tSave, this->tStartOut);
+    VF_LOG_INFO("Writing yz-planes at x={}m every {}. timestep, starting at t={}", this->xPos, this->tSave, this->tStartWritingOutput);
 
     precursorStructs.resize(para->getMaxLevel()+1);
     for(int level=0; level<=para->getMaxLevel(); level++)
@@ -240,7 +240,7 @@ void PrecursorWriter::init()
 void PrecursorWriter::sample(int level, uint t)
 {
     uint t_level         = para->getTimeStep(level, t, true);
-    uint tStartOut_level = tStartOut*pow(2, level);
+    uint tStartOut_level = tStartWritingOutput*pow(2, level);
 
     if(t_level>tStartOut_level && ((t_level-tStartOut_level) % tSave)==0)
     {

@@ -99,7 +99,7 @@ public:
         real xPos,
         real yMin, real yMax,
         real zMin, real zMax,
-        uint tStartOut,
+        uint tStartWritingOutput,
         uint tSave,
         OutputVariable outputVariable,
         uint maxTimestepsPerFile=uint(1e4)
@@ -111,7 +111,7 @@ public:
     yMax(yMax),
     zMin(zMin),
     zMax(zMax),
-    tStartOut(tStartOut), 
+    tStartWritingOutput(tStartWritingOutput), 
     tSave(tSave),
     outputVariable(outputVariable),
     maxtimestepsPerFile(maxTimestepsPerFile),
@@ -159,7 +159,7 @@ private:
     std::string fileName, outputPath;
     std::vector<std::string> nodedatanames;
     std::vector<std::string> celldatanames;
-    uint tStartOut, tSave, maxtimestepsPerFile;
+    uint tStartWritingOutput, tSave, maxtimestepsPerFile;
     real xPos, yMin, yMax, zMin, zMax;
     OutputVariable outputVariable;
     std::future<void> writeFuture;

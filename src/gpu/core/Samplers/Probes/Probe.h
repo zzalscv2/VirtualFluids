@@ -154,6 +154,7 @@ struct TimeseriesParams
 TimeseriesParams getTimeseriesParams(ProbeStruct* probeStruct);
 
 __host__ __device__ int calcArrayIndex(int node, int nNodes, int timestep, int nTimesteps, int array);
+__host__ __device__ int calcArrayIndex(int node, int nNodes, int array);
 
 __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array);
 
@@ -174,15 +175,17 @@ class Probe : public Sampler
 {
 public:
     Probe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
-          const std::string outputPath, const uint tStartAvg, const uint tStartTmpAvg, const uint tAvg, const uint tStartOut,
-          const uint tOut, const bool hasDeviceQuantityArray, const bool outputTimeSeries)
-        : probeName(probeName), outputPath(outputPath + (outputPath.back() == '/' ? "" : "/")), tStartAvg(tStartAvg),
-          tStartTmpAveraging(tStartTmpAvg), tAvg(tAvg), tStartOut(tStartOut), tOut(tOut),
+          const std::string outputPath, const uint tStartAveraging, const uint tStartTemporalAverage,
+          const uint tBetweenAverages, const uint tStartWritingOutput, const uint tBetweenWriting,
+          const bool hasDeviceQuantityArray, const bool outputTimeSeries)
+        : probeName(probeName), outputPath(outputPath + (outputPath.back() == '/' ? "" : "/")),
+          tStartAveraging(tStartAveraging), tStartTemporalAverage(tStartTemporalAverage), tBetweenAverages(tBetweenAverages),
+          tStartWritingOutput(tStartWritingOutput), tBetweenWriting(tBetweenWriting),
           hasDeviceQuantityArray(hasDeviceQuantityArray), outputTimeSeries(outputTimeSeries),
           Sampler(para, cudaMemoryManager)
     {
-        if (tStartOut < tStartAvg)
-            throw std::runtime_error("Probe: tStartOut must be larger than tStartAvg!");
+        if (tStartWritingOutput < tStartAveraging)
+            throw std::runtime_error("Probe: tStartWritingOutput must be larger than tStartAveraging!");
     }
 
     virtual ~Probe();
@@ -201,7 +204,7 @@ public:
     bool getHasDeviceQuantityArray();
     uint getTStartTmpAveraging()
     {
-        return this->tStartTmpAveraging;
+        return this->tStartTemporalAverage;
     }
 
     void setFileNameToNOut()
@@ -214,7 +217,6 @@ protected:
     {
         return WbWriterVtkXmlBinary::getInstance();
     };
-    real getNondimensionalConversionFactor(int level);
 
 private:
     virtual bool isAvailableStatistic(Statistic variable) = 0;
@@ -264,16 +266,16 @@ protected:
 
     //! if true, written file name contains time step in LU, else is the number of the written probe files
     bool fileNameLU = true;
-    const uint tStartAvg;
+    const uint tStartAveraging;
 
     //! only non-zero in PlanarAverageProbe and WallModelProbe to switch on Spatio-temporal
-    //! averaging (while only doing spatial averaging for t<tStartTmpAveraging)
-    const uint tStartTmpAveraging;
-    //! for tAvg==1 the probe will be evaluated in every sub-timestep of each respective level, else, the
+    //! averaging (while only doing spatial averaging for t<tStartTemporalAverage)
+    const uint tStartTemporalAverage;
+    //! for tBetweenAverages==1 the probe will be evaluated in every sub-timestep of each respective level, else, the
     //! probe will only be evaluated in each synchronous time step
-    const uint tAvg;
-    const uint tStartOut;
-    const uint tOut;
+    const uint tBetweenAverages;
+    const uint tStartWritingOutput;
+    const uint tBetweenWriting;
 
     std::function<real(int)> velocityRatio;
     std::function<real(int)> densityRatio;

@@ -57,18 +57,18 @@ public:
         const std::string outputPath,
         uint tStartAvg,
         uint tStartTmpAvg,
-        uint tAvg,
-        uint tStartOut,
-        uint tOut
+        uint tBetweenAverages,
+        uint tStartWritingOutput,
+        uint tBetweenWriting
     ):  Probe(para,
-    cudaMemoryManager,
-    probeName, 
+            cudaMemoryManager,
+            probeName, 
             outputPath,
             tStartAvg,
             tStartTmpAvg,
-            tAvg,
-            tStartOut, 
-            tOut,
+            tBetweenAverages,
+            tStartWritingOutput, 
+            tBetweenWriting,
             false,
             true)
     {

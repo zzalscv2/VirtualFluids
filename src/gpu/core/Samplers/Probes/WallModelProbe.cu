@@ -207,7 +207,7 @@ void WallModelProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, 
         const real velocityYExchangeLocationSpatialMean =
             compute_and_save_mean(para->getParD(level)->stressBC.Vy, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
                                   timestep, probeStruct->nTimesteps, arrOff + 1);
-        const real velocityYExchangeLocationSpatialMean =
+        const real velocityZExchangeLocationSpatialMean =
             compute_and_save_mean(para->getParD(level)->stressBC.Vz, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
                                   timestep, probeStruct->nTimesteps, arrOff + 2);
         const real velocityXFirstNodeSpatialMean =
@@ -285,7 +285,7 @@ void WallModelProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, 
 
 uint WallModelProbe::getNumberOfTimestepsInTimeseries(int level)
 {
-    return this->tOut * exp2(level) / this->tAvg + 1;
+    return this->tBetweenWriting * exp2(level) / this->tBetweenAverages + 1;
 }
 
 //! \}

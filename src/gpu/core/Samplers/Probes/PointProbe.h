@@ -47,9 +47,9 @@ class PointProbe : public Probe
 {
 public:
     PointProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
-               const std::string outputPath, uint tStartAvg, uint tAvg, uint tStartOut, uint tOut,
+               const std::string outputPath, uint tStartAvg, uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting,
                bool outputTimeseries = false)
-        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, 0, tAvg, tStartOut, tOut, true, outputTimeseries)
+        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, 0, tBetweenAverages, tStartWritingOutput, tBetweenWriting, true, outputTimeseries)
     {
     }
 
@@ -70,14 +70,14 @@ private:
                     std::vector<real>& pointCoordsZ, int level) override;
 
     void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
-
-private:
-    std::vector<real> pointCoordsX, pointCoordsY, pointCoordsZ;
     uint getNumberOfTimestepsInTimeseries(int level) override
     {
         (void)para;
-        return outputTimeSeries ? tOut * exp2(level) : 1;
+        return outputTimeSeries ? tBetweenWriting * exp2(level) : 1;
     }
+
+private:
+    std::vector<real> pointCoordsX, pointCoordsY, pointCoordsZ;
 };
 
 #endif

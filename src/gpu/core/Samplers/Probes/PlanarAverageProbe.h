@@ -55,8 +55,8 @@ class PlanarAverageProbe : public Probe
 public:
     PlanarAverageProbe(SPtr<Parameter> para,
         SPtr<CudaMemoryManager> cudaMemoryManager,const std::string probeName, const std::string outputPath, uint tStartAvg, uint tStartTmpAvg,
-                       uint tAvg, uint tStartOut, uint tOut, char planeNormal)
-        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, tStartTmpAvg, tAvg, tStartOut, tOut, false, false),
+                       uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting, char planeNormal)
+        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, tStartTmpAvg, tBetweenAverages, tStartWritingOutput, tBetweenWriting, false, false),
           planeNormal(planeNormal)
     {
         if (tStartTmpAvg<tStartAvg)   throw std::runtime_error("Probe: tStartTmpAvg must be larger than tStartAvg!");

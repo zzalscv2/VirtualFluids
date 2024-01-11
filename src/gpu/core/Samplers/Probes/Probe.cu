@@ -314,11 +314,6 @@ bool Probe::getHasDeviceQuantityArray()
     return this->hasDeviceQuantityArray;
 }
 
-real Probe::getNondimensionalConversionFactor(int level)
-{
-    return c1o1;
-}
-
 void Probe::init()
 {
     this->velocityRatio = [this](int level) { return para->getScaledVelocityRatio(level); };
@@ -416,30 +411,30 @@ void Probe::sample(int level, uint t)
     if (probeStruct->nPoints == 0)
         return;
 
-    //! if tAvg==1 the probe will be evaluated in every sub-timestep of each respective level
-    //! else, the probe will only be evaluated in each synchronous time step tAvg
+    //! if tBetweenAverages==1 the probe will be evaluated in every sub-timestep of each respective level
+    //! else, the probe will only be evaluated in each synchronous time step tBetweenAverages
 
     const uint levelFactor = exp2(level);
 
-    const uint tAvg_level = this->tAvg == 1 ? this->tAvg : this->tAvg * levelFactor;
-    const uint tOut_level = this->tOut * levelFactor;
-    const uint tStartOut_level = this->tStartOut * levelFactor;
-    const uint tStartAvg_level = this->tStartAvg * levelFactor;
+    const uint tAvg_level = this->tBetweenAverages == 1 ? this->tBetweenAverages : this->tBetweenAverages * levelFactor;
+    const uint tOut_level = this->tBetweenWriting * levelFactor;
+    const uint tStartOut_level = this->tStartWritingOutput * levelFactor;
+    const uint tStartAvg_level = this->tStartAveraging * levelFactor;
 
     const uint tAfterStartAvg = t_level - tStartAvg_level;
     const uint tAfterStartOut = t_level - tStartOut_level;
 
-    if ((t > this->tStartAvg) && (tAfterStartAvg % tAvg_level == 0)) {
+    if ((t > this->tStartAveraging) && (tAfterStartAvg % tAvg_level == 0)) {
         this->calculateQuantities(probeStruct, t_level, level);
 
-        if (t > this->tStartTmpAveraging)
+        if (t > this->tStartTemporalAverage)
             probeStruct->numberOfAveragedValues++;
         if (this->outputTimeSeries && (t_level >= tStartOut_level))
             probeStruct->timestepInTimeseries++;
     }
 
     //! output only in synchronous timesteps
-    if ((t > this->tStartOut) && (tAfterStartOut % tOut_level == 0)) {
+    if ((t > this->tStartWritingOutput) && (tAfterStartOut % tOut_level == 0)) {
         if (this->hasDeviceQuantityArray)
             cudaMemoryManager->cudaCopyProbeQuantityArrayDtoH(this, level);
         this->write(level, t);
@@ -495,7 +490,7 @@ void Probe::write(int level, int t)
     if (this->outputTimeSeries) {
         this->appendTimeseriesFile(level, t);
     } else {
-        const int t_write = this->fileNameLU ? t : t / this->tOut;
+        const int t_write = this->fileNameLU ? t : t / this->tBetweenWriting;
 
         const uint numberOfParts = this->getProbeStruct(level)->nPoints / FilePartCalculator::limitOfNodesForVTK + 1;
 
@@ -508,7 +503,7 @@ void Probe::write(int level, int t)
 
 void Probe::writeParallelFile(int t)
 {
-    const int t_write = this->fileNameLU ? t : t / this->tOut;
+    const int t_write = this->fileNameLU ? t : t / this->tBetweenWriting;
     const std::string filename = this->outputPath + makeParallelFileName(probeName, para->getMyProcessID(), t_write);
 
     std::vector<std::string> nodedatanames = this->getVarNames();
@@ -639,11 +634,11 @@ void Probe::appendTimeseriesFile(int level, int t)
 {
     std::ofstream out(this->timeseriesFileNames[level], std::ios::app | std::ios::binary);
 
-    const uint tAvg_level = this->tAvg == 1 ? this->tAvg : this->tAvg * exp2(-level);
+    const uint tAvg_level = this->tBetweenAverages == 1 ? this->tBetweenAverages : this->tBetweenAverages * exp2(-level);
     const real deltaT = para->getTimeRatio() * tAvg_level;
     auto probeStruct = this->getProbeStruct(level).get();
 
-    const real tStart = (t - this->tOut) * para->getTimeRatio();
+    const real tStart = (t - this->tBetweenWriting) * para->getTimeRatio();
 
     const int valuesPerTimestep = probeStruct->nPoints * probeStruct->nArrays;
 
