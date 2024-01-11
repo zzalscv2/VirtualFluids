@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 
         SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, "planeProbe", para->getOutputPath(), tStartAveraging,
                                                                    tAveraging, tStartOutProbe, tOutProbe);
-        planeProbe->setProbePlane(0.4, 0, 0, 0.3, 0.01, 0.1);
+        planeProbe->setProbePlane(dSphere, 0, 0, 0.3, 0.01, 0.1);
         planeProbe->addStatistic(Statistic::Instantaneous);
         para->addSampler(planeProbe);
 
