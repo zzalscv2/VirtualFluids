@@ -33,7 +33,7 @@
 //! \date 13/05/2022
 //! \brief Probe computing statistics of all relevant wall model quantities used in the StressBC kernels
 //!
-//! Computes spatial statistics for all grid points of the StressBC 
+//! Computes spatial statistics for all grid points of the StressBC
 //! The spatial statistics can additionally be averaged in time.
 //!
 //=======================================================================================
@@ -42,61 +42,62 @@
 #define WallModelProbe_H
 
 #include <basics/PointerDefinitions.h>
+#include <logger/Logger.h>
 
-#include "Probe.h"
+#include "Sampler.h"
+#include "TimeseriesFileWriter.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-class WallModelProbe : public Probe
+struct LevelData
 {
-public: 
-    WallModelProbe(
-        SPtr<Parameter> para,
-        SPtr<CudaMemoryManager> cudaMemoryManager,
-        const std::string probeName,
-        const std::string outputPath,
-        uint tStartAvg,
-        uint tStartTmpAvg,
-        uint tBetweenAverages,
-        uint tStartWritingOutput,
-        uint tBetweenWriting
-    ):  Probe(para,
-            cudaMemoryManager,
-            probeName, 
-            outputPath,
-            tStartAvg,
-            tStartTmpAvg,
-            tBetweenAverages,
-            tStartWritingOutput, 
-            tBetweenWriting,
-            false,
-            true)
+    uint numberOfAveragedValues, numberOfFluidNodes;
+    std::string timeseriesFileName;
+    std::vector<std::vector<real>> data;
+    LevelData(std::string fileName, uint numberOfFluidNodes) : timeseriesFileName(fileName), numberOfFluidNodes(numberOfFluidNodes)
     {
-        if (tStartTmpAvg<tStartAvg)   throw std::runtime_error("Probe: tStartTmpAvg must be larger than tStartAvg!");
+    }
+};
+
+class WallModelProbe : public Sampler
+{
+public:
+    WallModelProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
+                   const std::string outputPath, uint tStartAveraging, uint tStartTemporalAveraging, uint tBetweenAverages,
+                   uint tStartWritingOutput, uint tBetweenWriting, bool averageEveryTimestep, bool computeTemporalAverages,
+                   bool outputStress, bool evaluatePressureGradient)
+        : tStartAveraging(tStartAveraging), tStartTemporalAveraging(tStartTemporalAveraging),
+          tStartWritingOutput(tStartWritingOutput), tBetweenAverages(tBetweenAverages), tBetweenWriting(tBetweenWriting),
+          averageEveryTimestep(averageEveryTimestep), computeTemporalAverages(computeTemporalAverages),
+          outputStress(outputStress), evaluatePressureGradient(evaluatePressureGradient),
+          Sampler(para, cudaMemoryManager, probeName, outputPath)
+    {
+        if (tStartTemporalAveraging < tStartAveraging)
+            throw std::runtime_error("WallModelProbe: tStartTemporalAveraging must be larger than tStartAveraging!");
+        if (averageEveryTimestep)
+            VF_LOG_INFO("WallModelProbe: averageEveryTimestep is true, ignoring tBetweenAverages");
     }
 
     ~WallModelProbe() = default;
 
-
-    void setForceOutputToStress(bool _outputStress){ this->outputStress = _outputStress; }
-    void setEvaluatePressureGradient(bool _evalPressGrad){ this->evaluatePressureGradient = _evalPressGrad; }
-
-private:
-    bool isAvailableStatistic(Statistic _variable) override;
-
-    std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) override;
-
-    void findPoints(std::vector<int>& probeIndices_level,
-                    std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
-                    std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
-                    int level) override;
-    void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
+    void init() override;
+    void sample(int level, uint t) override;
     void getTaggedFluidNodes(GridProvider* gridProvider) override {};
-    uint getNumberOfTimestepsInTimeseries(int level) override;
 
 private:
-    bool outputStress = false; //!> if true, output wall force is converted to a stress 
+    std::vector<PostProcessingVariable> getPostProcessingVariables();
+    void calculateQuantities(LevelData* levelData, uint t, int level);
+    void write(int level);
+    uint countFluidNodes(int level);
+
+private:
+    TimeseriesFileWriter writer;
+    uint tStartAveraging, tStartTemporalAveraging, tBetweenAverages, tStartWritingOutput, tBetweenWriting;
+    bool outputStress = false;             //!> if true, output wall force is converted to a stress
     bool evaluatePressureGradient = false; //!> if true, mean global pressure gradient will also be evaluated
+    bool computeTemporalAverages = false;  //!> if true, temporal averages will be computed
+    bool averageEveryTimestep = false;     //!> if true, the probe will be evaluated every timestep
+    std::vector<LevelData> levelData;
 };
 
 #endif

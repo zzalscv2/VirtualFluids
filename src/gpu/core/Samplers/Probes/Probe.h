@@ -95,13 +95,7 @@ enum class Statistic {
     LAST,
 };
 
-struct PostProcessingVariable
-{
-    std::string name;
-    std::function<real(int)> conversionFactor;
-    PostProcessingVariable(std::string name, std::function<real(int)> conversionFactor)
-        : name(name), conversionFactor(conversionFactor) {};
-};
+
 
 struct ProbeStruct
 {
@@ -178,11 +172,10 @@ public:
           const std::string outputPath, const uint tStartAveraging, const uint tStartTemporalAverage,
           const uint tBetweenAverages, const uint tStartWritingOutput, const uint tBetweenWriting,
           const bool hasDeviceQuantityArray, const bool outputTimeSeries)
-        : probeName(probeName), outputPath(outputPath + (outputPath.back() == '/' ? "" : "/")),
-          tStartAveraging(tStartAveraging), tStartTemporalAverage(tStartTemporalAverage), tBetweenAverages(tBetweenAverages),
+        : tStartAveraging(tStartAveraging), tStartTemporalAverage(tStartTemporalAverage), tBetweenAverages(tBetweenAverages),
           tStartWritingOutput(tStartWritingOutput), tBetweenWriting(tBetweenWriting),
           hasDeviceQuantityArray(hasDeviceQuantityArray), outputTimeSeries(outputTimeSeries),
-          Sampler(para, cudaMemoryManager)
+          Sampler(para, cudaMemoryManager, outputPath, probeName)
     {
         if (tStartWritingOutput < tStartAveraging)
             throw std::runtime_error("Probe: tStartWritingOutput must be larger than tStartAveraging!");
@@ -285,9 +278,6 @@ protected:
     std::function<real(int)> nondimensional;
 };
 
-std::string makeGridFileName(std::string probeName, int level, int id, int t, uint part);
-std::string makeParallelFileName(std::string probeName, int id, int t);
-std::string makeTimeseriesFileName(std::string probeName, int level, int id);
 bool isValidProbePoint(unsigned long long pointIndex, Parameter* para, int level);
 
 #endif

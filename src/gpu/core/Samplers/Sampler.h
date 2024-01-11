@@ -44,11 +44,27 @@ class Parameter;
 class GridProvider;
 class CudaMemoryManager;
 
+inline std::string fixOutputPath(const std::string path)
+{
+    if (path.back() == '/')
+        return path;
+    return path + "/";
+}
+
+struct PostProcessingVariable
+{
+    std::string name;
+    std::function<real(int)> conversionFactor;
+    PostProcessingVariable(std::string name, std::function<real(int)> conversionFactor)
+        : name(name), conversionFactor(conversionFactor) {};
+};
+
 class Sampler
 {
 public:
-    Sampler(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager)
-        : para(para), cudaMemoryManager(cudaMemoryManager)
+    Sampler(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string outputPath,
+            const std::string probeName)
+        : para(para), cudaMemoryManager(cudaMemoryManager), outputPath(fixOutputPath(outputPath)), probeName(probeName)
     {
     }
     virtual ~Sampler() = default;
@@ -60,6 +76,8 @@ public:
 protected:
     SPtr<Parameter> para;
     SPtr<CudaMemoryManager> cudaMemoryManager;
+    std::string outputPath;
+    std::string probeName;
 };
 
 #endif

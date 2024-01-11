@@ -94,8 +94,8 @@ public:
     PrecursorWriter(
         SPtr<Parameter> para,
         SPtr<CudaMemoryManager> cudaMemoryManager,
-        const std::string fileName,
         const std::string outputPath,
+        const std::string probeName,
         real xPos,
         real yMin, real yMax,
         real zMin, real zMax,
@@ -104,8 +104,6 @@ public:
         OutputVariable outputVariable,
         uint maxTimestepsPerFile=uint(1e4)
     ): 
-    fileName(fileName), 
-    outputPath(outputPath), 
     xPos(xPos),
     yMin(yMin),
     yMax(yMax),
@@ -115,7 +113,7 @@ public:
     tSave(tSave),
     outputVariable(outputVariable),
     maxtimestepsPerFile(maxTimestepsPerFile),
-    Sampler(para, cudaMemoryManager)
+    Sampler(para, cudaMemoryManager, outputPath, probeName)
     {
         nodedatanames = determineNodeDataNames();
         writeFuture = std::async([](){});

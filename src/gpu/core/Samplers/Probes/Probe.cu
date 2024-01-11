@@ -49,6 +49,7 @@
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/Utilities/GeometryUtils.h"
 #include "gpu/core/Utilities/KernelUtilities.h"
+#include "gpu/core/Samplers/Utilities.h"
 
 using namespace vf::basics::constant;
 
@@ -690,27 +691,7 @@ ProbeArray getProbeArray(ProbeStruct* probeStruct)
                         probeStruct->nPoints };
 }
 
-template <typename T>
-std::string nameComponent(std::string name, T value)
-{
-    return "_" + name + "_" + StringUtil::toString<T>(value);
-}
 
-std::string makeParallelFileName(const std::string probeName, int id, int t)
-{
-    return probeName + "_bin" + nameComponent("ID", id) + nameComponent("t", t) + ".vtk";
-}
-
-std::string makeGridFileName(const std::string probeName, int level, int id, int t, uint part)
-{
-    return probeName + "_bin" + nameComponent("lev", level) + nameComponent("ID", id) + nameComponent<int>("Part", part) +
-           nameComponent("t", t) + ".vtk";
-}
-
-std::string makeTimeseriesFileName(const std::string probeName, int level, int id)
-{
-    return probeName + "_timeseries" + nameComponent("lev", level) + nameComponent("ID", id) + ".txt";
-}
 
 bool isCoarseInterpolationCell(unsigned long long pointIndex, Parameter* para, int level)
 {

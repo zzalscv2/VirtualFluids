@@ -76,7 +76,7 @@
 #include "gpu/core/Samplers/PrecursorWriter.h"
 #include "gpu/core/Samplers/Probes/PlanarAverageProbe.h"
 #include "gpu/core/Samplers/Probes/PlaneProbe.h"
-#include "gpu/core/Samplers/Probes/WallModelProbe.h"
+#include "gpu/core/Samplers/WallModelProbe.h"
 #include "gpu/core/TurbulenceModels/TurbulenceModelFactory.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,13 +362,8 @@ void run(const vf::basics::ConfigurationFile& config)
 
         const auto wallModelProbe = std::make_shared<WallModelProbe>(
             para, cudaMemoryManager, "wallModelProbe", para->getOutputPath(), timeStepStartAveraging,
-            timeStepStartTemporalAveraging, timeStepAveraging / 4, timeStepStartOutProbe, timeStepOutProbe);
+            timeStepStartTemporalAveraging, timeStepAveraging / 4, timeStepStartOutProbe, timeStepOutProbe, false, true, true, para->getIsBodyForce());
 
-        wallModelProbe->addAllAvailableStatistics();
-        wallModelProbe->setFileNameToNOut();
-        wallModelProbe->setForceOutputToStress(true);
-        if (para->getIsBodyForce())
-            wallModelProbe->setEvaluatePressureGradient(true);
         para->addSampler(wallModelProbe);
 
         para->setHasWallModelMonitor(true);
