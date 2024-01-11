@@ -32,29 +32,29 @@
 #include "Probe.h"
 #include "WallModelProbe.h"
 
-#include <cuda_helper/CudaGrid.h>
+#include <stdexcept>
 
-#include <cuda.h>
-#include <cuda_runtime.h>
 #include <helper_cuda.h>
 
+#include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
 #include <thrust/reduce.h>
-#include <thrust/device_ptr.h>
 
-#include "Parameter/Parameter.h"
-#include "DataStructureInitializer/GridProvider.h"
+#include <basics/DataTypes.h>
+
 #include "Cuda/CudaMemoryManager.h"
+#include "DataStructureInitializer/GridProvider.h"
+#include "Parameter/Parameter.h"
 #include "basics/constants/NumericConstants.h"
 
 using namespace vf::basics::constant;
-typedef thrust::device_vector<real>::iterator valIterator;
-typedef thrust::device_vector<uint>::iterator indIterator;
+using valueIterator = thrust::device_vector<real>::iterator;
+using indexIterator = thrust::device_vector<uint>::iterator;
+using permuationIterator = thrust::permutation_iterator<valueIterator, indexIterator>;
 ///////////////////////////////////////////////////////////////////////////////////
 bool WallModelProbe::isAvailableStatistic(Statistic variable)
 {
-    switch (variable)
-    {
+    switch (variable) {
         case Statistic::SpatialMeans:
         case Statistic::SpatioTemporalMeans:
             return true;
@@ -68,73 +68,72 @@ bool WallModelProbe::isAvailableStatistic(Statistic variable)
 std::vector<PostProcessingVariable> WallModelProbe::getPostProcessingVariables(Statistic statistic)
 {
     std::vector<PostProcessingVariable> postProcessingVariables;
-    switch (statistic)
-    {
-    case Statistic::SpatialMeans:
-        postProcessingVariables.emplace_back("vx_el_spatMean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vy_el_spatMean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vz_el_spatMean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vx1_spatMean",    this->velocityRatio);
-        postProcessingVariables.emplace_back("vy1_spatMean",    this->velocityRatio);
-        postProcessingVariables.emplace_back("vz1_spatMean",    this->velocityRatio);
-        postProcessingVariables.emplace_back("u_star_spatMean", this->velocityRatio);
-        postProcessingVariables.emplace_back("Fx_spatMean",     this->outputStress? this->stressRatio: this->forceRatio);
-        postProcessingVariables.emplace_back("Fy_spatMean",     this->outputStress? this->stressRatio: this->forceRatio);
-        postProcessingVariables.emplace_back("Fz_spatMean",     this->outputStress? this->stressRatio: this->forceRatio);
-        if(this->evaluatePressureGradient)
-        {
-            postProcessingVariables.emplace_back("dpdx_spatMean",     this->forceRatio);
-            postProcessingVariables.emplace_back("dpdy_spatMean",     this->forceRatio);
-            postProcessingVariables.emplace_back("dpdz_spatMean",     this->forceRatio);
-        }
-        break;
-    case Statistic::SpatioTemporalMeans:
-        postProcessingVariables.emplace_back("vx_el_spatTmpMean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vy_el_spatTmpMean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vz_el_spatTmpMean",  this->velocityRatio);
-        postProcessingVariables.emplace_back("vx1_spatTmpMean",    this->velocityRatio);
-        postProcessingVariables.emplace_back("vy1_spatTmpMean",    this->velocityRatio);
-        postProcessingVariables.emplace_back("vz1_spatTmpMean",    this->velocityRatio);
-        postProcessingVariables.emplace_back("u_star_spatTmpMean", this->velocityRatio);
-        postProcessingVariables.emplace_back("Fx_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio);
-        postProcessingVariables.emplace_back("Fy_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio);
-        postProcessingVariables.emplace_back("Fz_spatTmpMean",     this->outputStress? this->stressRatio: this->forceRatio);
-        if(this->evaluatePressureGradient)
-        {
-            postProcessingVariables.emplace_back("dpdx_spatTmpMean",     this->forceRatio);
-            postProcessingVariables.emplace_back("dpdy_spatTmpMean",     this->forceRatio);
-            postProcessingVariables.emplace_back("dpdz_spatTmpMean",     this->forceRatio);
-        }
-        break;
+    switch (statistic) {
+        case Statistic::SpatialMeans:
+            postProcessingVariables.emplace_back("vx_el_spatMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vy_el_spatMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vz_el_spatMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vx1_spatMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vy1_spatMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vz1_spatMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("u_star_spatMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("Fx_spatMean", this->outputStress ? this->stressRatio : this->forceRatio);
+            postProcessingVariables.emplace_back("Fy_spatMean", this->outputStress ? this->stressRatio : this->forceRatio);
+            postProcessingVariables.emplace_back("Fz_spatMean", this->outputStress ? this->stressRatio : this->forceRatio);
+            if (this->evaluatePressureGradient) {
+                postProcessingVariables.emplace_back("dpdx_spatMean", this->forceRatio);
+                postProcessingVariables.emplace_back("dpdy_spatMean", this->forceRatio);
+                postProcessingVariables.emplace_back("dpdz_spatMean", this->forceRatio);
+            }
+            break;
+        case Statistic::SpatioTemporalMeans:
+            postProcessingVariables.emplace_back("vx_el_spatTmpMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vy_el_spatTmpMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vz_el_spatTmpMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vx1_spatTmpMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vy1_spatTmpMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("vz1_spatTmpMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("u_star_spatTmpMean", this->velocityRatio);
+            postProcessingVariables.emplace_back("Fx_spatTmpMean",
+                                                 this->outputStress ? this->stressRatio : this->forceRatio);
+            postProcessingVariables.emplace_back("Fy_spatTmpMean",
+                                                 this->outputStress ? this->stressRatio : this->forceRatio);
+            postProcessingVariables.emplace_back("Fz_spatTmpMean",
+                                                 this->outputStress ? this->stressRatio : this->forceRatio);
+            if (this->evaluatePressureGradient) {
+                postProcessingVariables.emplace_back("dpdx_spatTmpMean", this->forceRatio);
+                postProcessingVariables.emplace_back("dpdy_spatTmpMean", this->forceRatio);
+                postProcessingVariables.emplace_back("dpdz_spatTmpMean", this->forceRatio);
+            }
+            break;
 
-    default:
-        throw std::runtime_error("WallModelProbe::getPostProcessingVariables: Statistic unavailable!");
-        break;
+        default:
+            throw std::runtime_error("WallModelProbe::getPostProcessingVariables: Statistic unavailable!");
+            break;
     }
     return postProcessingVariables;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-void WallModelProbe::findPoints(std::vector<int>& probeIndices_level,
-                            std::vector<real>& distX_level, std::vector<real>& distY_level, std::vector<real>& distZ_level,      
-                            std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level, std::vector<real>& pointCoordsZ_level,
-                            int level)
+void WallModelProbe::findPoints(std::vector<int>& probeIndices_level, std::vector<real>& distX_level,
+                                std::vector<real>& distY_level, std::vector<real>& distZ_level,
+                                std::vector<real>& pointCoordsX_level, std::vector<real>& pointCoordsY_level,
+                                std::vector<real>& pointCoordsZ_level, int level)
 {
-    if ( !para->getHasWallModelMonitor())                    throw std::runtime_error("WallModelProbe::findPoints(): !para->getHasWallModelMonitor() !");
-    
-    pointCoordsX_level.push_back(0); 
+    if (!para->getHasWallModelMonitor())
+        throw std::runtime_error("WallModelProbe::findPoints(): !para->getHasWallModelMonitor() !");
+
+    pointCoordsX_level.push_back(0);
     pointCoordsY_level.push_back(0);
     pointCoordsZ_level.push_back(0);
 
-    if(this->evaluatePressureGradient)
-    {
-        if (!para->getIsBodyForce()) throw std::runtime_error("WallModelProbe::findPoints(): bodyforce not allocated!");
+    if (this->evaluatePressureGradient) {
+        if (!para->getIsBodyForce())
+            throw std::runtime_error("WallModelProbe::findPoints(): bodyforce not allocated!");
         // Find all fluid nodes
-        for(size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++ )
-        {
-            if( para->getParH(level)->typeOfGridNode[pos] == GEO_FLUID) 
-            {
+        for (size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
+            if (GEO_FLUID == para->getParH(level)->typeOfGridNode[pos]) {
                 probeIndices_level.push_back((int)pos);
             }
         }
@@ -143,111 +142,150 @@ void WallModelProbe::findPoints(std::vector<int>& probeIndices_level,
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-template<typename T>
+template <typename T>
 T spatial_mean(T* device_pointer, uint numberOfPoints)
 {
     thrust::device_ptr<T> thrust_pointer = thrust::device_pointer_cast(device_pointer);
-    return thrust::reduce(thrust_pointer, thrust_pointer+numberOfPoints)/real(numberOfPoints);
+    return thrust::reduce(thrust_pointer, thrust_pointer + numberOfPoints) / real(numberOfPoints);
 }
 
-template<typename T>
+template <typename T>
 T index_based_spatial_mean(T* device_pointer, thrust::device_ptr<uint> indeces_ptr, uint numberOfIndeces)
 {
     thrust::device_ptr<T> thrust_pointer = thrust::device_pointer_cast(device_pointer);
 
-    thrust::permutation_iterator<valIterator, indIterator> iter_begin(thrust_pointer, indeces_ptr);
-    thrust::permutation_iterator<valIterator, indIterator> iter_end  (thrust_pointer, indeces_ptr+numberOfIndeces);
-    return thrust::reduce(iter_begin, iter_end)/real(numberOfIndeces);
+    permuationIterator iter_begin(thrust_pointer, indeces_ptr);
+    permuationIterator iter_end(thrust_pointer, indeces_ptr + numberOfIndeces);
+    return thrust::reduce(iter_begin, iter_end) / real(numberOfIndeces);
 }
 
-template<typename T>
-T compute_and_save_mean(T* device_pointer, uint numberOfPoints, T* quantitiesArray, uint timestep, uint numberOfTimesteps, uint indexOfArray)
+template <typename T>
+T compute_and_save_mean(T* device_pointer, uint numberOfPoints, T* quantitiesArray, uint timestep, uint numberOfTimesteps,
+                        uint indexOfArray)
 {
     T mean = spatial_mean(device_pointer, numberOfPoints);
-    quantitiesArray[calcArrayIndex(0, 1, timestep, numberOfTimesteps, indexOfArray)] = mean;
+    quantitiesArray[calcArrayIndex(timestep, numberOfTimesteps, indexOfArray)] = mean;
     return mean;
 }
 
-template<typename T>
-T compute_and_save_index_based_mean(T* device_pointer, thrust::device_ptr<uint> indeces_ptr, uint numberOfIndices, T* quantitiesArray, uint timestep, uint numberOfTimesteps, uint indexOfArray)
+template <typename T>
+T compute_and_save_index_based_mean(T* device_pointer, thrust::device_ptr<uint> indeces_ptr, uint numberOfIndices,
+                                    T* quantitiesArray, uint timestep, uint numberOfTimesteps, uint indexOfArray)
 {
-    T mean = index_based_spatial_mean(device_pointer, indeces_ptr, numberOfIndices);
-    quantitiesArray[calcArrayIndex(0, 1, timestep, numberOfTimesteps, indexOfArray)] = mean;
+    const T mean = index_based_spatial_mean(device_pointer, indeces_ptr, numberOfIndices);
+    quantitiesArray[calcArrayIndex(timestep, numberOfTimesteps, indexOfArray)] = mean;
     return mean;
 }
 
-template<typename T>
-void temporal_average(T* quantitiesArray, T currentValue, uint currentTimestep, uint numberOfTimesteps, uint oldTimestep, uint indexOfArray, real invNumberOfAverages)
+template <typename T>
+void temporal_average(T* quantitiesArray, T currentValue, uint currentTimestep, uint numberOfTimesteps, uint oldTimestep,
+                      uint indexOfArray, real invNumberOfAverages)
 {
-    T oldMean = quantitiesArray[calcArrayIndex(0, 1, oldTimestep, numberOfTimesteps, indexOfArray)];
-    quantitiesArray[calcArrayIndex(0, 1, currentTimestep, numberOfTimesteps, indexOfArray)] = oldMean + (currentValue-oldMean)*invNumberOfAverages;
+    const T oldMean = quantitiesArray[calcArrayIndex(oldTimestep, numberOfTimesteps, indexOfArray)];
+    quantitiesArray[calcArrayIndex(currentTimestep, numberOfTimesteps, indexOfArray)] =
+        oldMean + (currentValue - oldMean) * invNumberOfAverages;
 }
 
 void WallModelProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level)
-{   
-    bool doTmpAveraging = (t>this->getTStartTmpAveraging());
-    uint numberOfStressBCPoints = para->getParD(level)->stressBC.numberOfBCnodes;
-    if(numberOfStressBCPoints<1) return; //Skipping levels without StressBC
-    uint timestep = probeStruct->timestepInTimeseries;
-    real inv_n = c1o1/real(probeStruct->numberOfAveragedValues+1);
-    uint oldTimestep = calcOldTimestep(timestep, probeStruct->lastTimestepInOldTimeseries);
+{
+    const bool doTemporalAveraging = (t > this->getTStartTmpAveraging());
+    const uint numberOfStressBCPoints = para->getParD(level)->stressBC.numberOfBCnodes;
+    if (numberOfStressBCPoints < 1)
+        return; // Skipping levels without StressBC
+    const uint timestep = probeStruct->timestepInTimeseries;
+    const real inverseNumberOfAveragedValues = c1o1 / real(probeStruct->numberOfAveragedValues + 1);
+    const uint oldTimestep = calcOldTimestep(timestep, probeStruct->lastTimestepInOldTimeseries);
 
     thrust::device_ptr<uint> indices_thrust = thrust::device_pointer_cast(probeStruct->pointIndicesD);
 
-    if(probeStruct->quantitiesH[int(Statistic::SpatialMeans)])
-    {
-        uint arrOff = probeStruct->arrayOffsetsH[int(Statistic::SpatialMeans)];
-        // Compute the instantaneous spatial means of the velocity moments 
-        real spatMean_u_el      = compute_and_save_mean(para->getParD(level)->stressBC.Vx     , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+0);
-        real spatMean_v_el      = compute_and_save_mean(para->getParD(level)->stressBC.Vy     , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+1);
-        real spatMean_w_el      = compute_and_save_mean(para->getParD(level)->stressBC.Vz     , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+2);
-        real spatMean_u1        = compute_and_save_mean(para->getParD(level)->stressBC.Vx1    , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+3);
-        real spatMean_v1        = compute_and_save_mean(para->getParD(level)->stressBC.Vy1    , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+4);
-        real spatMean_w1        = compute_and_save_mean(para->getParD(level)->stressBC.Vz1    , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+5);
-        real spatMean_u_star    = compute_and_save_mean(para->getParD(level)->wallModel.u_star, numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+6);
-        real spatMean_Fx        = compute_and_save_mean(para->getParD(level)->wallModel.Fx    , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+7);
-        real spatMean_Fy        = compute_and_save_mean(para->getParD(level)->wallModel.Fy    , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+8);
-        real spatMean_Fz        = compute_and_save_mean(para->getParD(level)->wallModel.Fz    , numberOfStressBCPoints, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+9);
+    if (probeStruct->quantitiesH[int(Statistic::SpatialMeans)]) {
+        const uint arrOff = probeStruct->arrayOffsetsH[int(Statistic::SpatialMeans)];
+        // Compute the instantaneous spatial means of the velocity moments
+        const real velocityXExchangeLocationSpatialMean =
+            compute_and_save_mean(para->getParD(level)->stressBC.Vx, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 0);
+        const real velocityYExchangeLocationSpatialMean =
+            compute_and_save_mean(para->getParD(level)->stressBC.Vy, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 1);
+        const real velocityYExchangeLocationSpatialMean =
+            compute_and_save_mean(para->getParD(level)->stressBC.Vz, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 2);
+        const real velocityXFirstNodeSpatialMean =
+            compute_and_save_mean(para->getParD(level)->stressBC.Vx1, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 3);
+        const real velocityYFirstNodeSpatialMean =
+            compute_and_save_mean(para->getParD(level)->stressBC.Vy1, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 4);
+        const real velocityZFirstNodeSpatialMean =
+            compute_and_save_mean(para->getParD(level)->stressBC.Vz1, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 5);
+        const real frictionVelocitySpatialMean =
+            compute_and_save_mean(para->getParD(level)->wallModel.u_star, numberOfStressBCPoints,
+                                  probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff + 6);
+        const real forceXSpatialMean =
+            compute_and_save_mean(para->getParD(level)->wallModel.Fx, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 7);
+        const real forceYSpatialMean =
+            compute_and_save_mean(para->getParD(level)->wallModel.Fy, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 8);
+        const real forceZSpatialMean =
+            compute_and_save_mean(para->getParD(level)->wallModel.Fz, numberOfStressBCPoints, probeStruct->quantitiesArrayH,
+                                  timestep, probeStruct->nTimesteps, arrOff + 9);
 
-        real spatMean_dpdx;
-        real spatMean_dpdy;
-        real spatMean_dpdz;
-        if(this->evaluatePressureGradient)
-        {
-            spatMean_dpdx = compute_and_save_index_based_mean(para->getParD(level)->forceX_SP, indices_thrust, probeStruct->nIndices, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+10);
-            spatMean_dpdy = compute_and_save_index_based_mean(para->getParD(level)->forceY_SP, indices_thrust, probeStruct->nIndices, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+11);
-            spatMean_dpdz = compute_and_save_index_based_mean(para->getParD(level)->forceZ_SP, indices_thrust, probeStruct->nIndices, probeStruct->quantitiesArrayH, timestep, probeStruct->nTimesteps, arrOff+12);
+        real pressureGradientXSpatialMean;
+        real pressureGradientYSpatialMean;
+        real pressureGradientZSpatialMean;
+        if (this->evaluatePressureGradient) {
+            pressureGradientXSpatialMean = compute_and_save_index_based_mean(
+                para->getParD(level)->forceX_SP, indices_thrust, probeStruct->nIndices, probeStruct->quantitiesArrayH,
+                timestep, probeStruct->nTimesteps, arrOff + 10);
+            pressureGradientYSpatialMean = compute_and_save_index_based_mean(
+                para->getParD(level)->forceY_SP, indices_thrust, probeStruct->nIndices, probeStruct->quantitiesArrayH,
+                timestep, probeStruct->nTimesteps, arrOff + 11);
+            pressureGradientZSpatialMean = compute_and_save_index_based_mean(
+                para->getParD(level)->forceZ_SP, indices_thrust, probeStruct->nIndices, probeStruct->quantitiesArrayH,
+                timestep, probeStruct->nTimesteps, arrOff + 12);
         }
 
-        if(probeStruct->quantitiesH[int(Statistic::SpatioTemporalMeans)] && doTmpAveraging)
-        {
-            uint arrOff2 = probeStruct->arrayOffsetsH[int(Statistic::SpatioTemporalMeans)];
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_u_el  , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+0, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_v_el  , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+1, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_w_el  , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+2, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_u1    , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+3, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_v1    , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+4, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_w1    , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+5, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_u_star, timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+6, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_Fx    , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+7, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_Fy    , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+8, inv_n);
-            temporal_average(probeStruct->quantitiesArrayH, spatMean_Fz    , timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+9, inv_n);
+        if (probeStruct->quantitiesH[int(Statistic::SpatioTemporalMeans)] && doTemporalAveraging) {
+            const uint arrOff2 = probeStruct->arrayOffsetsH[int(Statistic::SpatioTemporalMeans)];
+            temporal_average(probeStruct->quantitiesArrayH, velocityXExchangeLocationSpatialMean, timestep,
+                             probeStruct->nTimesteps, oldTimestep, arrOff2 + 0, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, velocityYExchangeLocationSpatialMean, timestep,
+                             probeStruct->nTimesteps, oldTimestep, arrOff2 + 1, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, velocityYExchangeLocationSpatialMean, timestep,
+                             probeStruct->nTimesteps, oldTimestep, arrOff2 + 2, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, velocityXFirstNodeSpatialMean, timestep, probeStruct->nTimesteps,
+                             oldTimestep, arrOff2 + 3, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, velocityYFirstNodeSpatialMean, timestep, probeStruct->nTimesteps,
+                             oldTimestep, arrOff2 + 4, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, velocityZFirstNodeSpatialMean, timestep, probeStruct->nTimesteps,
+                             oldTimestep, arrOff2 + 5, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, frictionVelocitySpatialMean, timestep, probeStruct->nTimesteps,
+                             oldTimestep, arrOff2 + 6, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, forceXSpatialMean, timestep, probeStruct->nTimesteps,
+                             oldTimestep, arrOff2 + 7, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, forceYSpatialMean, timestep, probeStruct->nTimesteps,
+                             oldTimestep, arrOff2 + 8, inverseNumberOfAveragedValues);
+            temporal_average(probeStruct->quantitiesArrayH, forceZSpatialMean, timestep, probeStruct->nTimesteps,
+                             oldTimestep, arrOff2 + 9, inverseNumberOfAveragedValues);
 
-            if(this->evaluatePressureGradient)
-            {
-                temporal_average(probeStruct->quantitiesArrayH, spatMean_dpdx, timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+10, inv_n);
-                temporal_average(probeStruct->quantitiesArrayH, spatMean_dpdy, timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+11, inv_n);
-                temporal_average(probeStruct->quantitiesArrayH, spatMean_dpdz, timestep, probeStruct->nTimesteps, oldTimestep, arrOff2+12, inv_n);
+            if (this->evaluatePressureGradient) {
+                temporal_average(probeStruct->quantitiesArrayH, pressureGradientXSpatialMean, timestep,
+                                 probeStruct->nTimesteps, oldTimestep, arrOff2 + 10, inverseNumberOfAveragedValues);
+                temporal_average(probeStruct->quantitiesArrayH, pressureGradientYSpatialMean, timestep,
+                                 probeStruct->nTimesteps, oldTimestep, arrOff2 + 11, inverseNumberOfAveragedValues);
+                temporal_average(probeStruct->quantitiesArrayH, pressureGradientZSpatialMean, timestep,
+                                 probeStruct->nTimesteps, oldTimestep, arrOff2 + 12, inverseNumberOfAveragedValues);
             }
-        }    
+        }
     }
     getLastCudaError("WallModelProbe::calculateQuantities execution failed");
 }
 
 uint WallModelProbe::getNumberOfTimestepsInTimeseries(int level)
 {
-    return this->tOut*exp2(level)/this->tAvg+1; 
+    return this->tOut * exp2(level) / this->tAvg + 1;
 }
-
 
 //! \}
