@@ -158,12 +158,13 @@ __host__ __device__ int calcArrayIndex(int node, int nNodes, int timestep, int n
 __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array);
 
 __global__ void interpolateAndCalculateQuantitiesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
-                                                   InterpolationParams interpolationParams);
+                                                        InterpolationParams interpolationParams);
 
 __global__ void calculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
                                                       TimeseriesParams timeseriesParams);
 
-__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams, ProbeArray array,
+__global__ void interpolateAndCalculateQuantitiesInTimeseriesKernel(uint numberOfAveragedValues, GridParams gridParams,
+                                                                    ProbeArray array,
                                                                     InterpolationParams interpolationParams,
                                                                     TimeseriesParams timeseriesParams);
 
@@ -215,7 +216,6 @@ protected:
     };
     real getNondimensionalConversionFactor(int level);
 
-
 private:
     virtual bool isAvailableStatistic(Statistic variable) = 0;
 
@@ -242,13 +242,10 @@ private:
 
     std::vector<std::string> getVarNames();
 
-
     virtual uint getNumberOfTimestepsInTimeseries(int level)
     {
         return 1;
     }
-
-
 
 protected:
     const std::string probeName;
@@ -289,6 +286,7 @@ protected:
 std::string makeGridFileName(std::string probeName, int level, int id, int t, uint part);
 std::string makeParallelFileName(std::string probeName, int id, int t);
 std::string makeTimeseriesFileName(std::string probeName, int level, int id);
+bool isValidProbePoint(unsigned long long pointIndex, Parameter* para, int level);
 
 #endif
 //! \}

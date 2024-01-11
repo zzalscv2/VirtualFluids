@@ -38,9 +38,10 @@
 
 #include <basics/DataTypes.h>
 
-#include "Cuda/CudaMemoryManager.h"
-#include "DataStructureInitializer/GridProvider.h"
-#include "Parameter/Parameter.h"
+#include "core/Cuda/CudaMemoryManager.h"
+#include "core/DataStructureInitializer/GridProvider.h"
+#include "core/Parameter/Parameter.h"
+#include "core/Utilities/GeometryUtils.h"
 
 bool PointProbe::isAvailableStatistic(Statistic variable)
 {
@@ -93,7 +94,7 @@ void PointProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
     const real* coordinateZ = para->getParH(level)->coordinateZ;
     const real deltaX = coordinateX[para->getParH(level)->neighborX[1]] - coordinateX[1];
 
-    for (size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
+    for (unsigned long long pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
         for (uint point = 0; point < this->pointCoordsX.size(); point++) {
             const real pointCoordX = this->pointCoordsX[point];
             const real pointCoordY = this->pointCoordsY[point];
@@ -101,7 +102,8 @@ void PointProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
             const real distX = pointCoordX - coordinateX[pos];
             const real distY = pointCoordY - coordinateY[pos];
             const real distZ = pointCoordZ - coordinateZ[pos];
-            if (distX <= deltaX && distY <= deltaX && distZ <= deltaX && distX > c0o1 && distY > c0o1 && distZ > c0o1) {
+            if (distX <= deltaX && distY <= deltaX && distZ <= deltaX && distX > c0o1 && distY > c0o1 && distZ > c0o1 &&
+                isValidProbePoint(pos, para.get(), level)) {
                 probeIndices.push_back((int)pos);
                 distancesX.push_back(distX / deltaX);
                 distancesY.push_back(distY / deltaX);
@@ -126,8 +128,8 @@ void PointProbe::calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int 
         interpolateAndCalculateQuantitiesInTimeseriesKernel<<<grid.grid, grid.threads>>>(
             probeStruct->numberOfAveragedValues, gridParams, probeArray, interpolationParams, timeseriesParams);
     } else {
-        interpolateAndCalculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->numberOfAveragedValues, gridParams, probeArray,
-                                                                             interpolationParams);
+        interpolateAndCalculateQuantitiesKernel<<<grid.grid, grid.threads>>>(probeStruct->numberOfAveragedValues, gridParams,
+                                                                             probeArray, interpolationParams);
     }
 }
 

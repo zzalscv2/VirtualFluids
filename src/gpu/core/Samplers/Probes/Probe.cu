@@ -611,10 +611,8 @@ std::string Probe::writeTimeseriesHeader(int level)
 std::vector<real> Probe::getTimestepData(real time, uint numberOfValues, int timestep, ProbeStruct* probeStruct, int level)
 {
     std::vector<real> timestepData;
-    timestepData.resize(numberOfValues+1);
-    timestepData[0] = time;
-
-    int valueIndex = 1;
+    timestepData.reserve(numberOfValues + 1);
+    timestepData.push_back(time);
 
     for (int statistic = 0; statistic < int(Statistic::LAST); statistic++) {
         if (!this->quantities[statistic])
@@ -630,9 +628,8 @@ std::vector<real> Probe::getTimestepData(real time, uint numberOfValues, int tim
                 calcArrayIndex(0, probeStruct->nPoints, timestep, probeStruct->nTimesteps, variableIndex);
 
             for (uint point = 0; point < probeStruct->nPoints; point++) {
-                timestepData[valueIndex + point] = probeStruct->quantitiesArrayH[startIndex + point] * conversionFactor;
+                timestepData.push_back(probeStruct->quantitiesArrayH[startIndex + point] * conversionFactor);
             }
-            valueIndex += probeStruct->nPoints;
         }
     }
     return timestepData;
@@ -718,5 +715,45 @@ std::string makeGridFileName(const std::string probeName, int level, int id, int
 std::string makeTimeseriesFileName(const std::string probeName, int level, int id)
 {
     return probeName + "_timeseries" + nameComponent("lev", level) + nameComponent("ID", id) + ".txt";
+}
+
+bool isCoarseInterpolationCell(unsigned long long pointIndex, Parameter* para, int level)
+{
+    if (level == para->getMaxLevel())
+        return false;
+    auto interpolationCells = para->getParH(level)->fineToCoarse;
+    for (uint i = 0; i < interpolationCells.numberOfCells; i++) {
+        if (interpolationCells.coarseCellIndices[i] == pointIndex) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool isFineInterpolationCell(unsigned long long pointIndex, Parameter* para, int level)
+{
+    if (level == 0)
+        return false;
+    auto interpolationCells = para->getParH(level - 1)->coarseToFine;
+    const uint* neighborX = para->getParH(level)->neighborX;
+    const uint* neighborY = para->getParH(level)->neighborY;
+    const uint* neighborZ = para->getParH(level)->neighborZ;
+    for (uint i = 0; i < interpolationCells.numberOfCells; i++) {
+        const uint kMMM = interpolationCells.fineCellIndices[i];
+        uint kPMM, kMPM, kMMP, kPPM, kPMP, kMPP, kPPP;
+        getNeighborIndicesOfBSW(kMMM, kPMM, kMPM, kMMP, kPPM, kPMP, kMPP, kPPP, neighborX, neighborY, neighborZ);
+        if (kMMM == pointIndex || kPMM == pointIndex || kMPM == pointIndex || kMMP == pointIndex || kPPM == pointIndex ||
+            kPMP == pointIndex || kMPP == pointIndex || kPPP == pointIndex) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool isValidProbePoint(unsigned long long pointIndex, Parameter* para, int level)
+{
+    return GEO_FLUID == para->getParH(level)->typeOfGridNode[pointIndex] 
+        && !isCoarseInterpolationCell(pointIndex, para, level) 
+        && !isFineInterpolationCell(pointIndex, para, level);
 }
 //! \}

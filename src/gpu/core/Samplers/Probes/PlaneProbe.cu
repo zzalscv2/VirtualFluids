@@ -95,7 +95,7 @@ void PlaneProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
     const real* coordinateY = para->getParH(level)->coordinateY;
     const real* coordinateZ = para->getParH(level)->coordinateZ;
     const real deltaX = coordinateX[para->getParH(level)->neighborX[1]] - coordinateX[1];
-    for (size_t pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
+    for (unsigned long long pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
         const real pointCoordX = coordinateX[pos];
         const real pointCoordY = coordinateY[pos];
         const real pointCoordZ = coordinateZ[pos];
@@ -104,7 +104,7 @@ void PlaneProbe::findPoints(std::vector<int>& probeIndices, std::vector<real>& d
         const real distanceZ = pointCoordZ - this->posZ;
 
         if (distanceX <= this->deltaX && distanceY <= this->deltaY && distanceZ <= this->deltaZ && distanceX >= c0o1 &&
-            distanceY >= c0o1 && distanceZ >= c0o1) {
+            distanceY >= c0o1 && distanceZ >= c0o1 && isValidProbePoint(pos, para.get(), level)) {
             probeIndices.push_back((int)pos);
             distancesX.push_back(distanceX / deltaX);
             distancesY.push_back(distanceY / deltaX);
