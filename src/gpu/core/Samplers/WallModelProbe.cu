@@ -219,7 +219,7 @@ void WallModelProbe::calculateQuantities(LevelData* data, uint t, int level)
 
     if (doTemporalAveraging) {
         std::vector<real>& oldMeans = data->data.back();
-        const uint start = static_cast<uint>(newTimestep.size());
+        const size_t start = newTimestep.size();
         computeTemporalAverage(newTimestep, oldMeans[start + 0], newTimestep[0], inverseNumberOfAveragedValues);
         computeTemporalAverage(newTimestep, oldMeans[start + 1], newTimestep[1], inverseNumberOfAveragedValues);
         computeTemporalAverage(newTimestep, oldMeans[start + 2], newTimestep[2], inverseNumberOfAveragedValues);
@@ -237,7 +237,7 @@ void WallModelProbe::calculateQuantities(LevelData* data, uint t, int level)
     }
 
     if (this->evaluatePressureGradient) {
-        const uint startPressureGradient = static_cast<uint>(newTimestep.size());
+        const size_t startPressureGradient = newTimestep.size();
         computeAndSaveIndexBasedMean(paraDevice->forceX_SP, paraDevice->typeOfGridNode, paraDevice->numberOfNodes,
                                      data->numberOfFluidNodes, newTimestep);
         computeAndSaveIndexBasedMean(paraDevice->forceY_SP, paraDevice->typeOfGridNode, paraDevice->numberOfNodes,
@@ -246,9 +246,8 @@ void WallModelProbe::calculateQuantities(LevelData* data, uint t, int level)
                                      data->numberOfFluidNodes, newTimestep);
 
         if (doTemporalAveraging) {
-            const uint startTempAvg = newTimestep.size();
+            const size_t startTempAvg = newTimestep.size();
             std::vector<real>& oldMeans = data->data.back();
-
             computeTemporalAverage(newTimestep, oldMeans[startTempAvg + 0], newTimestep[startPressureGradient + 0],
                                    inverseNumberOfAveragedValues);
             computeTemporalAverage(newTimestep, oldMeans[startTempAvg + 1], newTimestep[startPressureGradient + 1],
