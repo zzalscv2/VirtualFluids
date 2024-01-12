@@ -33,7 +33,7 @@
 #include <gpu/core/Samplers/Probes/Probe.h>
 #include <gpu/core/Samplers/Probes/PointProbe.h>
 #include <gpu/core/Samplers/Probes/PlaneProbe.h>
-#include <gpu/core/Samplers/Probes/WallModelProbe.h>
+#include <gpu/core/Samplers/WallModelProbe.h>
 #include <gpu/core/Samplers/Probes/PlanarAverageProbe.h>
 #include <gpu/core/Samplers/Sampler.h>
 
@@ -127,7 +127,7 @@ namespace probes
                         py::arg("plane_normal"));
 
 
-        py::class_<WallModelProbe, Probe, std::shared_ptr<WallModelProbe>>(probeModule, "WallModelProbe")
+        py::class_<WallModelProbe, Sampler, std::shared_ptr<WallModelProbe>>(probeModule, "WallModelProbe")
         .def(py::init<  SPtr<Parameter>,
                         SPtr<CudaMemoryManager>,
                         const std::string,
@@ -136,7 +136,11 @@ namespace probes
                         uint, 
                         uint,
                         uint,
-                        uint>(),
+                        uint,
+                        bool,
+                        bool,
+                        bool,
+                        bool>(),
                         py::arg("para"),
                         py::arg("cuda_memory_manager"),
                         py::arg("probe_name"),
@@ -145,9 +149,11 @@ namespace probes
                         py::arg("t_start_tmp_avg"),
                         py::arg("t_avg"),
                         py::arg("t_start_out"),
-                        py::arg("t_out"))
-        .def("set_force_output_to_stress", &WallModelProbe::setForceOutputToStress, py::arg("output_stress"))
-        .def("set_evaluate_pressure_gradient", &WallModelProbe::setEvaluatePressureGradient, py::arg("eval_press_grad"));
+                        py::arg("t_out"),
+                        py::arg("average_every_timestep",
+                        py::arg("compute_temporal_averages"),
+                        py::arg("output_stress"),
+                        py::arg("evaluate_pressure_gradient")))
 
         return probeModule;
     }
