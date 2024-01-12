@@ -150,10 +150,10 @@ namespace probes
                         py::arg("t_avg"),
                         py::arg("t_start_out"),
                         py::arg("t_out"),
-                        py::arg("average_every_timestep",
+                        py::arg("average_every_timestep"),
                         py::arg("compute_temporal_averages"),
                         py::arg("output_stress"),
-                        py::arg("evaluate_pressure_gradient")))
+                        py::arg("evaluate_pressure_gradient"))
 
         return probeModule;
     }
