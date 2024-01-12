@@ -153,7 +153,7 @@ namespace probes
                         py::arg("average_every_timestep"),
                         py::arg("compute_temporal_averages"),
                         py::arg("output_stress"),
-                        py::arg("evaluate_pressure_gradient"))
+                        py::arg("evaluate_pressure_gradient"));
 
         return probeModule;
     }
