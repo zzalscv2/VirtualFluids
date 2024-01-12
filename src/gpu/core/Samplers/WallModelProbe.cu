@@ -108,7 +108,7 @@ void WallModelProbe::init()
     const real y[1] { 0 };
     const real z[1] { 0 };
 
-    for (int level = 0; level < para->getMaxLevel(); level++) {
+    for (int level = 0; level <= para->getMaxLevel(); level++) {
         const std::string fileName = outputPath + makeTimeseriesFileName(probeName, level, para->getMyProcessID());
         TimeseriesFileWriter::writeHeader(fileName, 1, variableNames, x, y, z);
         const uint numberOfFluidNodes = evaluatePressureGradient ? countFluidNodes(level) : 0;
@@ -219,7 +219,7 @@ void WallModelProbe::calculateQuantities(LevelData* data, uint t, int level)
 
     if (doTemporalAveraging) {
         std::vector<real>& oldMeans = data->data.back();
-        const uint start = newTimestep.size();
+        const uint start = static_cast<uint>(newTimestep.size());
         computeTemporalAverage(newTimestep, oldMeans[start + 0], newTimestep[0], inverseNumberOfAveragedValues);
         computeTemporalAverage(newTimestep, oldMeans[start + 1], newTimestep[1], inverseNumberOfAveragedValues);
         computeTemporalAverage(newTimestep, oldMeans[start + 2], newTimestep[2], inverseNumberOfAveragedValues);
@@ -237,7 +237,7 @@ void WallModelProbe::calculateQuantities(LevelData* data, uint t, int level)
     }
 
     if (this->evaluatePressureGradient) {
-        const uint startPressureGradient = newTimestep.size();
+        const uint startPressureGradient = static_cast<uint>(newTimestep.size());
         computeAndSaveIndexBasedMean(paraDevice->forceX_SP, paraDevice->typeOfGridNode, paraDevice->numberOfNodes,
                                      data->numberOfFluidNodes, newTimestep);
         computeAndSaveIndexBasedMean(paraDevice->forceY_SP, paraDevice->typeOfGridNode, paraDevice->numberOfNodes,
