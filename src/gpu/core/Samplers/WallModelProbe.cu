@@ -32,6 +32,7 @@
 #include "WallModelProbe.h"
 
 #include <functional>
+#include <vector>
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_vector.h>
@@ -69,11 +70,6 @@ std::vector<PostProcessingVariable> WallModelProbe::getPostProcessingVariables()
     postProcessingVariables.emplace_back("Fx_spatMean", outputStress ? stressRatio : forceRatio);
     postProcessingVariables.emplace_back("Fy_spatMean", outputStress ? stressRatio : forceRatio);
     postProcessingVariables.emplace_back("Fz_spatMean", outputStress ? stressRatio : forceRatio);
-    if (evaluatePressureGradient) {
-        postProcessingVariables.emplace_back("dpdx_spatMean", forceRatio);
-        postProcessingVariables.emplace_back("dpdy_spatMean", forceRatio);
-        postProcessingVariables.emplace_back("dpdz_spatMean", forceRatio);
-    }
     if (computeTemporalAverages) {
         postProcessingVariables.emplace_back("vx_el_spatTmpMean", velocityRatio);
         postProcessingVariables.emplace_back("vy_el_spatTmpMean", velocityRatio);
@@ -85,7 +81,12 @@ std::vector<PostProcessingVariable> WallModelProbe::getPostProcessingVariables()
         postProcessingVariables.emplace_back("Fx_spatTmpMean", outputStress ? stressRatio : forceRatio);
         postProcessingVariables.emplace_back("Fy_spatTmpMean", outputStress ? stressRatio : forceRatio);
         postProcessingVariables.emplace_back("Fz_spatTmpMean", outputStress ? stressRatio : forceRatio);
-        if (evaluatePressureGradient) {
+    }
+    if (evaluatePressureGradient) {
+        postProcessingVariables.emplace_back("dpdx_spatMean", forceRatio);
+        postProcessingVariables.emplace_back("dpdy_spatMean", forceRatio);
+        postProcessingVariables.emplace_back("dpdz_spatMean", forceRatio);
+        if (computeTemporalAverages) {
             postProcessingVariables.emplace_back("dpdx_spatTmpMean", forceRatio);
             postProcessingVariables.emplace_back("dpdy_spatTmpMean", forceRatio);
             postProcessingVariables.emplace_back("dpdz_spatTmpMean", forceRatio);
@@ -109,7 +110,7 @@ void WallModelProbe::init()
 
     for (int level = 0; level < para->getMaxLevel(); level++) {
         const std::string fileName = outputPath + makeTimeseriesFileName(probeName, level, para->getMyProcessID());
-        writer.writeHeader(fileName, 1, variableNames, x, y, z);
+        TimeseriesFileWriter::writeHeader(fileName, 1, variableNames, x, y, z);
         const uint numberOfFluidNodes = evaluatePressureGradient ? countFluidNodes(level) : 0;
         levelData.emplace_back(fileName, numberOfFluidNodes);
         levelData.back().data.push_back(std::vector<real>(variableNames.size(), 0));
@@ -144,26 +145,21 @@ T computeMean(T* device_pointer, uint numberOfPoints)
     return thrust::reduce(thrust_pointer, thrust_pointer + numberOfPoints) / real(numberOfPoints);
 }
 
-struct isValidNode
-{
-    __host__ __device__ real operator()(thrust::tuple<real, uint> x)
-    {
-        return thrust::get<1>(x) == GEO_FLUID ? thrust::get<0>(x) : 0;
-    }
-};
-
 template <typename T>
 T computeIndexBasedMean(T* device_pointer, uint* typeOfGridNode, uint numberOfNodes, uint numberOfFluidNodes)
 {
+
+    auto isValidNode = [] __device__(thrust::tuple<real, uint> x) {
+        return thrust::get<1>(x) == GEO_FLUID ? thrust::get<0>(x) : 0;
+    };
     thrust::device_ptr<T> thrust_pointer = thrust::device_pointer_cast(device_pointer);
     thrust::device_ptr<uint> typePointer = thrust::device_pointer_cast(typeOfGridNode);
     auto begin = thrust::make_zip_iterator(thrust::make_tuple(thrust_pointer, typePointer));
-    auto end =
-        thrust::make_zip_iterator(thrust::make_tuple(thrust_pointer + numberOfFluidNodes, typePointer + numberOfFluidNodes));
-    auto iter_begin = thrust::make_transform_iterator(begin, isValidNode());
-    auto iter_end = thrust::make_transform_iterator(end, isValidNode());
+    auto end = thrust::make_zip_iterator(thrust::make_tuple(thrust_pointer + numberOfNodes, typePointer + numberOfNodes));
+    auto iter_begin = thrust::make_transform_iterator(begin, isValidNode);
+    auto iter_end = thrust::make_transform_iterator(end, isValidNode);
 
-    return thrust::reduce(iter_begin, iter_end) / real(numberOfNodes);
+    return thrust::reduce(iter_begin, iter_end) / real(numberOfFluidNodes);
 }
 
 template <typename T>
@@ -267,7 +263,7 @@ void WallModelProbe::write(int level)
 {
     auto data = &levelData[level];
     std::vector dataToWrite(data->data.begin() + 1, data->data.end());
-    writer.appendData(data->timeseriesFileName, dataToWrite);
+    TimeseriesFileWriter::appendData(data->timeseriesFileName, dataToWrite);
     auto lastTimestep = data->data.back();
     data->data.clear();
     data->data.push_back(lastTimestep);

@@ -91,7 +91,6 @@ private:
     uint countFluidNodes(int level);
 
 private:
-    TimeseriesFileWriter writer;
     uint tStartAveraging, tStartTemporalAveraging, tBetweenAverages, tStartWritingOutput, tBetweenWriting;
     bool outputStress = false;             //!> if true, output wall force is converted to a stress
     bool evaluatePressureGradient = false; //!> if true, mean global pressure gradient will also be evaluated
