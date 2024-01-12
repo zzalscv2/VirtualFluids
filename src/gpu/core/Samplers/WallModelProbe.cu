@@ -187,8 +187,8 @@ void computeTemporalAverage(std::vector<T>& quantityArray, T oldMean, T currentV
 
 uint WallModelProbe::countFluidNodes(int level)
 {
-    thrust::device_ptr<uint> typePointer = thrust::device_pointer_cast(para->getParD(level)->typeOfGridNode);
-    return thrust::count(typePointer, typePointer + para->getParD(level)->numberOfNodes, GEO_FLUID);
+    uint* typePointer = para->getParH(level)->typeOfGridNode;
+    return std::count(typePointer, typePointer + para->getParH(level)->numberOfNodes, GEO_FLUID);
 }
 
 void WallModelProbe::calculateQuantities(LevelData* data, uint t, int level)
