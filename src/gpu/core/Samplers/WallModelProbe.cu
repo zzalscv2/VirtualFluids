@@ -145,19 +145,22 @@ T computeMean(T* device_pointer, uint numberOfPoints)
     return thrust::reduce(thrust_pointer, thrust_pointer + numberOfPoints) / real(numberOfPoints);
 }
 
+struct isValidNode {
+    __host__ __device__ real operator()(thrust::tuple<real, uint> x)
+    {
+        return thrust::get<1>(x) == GEO_FLUID ? thrust::get<0>(x) : c0o1;
+    }
+};
+
 template <typename T>
 T computeIndexBasedMean(T* device_pointer, uint* typeOfGridNode, uint numberOfNodes, uint numberOfFluidNodes)
 {
-
-    auto isValidNode = [] __device__(thrust::tuple<real, uint> x) {
-        return thrust::get<1>(x) == GEO_FLUID ? thrust::get<0>(x) : 0;
-    };
     thrust::device_ptr<T> thrust_pointer = thrust::device_pointer_cast(device_pointer);
     thrust::device_ptr<uint> typePointer = thrust::device_pointer_cast(typeOfGridNode);
     auto begin = thrust::make_zip_iterator(thrust::make_tuple(thrust_pointer, typePointer));
     auto end = thrust::make_zip_iterator(thrust::make_tuple(thrust_pointer + numberOfNodes, typePointer + numberOfNodes));
-    auto iter_begin = thrust::make_transform_iterator(begin, isValidNode);
-    auto iter_end = thrust::make_transform_iterator(end, isValidNode);
+    auto iter_begin = thrust::make_transform_iterator(begin, isValidNode());
+    auto iter_end = thrust::make_transform_iterator(end, isValidNode());
 
     return thrust::reduce(iter_begin, iter_end) / real(numberOfFluidNodes);
 }
