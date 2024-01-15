@@ -222,7 +222,7 @@ void run(vf::basics::ConfigurationFile& config)
 
     for (size_t i = 0; i < planePositions.size(); i++) {
         const std::string name = "planeProbe_" + std::to_string(i);
-        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, name, para->getOutputPath(),
+        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, para->getOutputPath(), name,
                                                                    timeStepStartTemporalAveraging, numberOfAvergingTimeSteps,
                                                                    timeStepStartOutProbe, timeStepOutProbe);
         planeProbe->setProbePlane(turbinePositionsX[0] + planePositions[i], -0.5 * lengthY, -0.5 * lengthZ, deltaX, lengthY,
@@ -234,7 +234,7 @@ void run(vf::basics::ConfigurationFile& config)
     }
 
     SPtr<PlaneProbe> planeProbeVertical = std::make_shared<PlaneProbe>(
-        para, cudaMemoryManager, "planeProbeVertical", para->getOutputPath(), timeStepStartTemporalAveraging,
+        para, cudaMemoryManager, para->getOutputPath(), "planeProbeVertical", timeStepStartTemporalAveraging,
         numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe);
     planeProbeVertical->setProbePlane(0, turbinePositionsY[0], -0.5 * lengthZ, lengthX, deltaX, lengthZ);
     planeProbeVertical->addStatistic(Statistic::Means);
@@ -243,7 +243,7 @@ void run(vf::basics::ConfigurationFile& config)
     para->addSampler(planeProbeVertical);
 
     SPtr<PlaneProbe> planeProbeHorizontal = std::make_shared<PlaneProbe>(
-        para, cudaMemoryManager, "planeProbeHorizontal", para->getOutputPath(), timeStepStartTemporalAveraging,
+        para, cudaMemoryManager, para->getOutputPath(), "planeProbeHorizontal", timeStepStartTemporalAveraging,
         numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe);
     planeProbeHorizontal->setProbePlane(0, -0.5 * lengthY, turbinePositionsZ[0], lengthX, lengthY, deltaX);
     planeProbeHorizontal->addStatistic(Statistic::Means);
@@ -253,7 +253,7 @@ void run(vf::basics::ConfigurationFile& config)
 
     if (probePositionsX.size() > 0) {
         SPtr<PointProbe> timeseriesProbe = std::make_shared<PointProbe>(
-            para, cudaMemoryManager, "timeProbe", para->getOutputPath(), timeStepStartTemporalAveraging,
+            para, cudaMemoryManager, para->getOutputPath(), "timeProbe", timeStepStartTemporalAveraging,
             timeStepAverageTimeSeriesProbe, timeStepStartOutProbe, timeStepOutProbe, true);
         timeseriesProbe->addProbePointsFromList(probePositionsX, probePositionsY, probePositionsZ);
         timeseriesProbe->addStatistic(Statistic::Instantaneous);

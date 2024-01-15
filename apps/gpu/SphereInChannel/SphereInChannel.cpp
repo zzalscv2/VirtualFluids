@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
         const uint tAveraging = 100;
         const uint tStartOutProbe = 0;
         const uint tOutProbe = para->getTimestepOut();
-        SPtr<PointProbe> pointProbe = std::make_shared<PointProbe>(para, cudaMemoryManager, "pointProbe", para->getOutputPath(), tStartAveraging,
+        SPtr<PointProbe> pointProbe = std::make_shared<PointProbe>(para, cudaMemoryManager, para->getOutputPath(), "pointProbe", tStartAveraging,
                                                                    tAveraging, tStartOutProbe, tOutProbe);
         std::vector<real> probeCoordsX = { 0.3, 0.5 };
         std::vector<real> probeCoordsY = { 0.0, 0.0 };
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
         pointProbe->addStatistic(Statistic::Variances);
         para->addSampler(pointProbe);
 
-        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, "planeProbe", para->getOutputPath(), tStartAveraging,
+        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, para->getOutputPath(), "planeProbe", tStartAveraging,
                                                                    tAveraging, tStartOutProbe, tOutProbe);
         planeProbe->setProbePlane(dSphere, 0, 0, 0.3, 0.01, 0.1);
         planeProbe->addStatistic(Statistic::Instantaneous);
