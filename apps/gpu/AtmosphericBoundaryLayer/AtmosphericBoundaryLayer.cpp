@@ -354,14 +354,14 @@ void run(const vf::basics::ConfigurationFile& config)
 
     if (!usePrecursorInflow && (isFirstSubDomain || !isMultiGPU)) {
         const auto planarAverageProbe = std::make_shared<PlanarAverageProbe>(
-            para, cudaMemoryManager, "planarAverageProbe", para->getOutputPath(), timeStepStartAveraging,
+            para, cudaMemoryManager, para->getOutputPath(), "planarAverageProbe", timeStepStartAveraging,
             timeStepStartTemporalAveraging, timeStepAveraging, timeStepStartOutProbe, timeStepOutProbe, 'z');
         planarAverageProbe->addAllAvailableStatistics();
         planarAverageProbe->setFileNameToNOut();
         para->addSampler(planarAverageProbe);
 
         const auto wallModelProbe = std::make_shared<WallModelProbe>(
-            para, cudaMemoryManager, "wallModelProbe", para->getOutputPath(), timeStepStartAveraging,
+            para, cudaMemoryManager, para->getOutputPath(), "wallModelProbe", timeStepStartAveraging,
             timeStepStartTemporalAveraging, timeStepAveraging / 4, timeStepStartOutProbe, timeStepOutProbe, false, true, true, para->getIsBodyForce());
 
         para->addSampler(wallModelProbe);
@@ -372,14 +372,14 @@ void run(const vf::basics::ConfigurationFile& config)
     for (int iPlane = 0; iPlane < 3; iPlane++) {
         const std::string name = "planeProbe" + std::to_string(iPlane);
         const auto horizontalProbe =
-            std::make_shared<PlaneProbe>(para, cudaMemoryManager, name, para->getOutputPath(), timeStepStartAveraging,
+            std::make_shared<PlaneProbe>(para, cudaMemoryManager, para->getOutputPath(), name, timeStepStartAveraging,
                                          averagingTimestepsPlaneProbes, timeStepStartOutProbe, timeStepOutProbe);
         horizontalProbe->setProbePlane(c0o1, c0o1, iPlane * lengthZ / c4o1, lengthX, lengthY, deltaX);
         horizontalProbe->addAllAvailableStatistics();
         para->addSampler(horizontalProbe);
     }
 
-    auto crossStreamPlane = std::make_shared<PlaneProbe>(para, cudaMemoryManager, "crossStreamPlane", para->getOutputPath(),
+    auto crossStreamPlane = std::make_shared<PlaneProbe>(para, cudaMemoryManager, para->getOutputPath(), "crossStreamPlane",
                                                          timeStartAveraging / deltaT, averagingTimestepsPlaneProbes,
                                                          timeStepStartOutProbe, timeOutProbe / deltaT);
     crossStreamPlane->setProbePlane(c1o2 * lengthX, c0o1, c0o1, deltaX, lengthY, lengthZ);
@@ -388,7 +388,7 @@ void run(const vf::basics::ConfigurationFile& config)
 
     if (usePrecursorInflow) {
         auto streamwisePlane = std::make_shared<PlaneProbe>(
-            para, cudaMemoryManager, "streamwisePlane", para->getOutputPath(), timeStartAveraging / deltaT,
+            para, cudaMemoryManager, para->getOutputPath(), "streamwisePlane", timeStartAveraging / deltaT,
             averagingTimestepsPlaneProbes, timeStepStartOutProbe, timeOutProbe / deltaT);
         streamwisePlane->setProbePlane(c0o1, c1o2 * lengthY, c0o1, lengthX, deltaX, lengthZ);
         streamwisePlane->addAllAvailableStatistics();
@@ -400,7 +400,7 @@ void run(const vf::basics::ConfigurationFile& config)
         const auto outputVariable =
             useDistributionsForPrecursor ? OutputVariable::Distributions : OutputVariable::Velocities;
         auto precursorWriter = std::make_shared<PrecursorWriter>(
-            para, cudaMemoryManager, "precursor", fullPrecursorDirectory, positionXPrecursorSamplingPlane, c0o1, lengthY,
+            para, cudaMemoryManager, fullPrecursorDirectory, "precursor", positionXPrecursorSamplingPlane, c0o1, lengthY,
             c0o1, lengthZ, timeStepStartPrecursor, timeStepsWritePrecursor, outputVariable,
             maximumNumberOfTimestepsPerPrecursorFile);
         para->addSampler(precursorWriter);
