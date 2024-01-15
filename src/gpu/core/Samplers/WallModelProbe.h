@@ -49,12 +49,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-struct LevelData
+struct WallModelProbeLevelData
 {
     uint numberOfAveragedValues, numberOfFluidNodes;
     std::string timeseriesFileName;
     std::vector<std::vector<real>> data;
-    LevelData(std::string fileName, uint numberOfFluidNodes) : timeseriesFileName(fileName), numberOfFluidNodes(numberOfFluidNodes)
+    WallModelProbeLevelData(std::string fileName, uint numberOfFluidNodes) : timeseriesFileName(fileName), numberOfFluidNodes(numberOfFluidNodes)
     {
     }
 };
@@ -86,7 +86,7 @@ public:
 
 private:
     std::vector<PostProcessingVariable> getPostProcessingVariables();
-    void calculateQuantities(LevelData* levelData, uint t, int level);
+    void calculateQuantities(WallModelProbeLevelData* levelData, uint t, int level);
     void write(int level);
     uint countFluidNodes(int level);
 
@@ -96,7 +96,7 @@ private:
     bool evaluatePressureGradient = false; //!> if true, mean global pressure gradient will also be evaluated
     bool computeTemporalAverages = false;  //!> if true, temporal averages will be computed
     bool averageEveryTimestep = false;     //!> if true, the probe will be evaluated every timestep
-    std::vector<LevelData> levelData;
+    std::vector<WallModelProbeLevelData> levelData;
 };
 
 #endif

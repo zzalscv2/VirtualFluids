@@ -190,7 +190,7 @@ uint WallModelProbe::countFluidNodes(int level)
     return std::count(typePointer, typePointer + para->getParH(level)->numberOfNodes, GEO_FLUID);
 }
 
-void WallModelProbe::calculateQuantities(LevelData* data, uint t, int level)
+void WallModelProbe::calculateQuantities(WallModelProbeLevelData* data, uint t, int level)
 {
     const bool doTemporalAveraging = (t > tStartTemporalAveraging) && computeTemporalAverages;
     const uint nPoints = para->getParD(level)->stressBC.numberOfBCnodes;
