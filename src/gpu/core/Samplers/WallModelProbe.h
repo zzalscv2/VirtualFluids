@@ -54,7 +54,8 @@ struct WallModelProbeLevelData
     uint numberOfAveragedValues, numberOfFluidNodes;
     std::string timeseriesFileName;
     std::vector<std::vector<real>> data;
-    WallModelProbeLevelData(std::string fileName, uint numberOfFluidNodes) : timeseriesFileName(fileName), numberOfFluidNodes(numberOfFluidNodes)
+    WallModelProbeLevelData(std::string fileName, uint numberOfFluidNodes)
+        : timeseriesFileName(fileName), numberOfFluidNodes(numberOfFluidNodes)
     {
     }
 };
@@ -62,8 +63,8 @@ struct WallModelProbeLevelData
 class WallModelProbe : public Sampler
 {
 public:
-    WallModelProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
-                   const std::string outputPath, uint tStartAveraging, uint tStartTemporalAveraging, uint tBetweenAverages,
+    WallModelProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string outputPath,
+                   const std::string probeName, uint tStartAveraging, uint tStartTemporalAveraging, uint tBetweenAverages,
                    uint tStartWritingOutput, uint tBetweenWriting, bool averageEveryTimestep, bool computeTemporalAverages,
                    bool outputStress, bool evaluatePressureGradient)
         : tStartAveraging(tStartAveraging), tStartTemporalAveraging(tStartTemporalAveraging),

@@ -37,6 +37,8 @@
 #ifndef SAMPLER_H
 #define SAMPLER_H
 
+#include <functional>
+
 #include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
 

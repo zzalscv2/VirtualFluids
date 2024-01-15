@@ -46,10 +46,11 @@
 class PointProbe : public Probe
 {
 public:
-    PointProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
-               const std::string outputPath, uint tStartAvg, uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting,
-               bool outputTimeseries = false)
-        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, 0, tBetweenAverages, tStartWritingOutput, tBetweenWriting, true, outputTimeseries)
+    PointProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string outputPath,
+               const std::string probeName, uint tStartAvg, uint tBetweenAverages, uint tStartWritingOutput,
+               uint tBetweenWriting, bool outputTimeseries = false)
+        : Probe(para, cudaMemoryManager, outputPath, probeName, tStartAvg, 0, tBetweenAverages, tStartWritingOutput,
+                tBetweenWriting, true, outputTimeseries)
     {
     }
 

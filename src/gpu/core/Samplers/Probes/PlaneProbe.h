@@ -48,9 +48,11 @@
 class PlaneProbe : public Probe
 {
 public:
-    PlaneProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
-               const std::string outputPath, uint tStartAvg, uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting)
-        : Probe(para, cudaMemoryManager, probeName, outputPath, tStartAvg, tStartAvg + 1, tBetweenAverages, tStartWritingOutput, tBetweenWriting, true, false)
+    PlaneProbe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string outputPath,
+               const std::string probeName, uint tStartAvg, uint tBetweenAverages, uint tStartWritingOutput,
+               uint tBetweenWriting)
+        : Probe(para, cudaMemoryManager, outputPath, probeName, tStartAvg, tStartAvg + 1, tBetweenAverages,
+                tStartWritingOutput, tBetweenWriting, true, false)
     {
     }
 

@@ -95,8 +95,6 @@ enum class Statistic {
     LAST,
 };
 
-
-
 struct ProbeStruct
 {
     uint nPoints, nIndices, nArrays;
@@ -168,8 +166,8 @@ uint calcOldTimestep(uint currentTimestep, uint lastTimestepInOldSeries);
 class Probe : public Sampler
 {
 public:
-    Probe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string probeName,
-          const std::string outputPath, const uint tStartAveraging, const uint tStartTemporalAverage,
+    Probe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string outputPath,
+          const std::string probeName, const uint tStartAveraging, const uint tStartTemporalAverage,
           const uint tBetweenAverages, const uint tStartWritingOutput, const uint tBetweenWriting,
           const bool hasDeviceQuantityArray, const bool outputTimeSeries)
         : tStartAveraging(tStartAveraging), tStartTemporalAverage(tStartTemporalAverage), tBetweenAverages(tBetweenAverages),
@@ -243,9 +241,6 @@ private:
     }
 
 protected:
-    const std::string probeName;
-    const std::string outputPath;
-
     std::vector<SPtr<ProbeStruct>> probeParams;
     bool quantities[int(Statistic::LAST)] = {};
     //! flag initiating memCopy in Point and PlaneProbe. Other probes are only based on
