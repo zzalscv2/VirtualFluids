@@ -95,7 +95,7 @@ void run(string configname)
       SPtr<LBMKernel> kernel = SPtr<LBMKernel>(new K17CompressibleNavierStokes());
       kernel->setBCSet(bcProc);
 
-      SPtr<Grid3DVisitor> metisVisitor(new MetisPartitioningGridVisitor(comm, MetisPartitioningGridVisitor::LevelBased, d00M));
+      SPtr<Grid3DVisitor> metisVisitor(new MetisPartitioningGridVisitor(comm, MetisPartitioningGridVisitor::LevelBased, dMMM, MetisPartitioner::RECURSIVE));
 
 
       //////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,8 @@ void run(string configname)
           VF_LOG_INFO("Re = {}", Re);
           VF_LOG_INFO("dx = {}", dx);
           VF_LOG_INFO("number of levels = {}", refineLevel + 1);
-          VF_LOG_INFO("numOfThreads = {}", numOfThreads);
+          VF_LOG_INFO("number of threads = {}", numOfThreads);
+          VF_LOG_INFO("number of processes = {}", comm->getNumberOfProcesses());
           VF_LOG_INFO("path = {}", pathname);
           VF_LOG_INFO("Preprocess - start");
       }
@@ -171,14 +172,14 @@ void run(string configname)
 
          if (refineLevel > 0)
          {
-            if (myid == 0) UBLOG(logINFO, "Refinement - start");
+            if (myid == 0) VF_LOG_INFO("Refinement - start");
             RefineCrossAndInsideGbObjectHelper refineHelper(grid, refineLevel, comm);
             refineHelper.addGbObject(refineCube1_1, 1);
             refineHelper.addGbObject(refineCube1_2, 1);
             refineHelper.addGbObject(refineCube1_3, 1);
             refineHelper.addGbObject(refineCube1_4, 1);
             refineHelper.refine();
-            if (myid == 0) UBLOG(logINFO, "Refinement - end");
+            if (myid == 0) VF_LOG_INFO("Refinement - end");
          }
 
          //inflow
@@ -195,11 +196,14 @@ void run(string configname)
 
          SPtr<D3Q27Interactor> outflowInt = SPtr<D3Q27Interactor>(new D3Q27Interactor(geoOutflow, grid, pressureBC2, Interactor3D::SOLID));
 
+
          InteractorsHelper intHelper(grid, metisVisitor);
          intHelper.addInteractor(cylinderInt);
          intHelper.addInteractor(inflowInt);
          intHelper.addInteractor(outflowInt);
+         if (myid == 0) VF_LOG_INFO("Select blocks - start");
          intHelper.selectBlocks();
+         if (myid == 0) VF_LOG_INFO("Select blocks - end");
 
          SPtr<SimulationObserver> ppblocks(new WriteBlocksSimulationObserver(grid, SPtr<UbScheduler>(new UbScheduler(1)), pathname, WbWriterVtkXmlBinary::getInstance(), comm));
          ppblocks->update(0);
@@ -207,7 +211,7 @@ void run(string configname)
 
          if (myid == 0) VF_LOG_INFO("{}",Utilities::toString(grid, comm->getNumberOfProcesses()));
  
-         SetKernelBlockVisitor kernelVisitor(kernel, nuLB);
+         SetKernelBlockVisitor kernelVisitor(kernel, nuLB, comm->getNumberOfProcesses());
          grid->accept(kernelVisitor);
 
          if (refineLevel > 0)
@@ -216,19 +220,23 @@ void run(string configname)
             grid->accept(undefNodesVisitor);
          }
 
+         if (myid == 0) VF_LOG_INFO("Set BC - start");
          intHelper.setBC();
-
+         if (myid == 0) VF_LOG_INFO("Set BC - end");
+         
          //initialization of distributions
+         if (myid == 0) VF_LOG_INFO("Initialization of distributions - start");
          InitDistributionsBlockVisitor initVisitor;
          grid->accept(initVisitor);
+         if (myid == 0) VF_LOG_INFO("Initialization of distributions - end");
 
          //boundary conditions grid
-         {
-            SPtr<UbScheduler> geoSch(new UbScheduler(1));
-            SPtr<SimulationObserver> ppgeo(new WriteBoundaryConditionsSimulationObserver(grid, geoSch, pathname, WbWriterVtkXmlBinary::getInstance(), comm));
-            ppgeo->update(0);
-            ppgeo.reset();
-         }
+         // {
+         //    SPtr<UbScheduler> geoSch(new UbScheduler(1));
+         //    SPtr<SimulationObserver> ppgeo(new WriteBoundaryConditionsSimulationObserver(grid, geoSch, pathname, WbWriterVtkXmlBinary::getInstance(), comm));
+         //    ppgeo->update(0);
+         //    ppgeo.reset();
+         // }
 
          
       }
@@ -293,14 +301,14 @@ int main(int argc, char *argv[])
     try {
         vf::logging::Logger::initializeLogger();
 
-        VF_LOG_INFO("Starting VirtualFluids...");
+        //VF_LOG_INFO("Starting VirtualFluids...");
 
         if (argc > 1)
             run(std::string(argv[1]));
         else
             VF_LOG_CRITICAL("Configuration file is missing!");
 
-        VF_LOG_INFO("VirtualFluids is finished.");
+        //VF_LOG_INFO("VirtualFluids is finished.");
 
     } catch (const spdlog::spdlog_ex &ex) {
         std::cout << "Log initialization failed: " << ex.what() << std::endl;
