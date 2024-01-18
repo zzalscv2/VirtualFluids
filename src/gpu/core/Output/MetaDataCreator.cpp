@@ -31,35 +31,64 @@
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
-#ifndef PerformanceMeasurement_H
-#define PerformanceMeasurement_H
+#include "MetaDataCreator.h"
 
-#include <basics/DataTypes.h>
-#include <basics/Timer/Timer.h>
+#include "Parameter/Parameter.h"
+#include "cuda_helper/DeviceInfo.h"
+#include "logger/Logger.h"
 
-#include <parallel/Communicator.h>
+#include <omp.h>
 
-class Parameter;
-
-class PerformanceMeasurement
+namespace vf::gpu
 {
-public:
-    PerformanceMeasurement(const Parameter& para);
 
-    double getNups() const;
-    double totalRuntimeInSeconds() const;
-    void print(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator);
+vf::basics::MetaData createMetaData(const Parameter& parameter)
+{
+    vf::basics::MetaData meta_data;
 
-private:
-    double totalNumberOfNodes { 0 };
-    double totalNumberOfNodesCorrected { 0 };
-    double timestepStart { 0 };
+    meta_data.name = parameter.getOutputPrefix();
 
-    double totalTime { 0. };
-    double nups { 0. };
-    bool firstOutput { true };
-};
+    meta_data.world.Length = parameter.worldLength;
+    meta_data.world.velocity = parameter.getVelocityRatio() * parameter.getVelocity();
+    meta_data.discretization.dx = parameter.worldLength / parameter.getParH(0)->gridNX;
 
-#endif
+    meta_data.simulation.lb_velocity = parameter.getVelocity();
+    meta_data.simulation.lb_viscosity = parameter.getViscosity();
+
+    meta_data.discretization.dt = meta_data.simulation.lb_velocity / meta_data.world.velocity * meta_data.discretization.dx;
+    meta_data.simulation.reynoldsNumber = parameter.getRe();
+
+    meta_data.simulation.numberOfTimeSteps = parameter.getTimestepEnd();
+
+    meta_data.simulation.collisionKernel = parameter.getMainKernel();
+
+    meta_data.discretization.totalNumberOfNodes = 0.;
+    for (int level = parameter.getCoarse(); level <= parameter.getFine(); level++) {
+        meta_data.discretization.totalNumberOfNodes += parameter.getParH(level)->numberOfNodes;
+        meta_data.discretization.numberOfNodesPerLevel.push_back(parameter.getParH(level)->numberOfNodes);
+    }
+
+    meta_data.discretization.numberOfLevels = parameter.getMaxLevel() + 1;
+
+    meta_data.numberOfProcesses = parameter.getNumprocs();
+
+    int numOfThreads = 1;
+    omp_set_num_threads(numOfThreads);
+    meta_data.numberOfThreads = numOfThreads;
+
+    meta_data.vf_hardware = "GPU";
+
+    int count = 1;
+    for (const auto& deviceId : parameter.getDevices()) {
+        meta_data.gpus.push_back({ vf::cuda::getGPUName(deviceId), vf::cuda::getComputeCapability(deviceId) });
+        if (count >= parameter.getNumprocs())
+            break;
+        count++;
+    }
+
+    return meta_data;
+}
+
+} // namespace vf::gpu
 
 //! \}

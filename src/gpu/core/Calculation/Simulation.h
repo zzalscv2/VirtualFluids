@@ -37,6 +37,7 @@
 #include <memory>
 #include <vector>
 
+#include <basics/MetaData/MetaData.h>
 #include <basics/PointerDefinitions.h>
 #include <basics/Timer/Timer.h>
 
@@ -111,7 +112,7 @@ private:
 
     // Timer
     vf::basics::Timer averageTimer;
-    PerformanceMeasurement performanceOutput;
+    std::unique_ptr<PerformanceMeasurement> performanceOutput;
     uint previousTimestepForAveraging;
     uint previousTimestepForTurbulenceIntensityCalculation;
     uint timestepForMeasuringPoints;
@@ -122,6 +123,8 @@ private:
     std::unique_ptr<KineticEnergyAnalyzer> kineticEnergyAnalyzer;
     std::unique_ptr<EnstrophyAnalyzer> enstrophyAnalyzer;
     std::unique_ptr<UpdateGrid27> updateGrid27;
+
+    vf::basics::MetaData metaData;
 };
 #endif
 

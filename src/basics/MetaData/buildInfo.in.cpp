@@ -26,40 +26,99 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_Output Output
-//! \ingroup gpu_core core
+//! \addtogroup MetaData
+//! \ingroup basics
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
-#ifndef PerformanceMeasurement_H
-#define PerformanceMeasurement_H
 
-#include <basics/DataTypes.h>
-#include <basics/Timer/Timer.h>
-
-#include <parallel/Communicator.h>
-
-class Parameter;
-
-class PerformanceMeasurement
+namespace buildInfo
 {
-public:
-    PerformanceMeasurement(const Parameter& para);
 
-    double getNups() const;
-    double totalRuntimeInSeconds() const;
-    void print(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator);
+const char* gitCommitHash()
+{
+    return "@git_commit_hash@";
+}
 
-private:
-    double totalNumberOfNodes { 0 };
-    double totalNumberOfNodesCorrected { 0 };
-    double timestepStart { 0 };
+const char* gitBranch()
+{
+    return "@git_branch@";
+}
 
-    double totalTime { 0. };
-    double nups { 0. };
-    bool firstOutput { true };
-};
+const char* buildType()
+{
+    return "@CMAKE_BUILD_TYPE@";
+}
 
+const char* compilerFlags()
+{
+    return "@BUILD_COMPILE_OPTIONS@";
+}
+
+const char* compilerFlagWarnings()
+{
+    return "@BUILD_COMPILE_WARNINGS@";
+}
+
+const char* compilerDefinitions()
+{
+    return "@BUILD_COMPILE_DEFINITIONS@";
+}
+
+const char* buildMachine()
+{
+    return "@BUILD_computerName@";
+}
+
+const char* projectDir()
+{
+    return "@CMAKE_SOURCE_DIR@";
+}
+
+const char* binaryDir()
+{
+    return "@CMAKE_BINARY_DIR@";
+}
+
+const char* precision()
+{
+    return "@BUILD_PRECISION@";
+}
+
+const char* compiler()
+{
+    return "@CMAKE_CXX_COMPILER_ID@";
+}
+
+const char* compiler_version()
+{
+    return "@CMAKE_CXX_COMPILER_VERSION@";
+}
+
+#ifdef VF_MPI
+const char* mpi_library()
+{
+    return "@MPI_CXX_LIBRARIES@";
+}
+
+const char* mpi_version()
+{
+    return "@MPI_CXX_VERSION@";
+}
 #endif
+
+#ifdef _OPENMP
+const char* openmp_library()
+{
+    return "@OpenMP_CXX_LIBRARIES@";
+}
+
+const char* openmp_version()
+{
+    return "@OpenMP_CXX_VERSION@";
+}
+#endif
+
+} // namespace buildInfo
 
 //! \}

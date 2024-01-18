@@ -26,7 +26,8 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup basics
+//! \addtogroup MetaData
+//! \ingroup basics
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
@@ -46,6 +47,16 @@ const char* buildMachine();
 const char* projectDir();
 const char* binaryDir();
 const char* precision();
+const char* compiler();
+const char* compiler_version();
+#ifdef VF_MPI
+const char* mpi_library();
+const char* mpi_version();
+#endif
+#ifdef _OPENMP
+const char* openmp_library();
+const char* openmp_version();
+#endif
 
 } // namespace buildInfo
 

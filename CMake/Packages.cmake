@@ -108,3 +108,17 @@ if(VF_ENABLE_PYTHON_BINDINGS)
 
     FetchContent_MakeAvailable(pybind11)
 endif()
+
+# YAML
+set(yaml_git_tag "0e6e28d1a38224fc8172fae0109ea7f673c096db")
+set(yaml_url "https://github.com/jbeder/yaml-cpp")
+message(STATUS "Fetching spdlog: ${spdlog_version}")
+FetchContent_Declare(yaml-cpp
+  GIT_REPOSITORY ${yaml_url}
+  GIT_TAG ${yaml_git_tag}) 
+FetchContent_GetProperties(yaml-cpp)
+if(NOT yaml-cpp_POPULATED)
+  message(STATUS "Fetching yaml-cpp...")
+  FetchContent_Populate(yaml-cpp)
+  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+endif()

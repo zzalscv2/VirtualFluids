@@ -40,6 +40,8 @@
 
 #include <cuda_helper/DeviceInfo.h>
 
+#include <basics/MetaData/MetaData.h>
+#include <basics/MetaData/YAML_MetaData.h>
 #include <basics/utilities/UbFileOutputASCII.h>
 
 #include <logger/Logger.h>
@@ -62,6 +64,7 @@
 #include "Output/FileWriter.h"
 #include "Output/InterfaceDebugWriter.hpp"
 #include "Output/MeasurePointWriter.hpp"
+#include "Output/MetaDataCreator.h"
 #include "Output/NeighborDebugWriter.hpp"
 #include "Parameter/EdgeNodeFinder.h"
 #include "Parameter/Parameter.h"
@@ -109,7 +112,9 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
 {
     gridProvider.initalGridInformations();
 
-    vf::cuda::verifyAndSetDevice(communicator.mapCudaDevicesOnHosts(para->getDevices(), para->getMaxDev()));
+    const int deviceId = communicator.mapCudaDevicesOnHosts(para->getDevices(), para->getMaxDev());
+
+    vf::cuda::verifyAndSetDevice(deviceId);
 
     para->initLBMSimulationParameter();
 
@@ -123,16 +128,6 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
 
     restart_object = std::make_shared<ASCIIRestartObject>();
 
-    //////////////////////////////////////////////////////////////////////////
-    VF_LOG_INFO("LB_Modell:       D3Q{}", para->getD3Qxx());
-    VF_LOG_INFO("Re:              {}", para->getRe());
-    VF_LOG_INFO("vis_ratio:       {}", para->getViscosityRatio());
-    VF_LOG_INFO("u0_ratio:        {}", para->getVelocityRatio());
-    VF_LOG_INFO("delta_rho:       {}", para->getDensityRatio());
-    VF_LOG_INFO("QuadricLimiters: {}, \t{}, \t{}", para->getQuadricLimitersHost()[0], para->getQuadricLimitersHost()[1], para->getQuadricLimitersHost()[2]);
-    //////////////////////////////////////////////////////////////////////////
-
-    /////////////////////////////////////////////////////////////////////////
     cudaMemoryManager->setMemsizeGPU(0, true);
     //////////////////////////////////////////////////////////////////////////
     allocNeighborsOffsetsScalesAndBoundaries(gridProvider);
@@ -164,11 +159,11 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
     //////////////////////////////////////////////////////////////////////////
     // Kernel init
     //////////////////////////////////////////////////////////////////////////
-    VF_LOG_INFO("make Kernels");
+    VF_LOG_TRACE("make Kernels");
     kernels = kernelFactory->makeKernels(para);
 
     if (para->getDiffOn()) {
-        VF_LOG_INFO("make AD Kernels");
+        VF_LOG_TRACE("make AD Kernels");
         adKernels = kernelFactory->makeAdvDifKernels(para);
         std::vector<PreProcessorType> preProADTypes = adKernels.at(0)->getPreProcessorTypes();
         preProcessorAD = preProcessorFactory->makePreProcessor(preProADTypes, para);
@@ -177,7 +172,7 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
     //////////////////////////////////////////////////////////////////////////
     // PreProcessor init
     //////////////////////////////////////////////////////////////////////////
-    VF_LOG_INFO("make Preprocessors");
+    VF_LOG_TRACE("make Preprocessors");
     std::vector<PreProcessorType> preProTypes = kernels.at(0)->getPreProcessorTypes();
     preProcessor = preProcessorFactory->makePreProcessor(preProTypes, para);
 
@@ -191,7 +186,7 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
     // Mean
     //////////////////////////////////////////////////////////////////////////
     if (para->getCalcMean()) {
-        VF_LOG_INFO("alloc Calculation for Mean Values");
+        VF_LOG_TRACE("alloc Calculation for Mean Values");
         if (para->getDiffOn())
             allocMeanAD(para.get(), cudaMemoryManager.get());
         else
@@ -202,7 +197,7 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
     // Turbulence Intensity
     //////////////////////////////////////////////////////////////////////////
     if (para->getCalcTurbulenceIntensity()) {
-        VF_LOG_INFO("alloc arrays for calculating Turbulence Intensity");
+        VF_LOG_TRACE("alloc arrays for calculating Turbulence Intensity");
         allocTurbulenceIntensity(para.get(), cudaMemoryManager.get());
     }
 
@@ -226,7 +221,7 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
     // MeasurePoints
     //////////////////////////////////////////////////////////////////////////
     if (para->getUseMeasurePoints()) {
-        VF_LOG_INFO("read measure points");
+        VF_LOG_TRACE("read measure points");
         ReaderMeasurePoints::readMeasurePoints(para.get(), cudaMemoryManager.get());
     }
 
@@ -305,6 +300,10 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
 #endif
 
     VF_LOG_INFO("used Device Memory: {} MB", cudaMemoryManager->getMemsizeGPU() / 1000000.0);
+
+    performanceOutput = std::make_unique<PerformanceMeasurement>(*para);
+    metaData = vf::gpu::createMetaData(*para);
+    vf::basics::logPreSimulation(metaData);
 }
 
 void Simulation::addKineticEnergyAnalyzer(uint tAnalyse)
@@ -347,7 +346,6 @@ void Simulation::allocNeighborsOffsetsScalesAndBoundaries(GridProvider &gridProv
     gridProvider.allocArrays_BoundaryValues(); // allocArrays_BoundaryValues() has to be called after allocArrays_OffsetScale() because of initCommunicationArraysForCommAfterFinetoCoarse()
     gridProvider.allocArrays_BoundaryQs();
 }
-
 
 void Simulation::run()
 {
@@ -395,6 +393,12 @@ void Simulation::run()
     //    }
     //}
     //  //////////////////////////////////////////////////////////////////////////
+
+    metaData.simulation.NUPS = performanceOutput->getNups();
+    metaData.simulation.runtime = performanceOutput->totalRuntimeInSeconds();
+    vf::basics::logPostSimulation(metaData);
+
+    vf::basics::writeYAML(metaData, para->getFName() + ".yaml");
 }
 
 void Simulation::calculateTimestep(uint timestep)
@@ -539,7 +543,8 @@ void Simulation::calculateTimestep(uint timestep)
     ////////////////////////////////////////////////////////////////////////////////
     if (para->getTimestepOut() > 0 && timestep % para->getTimestepOut() == 0 && timestep >= para->getTimestepStartOut()) {
         averageTimer.end();
-        performanceOutput.print(averageTimer, timestep, para.get(), communicator);
+        metaData.simulation.runtime += averageTimer.getTimeInSeconds();
+        performanceOutput->print(averageTimer, timestep, communicator);
 
         if (para->getPrintFiles()) {
             readAndWriteFiles(timestep);

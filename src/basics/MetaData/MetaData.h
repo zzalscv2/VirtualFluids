@@ -26,64 +26,108 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup basics
+//! \addtogroup MetaData
+//! \ingroup basics
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
+#ifndef VF_BASICS_METADATA_H
+#define VF_BASICS_METADATA_H
 
-namespace buildInfo
+#include <string>
+#include <vector>
+
+#include "DataTypes.h"
+
+#include <logger/Logger.h>
+
+namespace vf::basics
 {
 
-const char* gitCommitHash()
-{
-    return "@git_commit_hash@";
-}
+std::string getCurrentTime();
 
-const char* gitBranch()
+struct MetaData
 {
-    return "@git_branch@";
-}
+    MetaData();
 
-const char* buildType()
-{
-    return "@CMAKE_BUILD_TYPE@";
-}
+    struct Simulation
+    {
+        std::string startTime;
+        double runtime;
 
-const char* compilerFlags()
-{
-    return "@BUILD_COMPILE_OPTIONS@";
-}
+        double reynoldsNumber;
+        double lb_velocity;
+        double lb_viscosity;
 
-const char* compilerFlagWarnings()
-{
-    return "@BUILD_COMPILE_WARNINGS@";
-}
+        double NUPS;
+        std::string collisionKernel;
 
-const char* compilerDefinitions()
-{
-    return "@BUILD_COMPILE_DEFINITIONS@";
-}
+        uint numberOfTimeSteps;
+        int exitCode;
+    };
 
-const char* buildMachine()
-{
-    return "@BUILD_computerName@";
-}
+    struct World
+    {
+        double Length;
+        double velocity;
+    };
 
-const char* projectDir()
-{
-    return "@CMAKE_SOURCE_DIR@";
-}
+    struct Discretization
+    {
+        double dt;
+        double dx;
+        double totalNumberOfNodes;
+        uint numberOfLevels;
+        std::vector<int> numberOfNodesPerLevel;
+    };
 
-const char* binaryDir()
-{
-    return "@CMAKE_BINARY_DIR@";
-}
+    struct BuildInfo
+    {
+        std::string git_commit_hash;
+        std::string git_branch;
+        std::string build_type;
+        std::string remote;
+        std::string compiler_flags;
+        std::string precision;
+        std::string compiler_definitions;
+        std::string compiler;
+        std::string compiler_version;
+#ifdef VF_MPI
+        std::string mpi_library;
+        std::string mpi_version;
+#endif
+#ifdef _OPENMP
+        std::string openmp_library;
+        std::string openmp_version;
+#endif
+    };
 
-const char* precision()
-{
-    return "@BUILD_PRECISION@";
-}
+    struct GPU
+    {
+        std::string name;
+        std::string compute_capability;
+    };
 
-} // namespace buildInfo
+    std::string name {};
+
+    uint numberOfProcesses {};
+    uint numberOfThreads {};
+
+    std::string vf_hardware {};
+
+    Simulation simulation;
+    World world;
+    Discretization discretization;
+    BuildInfo buildInfo;
+    std::vector<GPU> gpus;
+};
+
+void logPreSimulation(const MetaData& meta_data);
+
+void logPostSimulation(const MetaData& meta_data);
+
+} // namespace vf::basics
+
+#endif
 
 //! \}
