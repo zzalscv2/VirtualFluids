@@ -41,9 +41,9 @@ Release of VirtulFluids can be done by the core developers of VirtualFluids. A R
 2. Create a tag on [gitlab](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/tags/new) from the main branch. Name of the tag can be the current version number.
 3. Tag and Main Branch are automatically mirrored to https://github.com/irmb/virtualfluids
 4. Create a new Release on [gitlab](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/releases/new) and [github](https://github.com/irmb/virtualfluids/releases/new) based on the new tag
-5. When Zenodo sees the new release on github, it automatically creates a new version on Zenodo. If all went successful you can find it [here](https://zenodo.org/account/settings/github/repository/irmb/virtualfluids).
-   - this requires that the Zenodo account is linked to the github account and the repository is enabled on Zenodo. See how to link an account [here](https://help.zenodo.org/docs/profile/linking-accounts/).
-    - [more information](https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content) about integration of zenodo with github
+5. When Zenodo sees the new release on github, it automatically creates a new version on Zenodo. If everything went well, you can find it [here](https://zenodo.org/account/settings/github/repository/irmb/virtualfluids).
+   - This step requires that the Zenodo account is linked to the github account and the repository is enabled on Zenodo. Learn how to link an account [here](https://help.zenodo.org/docs/profile/linking-accounts/).
+    - You can find more information about integrating zenodo with github [here](https://docs.github.com/en/repositories/archiving-a-github-repository/referencing-and-citing-content).
 
 
 ## Repositories
