@@ -34,7 +34,7 @@ project(
     VirtualFluids
     VERSION 0.1.1
     DESCRIPTION "CFD code based on the Lattice Boltzmann Method"
-    HOMEPAGE_URL "https://www.tu-braunschweig.de/irmb/forschung/virtualfluids"
+    HOMEPAGE_URL "https://git.rz.tu-bs.de/irmb/VirtualFluids"
     LANGUAGES CXX)
 
 #############################################################
