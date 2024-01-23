@@ -76,7 +76,7 @@ void PerformanceMeasurement::log(vf::basics::Timer& timer, uint timestep, vf::pa
 
     // When using multiple GPUs, sum the nups of all processes
     if (communicator.getNumberOfProcesses() > 1) {
-        double nupsSum = communicator.reduceSum(nups);
+        const double nupsSum = communicator.reduceSum(nups);
         if (communicator.isRoot())
             VF_LOG_INFO("Sum of all {} processes: Nups in Mio: {:.1f}", communicator.getNumberOfProcesses(), nupsSum);
     }
