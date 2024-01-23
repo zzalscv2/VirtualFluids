@@ -106,6 +106,8 @@ void logPreSimulation(const MetaData& meta_data)
         VF_LOG_INFO("number of nodes on level {} = {}", i, meta_data.discretization.numberOfNodesPerLevel[i]);
     VF_LOG_INFO("number of time steps   = {}", meta_data.simulation.numberOfTimeSteps);
     VF_LOG_INFO("collision kernel       = {}", meta_data.simulation.collisionKernel);
+    VF_LOG_INFO("quadric limiter        = {}, {}, {}", meta_data.simulation.quadricLimiters[0],
+                meta_data.simulation.quadricLimiters[1], meta_data.simulation.quadricLimiters[2]);
     printf("\n");
     VF_LOG_INFO("Build Info:");
     VF_LOG_INFO("--------------");

@@ -128,6 +128,10 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
 
     restart_object = std::make_shared<ASCIIRestartObject>();
 
+    VF_LOG_TRACE("vis_ratio:       {}", para->getViscosityRatio());
+    VF_LOG_TRACE("u0_ratio:        {}", para->getVelocityRatio());
+    VF_LOG_TRACE("delta_rho:       {}", para->getDensityRatio());
+
     cudaMemoryManager->setMemsizeGPU(0, true);
     //////////////////////////////////////////////////////////////////////////
     allocNeighborsOffsetsScalesAndBoundaries(gridProvider);

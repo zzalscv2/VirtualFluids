@@ -117,6 +117,7 @@ struct convert<vf::basics::MetaData::Simulation>
         root["reynoldsNumber"] = rhs.reynoldsNumber;
         root["lb_velocity"] = rhs.lb_velocity;
         root["lb_viscosity"] = rhs.lb_viscosity;
+        root["quadricLimiter"] = rhs.quadricLimiters;
 
         return root;
     }

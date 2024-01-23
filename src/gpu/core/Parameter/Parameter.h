@@ -518,7 +518,7 @@ public:
     real *getForcesHost();
     real *getForcesDev();
     double *getQuadricLimitersDouble();
-    real *getQuadricLimitersHost();
+    real *getQuadricLimitersHost() const;
     real *getQuadricLimitersDev();
     unsigned int getStepEnsight();
     bool getEvenOrOdd(int level);

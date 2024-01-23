@@ -62,6 +62,10 @@ vf::basics::MetaData createMetaData(const Parameter& parameter)
 
     meta_data.simulation.collisionKernel = parameter.getMainKernel();
 
+    meta_data.simulation.quadricLimiters[0] = parameter.getQuadricLimitersHost()[0];
+    meta_data.simulation.quadricLimiters[1] = parameter.getQuadricLimitersHost()[1];
+    meta_data.simulation.quadricLimiters[2] = parameter.getQuadricLimitersHost()[2];
+
     meta_data.discretization.totalNumberOfNodes = 0.;
     for (int level = parameter.getCoarse(); level <= parameter.getFine(); level++) {
         meta_data.discretization.totalNumberOfNodes += parameter.getParH(level)->numberOfNodes;

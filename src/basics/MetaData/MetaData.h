@@ -63,6 +63,7 @@ struct MetaData
         std::string collisionKernel;
 
         uint numberOfTimeSteps;
+        std::array<real, 3> quadricLimiters;
     };
 
     struct World

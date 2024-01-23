@@ -1267,7 +1267,7 @@ double *Parameter::getQuadricLimitersDouble()
 {
     return this->hostQuadricLimiters;
 }
-real *Parameter::getQuadricLimitersHost()
+real *Parameter::getQuadricLimitersHost() const
 {
     return this->quadricLimitersH;
 }
