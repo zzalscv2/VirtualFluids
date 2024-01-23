@@ -52,23 +52,22 @@ struct MetaData
 
     struct Simulation
     {
-        std::string startTime;
-        double runtime;
+        std::string startDateTime;
+        double runtimeSeconds;
 
         double reynoldsNumber;
         double lb_velocity;
         double lb_viscosity;
 
-        double NUPS;
+        double nups;
         std::string collisionKernel;
 
         uint numberOfTimeSteps;
-        int exitCode;
     };
 
     struct World
     {
-        double Length;
+        double length;
         double velocity;
     };
 

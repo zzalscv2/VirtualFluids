@@ -48,7 +48,7 @@ vf::basics::MetaData createMetaData(const Parameter& parameter)
 
     meta_data.name = parameter.getOutputPrefix();
 
-    meta_data.world.Length = parameter.worldLength;
+    meta_data.world.length = parameter.worldLength;
     meta_data.world.velocity = parameter.getVelocityRatio() * parameter.getVelocity();
     meta_data.discretization.dx = parameter.worldLength / parameter.getParH(0)->gridNX;
 
@@ -72,8 +72,7 @@ vf::basics::MetaData createMetaData(const Parameter& parameter)
 
     meta_data.numberOfProcesses = parameter.getNumprocs();
 
-    int numOfThreads = 1;
-    omp_set_num_threads(numOfThreads);
+    const int numOfThreads = omp_get_num_threads();
     meta_data.numberOfThreads = numOfThreads;
 
     meta_data.vf_hardware = "GPU";

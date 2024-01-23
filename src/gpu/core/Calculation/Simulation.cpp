@@ -394,8 +394,8 @@ void Simulation::run()
     //}
     //  //////////////////////////////////////////////////////////////////////////
 
-    metaData.simulation.NUPS = performanceOutput->getNups();
-    metaData.simulation.runtime = performanceOutput->totalRuntimeInSeconds();
+    metaData.simulation.nups = performanceOutput->getNups();
+    metaData.simulation.runtimeSeconds = performanceOutput->totalRuntimeInSeconds();
     vf::basics::logPostSimulation(metaData);
 
     vf::basics::writeYAML(metaData, para->getFName() + ".yaml");
@@ -543,8 +543,8 @@ void Simulation::calculateTimestep(uint timestep)
     ////////////////////////////////////////////////////////////////////////////////
     if (para->getTimestepOut() > 0 && timestep % para->getTimestepOut() == 0 && timestep >= para->getTimestepStartOut()) {
         averageTimer.end();
-        metaData.simulation.runtime += averageTimer.getTimeInSeconds();
-        performanceOutput->print(averageTimer, timestep, communicator);
+        metaData.simulation.runtimeSeconds += averageTimer.getTimeInSeconds();
+        performanceOutput->log(averageTimer, timestep, communicator);
 
         if (para->getPrintFiles()) {
             readAndWriteFiles(timestep);

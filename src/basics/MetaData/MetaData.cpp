@@ -48,7 +48,7 @@ namespace vf::basics
 
 MetaData::MetaData()
 {
-    simulation.startTime = vf::basics::getCurrentTime();
+    simulation.startDateTime = vf::basics::getCurrentTime();
 
     buildInfo.git_commit_hash = buildInfo::gitCommitHash();
     buildInfo.git_branch = buildInfo::gitBranch();
@@ -83,12 +83,12 @@ void logPreSimulation(const MetaData& meta_data)
 {
     printf("\n");
     VF_LOG_INFO("Start Running {} simulation...", meta_data.name);
-    VF_LOG_INFO("Simulation Start Time: {}", meta_data.simulation.startTime);
+    VF_LOG_INFO("Simulation Start Time: {}", meta_data.simulation.startDateTime);
     printf("\n");
     VF_LOG_INFO("world parameter:");
     VF_LOG_INFO("--------------");
     VF_LOG_INFO("dt [s]                 = {}", meta_data.discretization.dt);
-    VF_LOG_INFO("world_length   [m]     = {}", meta_data.world.Length);
+    VF_LOG_INFO("world_length   [m]     = {}", meta_data.world.length);
     VF_LOG_INFO("world_velocity [m/s]   = {}", meta_data.world.velocity);
     VF_LOG_INFO("dx [m]                 = {}", meta_data.discretization.dx);
     printf("\n");
@@ -139,8 +139,8 @@ void logPostSimulation(const MetaData& meta_data)
 {
     printf("\n");
     VF_LOG_INFO("... finish Running simulation...");
-    VF_LOG_INFO("Total runtime: {} ms", meta_data.simulation.runtime * 1000);
-    VF_LOG_INFO("NUPS: {}", meta_data.simulation.NUPS);
+    VF_LOG_INFO("Total runtime: {:.0f} ms", meta_data.simulation.runtimeSeconds * 1000);
+    VF_LOG_INFO("NUPS: {:.0f}", meta_data.simulation.nups);
     printf("\n");
 }
 

@@ -42,6 +42,7 @@ namespace vf::gpu
 {
 
 vf::basics::MetaData createMetaData(const Parameter& parameter);
+
 }
 
 #endif

@@ -96,7 +96,7 @@ struct convert<vf::basics::MetaData::World>
     static Node encode(const vf::basics::MetaData::World& rhs)
     {
         Node root;
-        root["Length"] = rhs.Length;
+        root["length"] = rhs.length;
         root["velocity"] = rhs.velocity;
         return root;
     }
@@ -108,9 +108,9 @@ struct convert<vf::basics::MetaData::Simulation>
     static Node encode(const vf::basics::MetaData::Simulation& rhs)
     {
         Node root;
-        root["startTime"] = rhs.startTime;
-        root["runtime"] = rhs.runtime;
-        root["NUPS"] = rhs.NUPS;
+        root["startDateTime"] = rhs.startDateTime;
+        root["runtimeSeconds"] = rhs.runtimeSeconds;
+        root["nups"] = rhs.nups;
         root["numberOfTimeSteps"] = rhs.numberOfTimeSteps;
 
         root["collisionKernel"] = rhs.collisionKernel;

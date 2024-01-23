@@ -55,7 +55,7 @@ double PerformanceMeasurement::totalRuntimeInSeconds() const
     return totalTime;
 }
 
-void PerformanceMeasurement::print(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator)
+void PerformanceMeasurement::log(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator)
 {
     totalTime += timer.getTimeInSeconds();
     const uint numberOfTimeSteps = timestep - timestepStart;

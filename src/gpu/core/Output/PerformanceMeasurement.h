@@ -48,7 +48,7 @@ public:
 
     double getNups() const;
     double totalRuntimeInSeconds() const;
-    void print(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator);
+    void log(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator);
 
 private:
     double totalNumberOfNodes { 0 };

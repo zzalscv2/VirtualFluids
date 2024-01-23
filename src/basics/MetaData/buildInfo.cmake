@@ -54,6 +54,5 @@ get_target_property(BUILD_COMPILE_WARNINGS project_warnings INTERFACE_COMPILE_OP
 
 configure_file(${buildInfoInput} ${buildInfoPath}/${buildInfoFile})
 
-# set(MY_SRCS ${MY_SRCS} ${buildInfoPath}/${buildInfoFile})
 source_group("build/metaData" FILES ${buildInfoPath}/${buildInfoFile})
 
