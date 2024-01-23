@@ -117,22 +117,6 @@ Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuil
     init(*gridGenerator, bcFactory, tmFactory, scalingFactory);
 }
 
-Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> memoryManager,
-                       vf::parallel::Communicator& communicator, GridProvider& gridProvider,
-                       BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory)
-    : Simulation(para, memoryManager, communicator, gridProvider, bcFactory, std::make_shared<TurbulenceModelFactory>(para),
-                 scalingFactory)
-{
-}
-
-Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> memoryManager,
-                       vf::parallel::Communicator &communicator, GridProvider &gridProvider, BoundaryConditionFactory* bcFactory, SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory* scalingFactory)
-    : para(para), cudaMemoryManager(memoryManager), communicator(communicator), kernelFactory(std::make_unique<KernelFactoryImp>()),
-      preProcessorFactory(std::make_shared<PreProcessorFactoryImp>()), dataWriter(std::make_unique<FileWriter>())
-{
-    init(gridProvider, bcFactory, tmFactory, scalingFactory);
-}
-
 void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFactory, SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory *scalingFactory)
 {
     gridProvider.initalGridInformations();

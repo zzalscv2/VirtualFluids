@@ -31,13 +31,6 @@
 //! \{
 //! \author Martin Schoenherr, Anna Wellmann
 //=======================================================================================
-#define _USE_MATH_DEFINES
-#include <exception>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 
 //////////////////////////////////////////////////////////////////////////
@@ -73,8 +66,6 @@
 
 void run(const vf::basics::ConfigurationFile& config)
 {
-    vf::parallel::Communicator& communicator = *vf::parallel::MPICommunicator::getInstance();
-
     //////////////////////////////////////////////////////////////////////////
     // Simulation parameters
     //////////////////////////////////////////////////////////////////////////
