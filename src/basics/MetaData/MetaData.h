@@ -34,6 +34,7 @@
 #ifndef VF_BASICS_METADATA_H
 #define VF_BASICS_METADATA_H
 
+#include <array>
 #include <string>
 #include <vector>
 
