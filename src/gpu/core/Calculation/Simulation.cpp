@@ -113,7 +113,7 @@ Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuil
       kernelFactory(std::make_unique<KernelFactoryImp>()), preProcessorFactory(std::make_shared<PreProcessorFactoryImp>()),
       dataWriter(std::make_unique<FileWriter>())
 {
-    auto gridGenerator = GridProvider::makeGridGenerator(builder, para, cudaMemoryManager, communicator.getProcessID());
+    auto gridGenerator = GridProvider::makeGridGenerator(builder, para, cudaMemoryManager, communicator);
     init(*gridGenerator, bcFactory, tmFactory, scalingFactory);
 }
 

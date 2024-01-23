@@ -55,7 +55,6 @@ class IndexRearrangementForStreams
 {
 public:
     IndexRearrangementForStreams(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder, vf::parallel::Communicator& communicator);
-    IndexRearrangementForStreams(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder);
 
     virtual ~IndexRearrangementForStreams() = default;
 

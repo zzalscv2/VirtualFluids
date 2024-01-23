@@ -152,8 +152,7 @@ private:
         builder = std::make_shared<LevelGridBuilderStub>(nullptr);
         auto communicator = vf::parallel::NullCommunicator::getInstance();
 
-        gridGenerator = std::make_shared<GridGenerator>(builder, para, std::make_shared<CudaMemoryManagerDouble>(para),
-                                                        communicator->getProcessID());
+        gridGenerator = std::make_shared<GridGenerator>(builder, para, std::make_shared<CudaMemoryManagerDouble>(para), *communicator);
         gridGenerator->setIndexRearrangementForStreams(
             std::make_unique<IndexRearrangementForStreamsDouble>(para, builder, *communicator));
     }

@@ -46,10 +46,16 @@ class Parameter;
 class GridBuilder;
 class CudaMemoryManager;
 
+namespace vf::parallel
+{
+class Communicator;
+}
+
+
 class GridProvider
 {
 public:
-    static std::shared_ptr<GridProvider> makeGridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager, int processId);
+    static std::shared_ptr<GridProvider> makeGridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager, vf::parallel::Communicator& communicator);
     static std::shared_ptr<GridProvider> makeGridReader(FILEFORMAT format, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager);
 
     virtual void allocArrays_CoordNeighborGeo() = 0;
