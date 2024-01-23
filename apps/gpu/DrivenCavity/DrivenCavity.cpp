@@ -39,8 +39,6 @@
 
 #include <logger/Logger.h>
 
-#include <parallel/MPICommunicator.h>
-
 #include <GridGenerator/geometries/Cuboid/Cuboid.h>
 #include <GridGenerator/grid/BoundaryConditions/Side.h>
 #include <GridGenerator/grid/GridBuilder/LevelGridBuilder.h>
@@ -152,13 +150,7 @@ void run(const vf::basics::ConfigurationFile& config)
     bcFactory.setNoSlipBoundaryCondition(BoundaryConditionFactory::NoSlipBC::NoSlipBounceBack);
     bcFactory.setVelocityBoundaryCondition(BoundaryConditionFactory::VelocityBC::VelocityBounceBack);
 
-    vf::parallel::Communicator& communicator = *vf::parallel::MPICommunicator::getInstance();
-
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    SPtr<GridProvider> gridGenerator =
-        GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
-
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, &scalingFactory);
+    Simulation simulation(para, gridBuilder, &bcFactory, &scalingFactory);
     simulation.run();
 }
 

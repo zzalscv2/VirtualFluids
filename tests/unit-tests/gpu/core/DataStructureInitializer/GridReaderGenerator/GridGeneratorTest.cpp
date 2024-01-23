@@ -152,7 +152,7 @@ private:
         vf::parallel::NullCommunicator communicator;
 
         gridGenerator = std::make_shared<GridGenerator>(builder, para, std::make_shared<CudaMemoryManagerDouble>(para),
-                                                        communicator);
+                                                        communicator.getProcessID());
         gridGenerator->setIndexRearrangementForStreams(
             std::make_unique<IndexRearrangementForStreamsDouble>(para, builder, communicator));
     }

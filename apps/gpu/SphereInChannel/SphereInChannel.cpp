@@ -46,7 +46,6 @@
 #include <basics/PointerDefinitions.h>
 #include <basics/config/ConfigurationFile.h>
 #include <logger/Logger.h>
-#include <parallel/MPICommunicator.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -214,17 +213,9 @@ void run(const vf::basics::ConfigurationFile& config)
     });
 
     //////////////////////////////////////////////////////////////////////////
-    // set copy mesh to simulation
-    //////////////////////////////////////////////////////////////////////////
-
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    SPtr<GridProvider> gridGenerator =
-        GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
-
-    //////////////////////////////////////////////////////////////////////////
     // run simulation
     //////////////////////////////////////////////////////////////////////////
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, &scalingFactory);
+    Simulation simulation(para, gridBuilder, &bcFactory, &scalingFactory);
     simulation.run();
 }
 

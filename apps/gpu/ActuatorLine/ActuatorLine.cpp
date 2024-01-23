@@ -39,8 +39,6 @@
 
 #include <logger/Logger.h>
 
-#include <parallel/MPICommunicator.h>
-
 //////////////////////////////////////////////////////////////////////////
 
 #include "GridGenerator/grid/BoundaryConditions/BoundaryCondition.h"
@@ -250,11 +248,6 @@ void run(const vf::basics::ConfigurationFile& config)
         para->addProbe(timeseriesProbe);
     }
 
-    vf::parallel::Communicator& communicator = *vf::parallel::MPICommunicator::getInstance();
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-
-    auto gridGenerator = GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
-
     //////////////////////////////////////////////////////////////////////////
     // run simulation
     //////////////////////////////////////////////////////////////////////////
@@ -269,7 +262,7 @@ void run(const vf::basics::ConfigurationFile& config)
     VF_LOG_INFO("smearingWidth [m]      = {}", smearingWidth);
     VF_LOG_INFO("tipSpeedRatio          = {}", tipSpeedRatio);
 
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory);
+    Simulation simulation(para, gridBuilder, &bcFactory, tmFactory);
     simulation.run();
 }
 

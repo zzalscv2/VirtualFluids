@@ -391,8 +391,6 @@ void run(const vf::basics::ConfigurationFile& config)
         para->addProbe(precursorWriter);
     }
 
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    auto gridGenerator = GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
     auto tmFactory = std::make_shared<TurbulenceModelFactory>(para);
     tmFactory->readConfigFile(config);
 
@@ -406,7 +404,7 @@ void run(const vf::basics::ConfigurationFile& config)
         VF_LOG_INFO("Process ID {} is a mid subdomain");
     printf("\n");
 
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory, &scalingFactory);
+    Simulation simulation(para, gridBuilder, &bcFactory, tmFactory, &scalingFactory);
     simulation.run();
 }
 

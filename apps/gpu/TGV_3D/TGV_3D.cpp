@@ -252,15 +252,8 @@ void multipleLevel(const std::string& configPath)
     para->setUseInitNeq( true );
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    SPtr<GridProvider> gridGenerator = GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
-    //SPtr<GridProvider> gridGenerator = GridProvider::makeGridReader(FILEFORMAT::BINARY, para, cudaMemoryManager);
-
-    SPtr<FileWriter> fileWriter = SPtr<FileWriter>(new FileWriter());
-    Simulation sim(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory);
+    Simulation sim(para, gridBuilder, &bcFactory);
     sim.run();
 
     sim.addKineticEnergyAnalyzer( 10 );

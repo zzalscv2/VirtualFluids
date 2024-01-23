@@ -36,20 +36,15 @@
 
 #include "../GridProvider.h"
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "Calculation/Calculation.h"
-
 
 class Parameter;
 class GridBuilder;
 class IndexRearrangementForStreams;
 class InterpolationCellGrouper;
-namespace vf::parallel
-{
-class Communicator;
-}
 
 //! \class GridGenerator derived class of GridProvider
 //! \brief mapping the grid of grid generator to data structure for simulation
@@ -68,7 +63,7 @@ private:
     const uint mpiProcessID;
 
 public:
-    GridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager, vf::parallel::Communicator& communicator);
+    GridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager, int processId);
     ~GridGenerator() override;
     //! \brief overwrites the default IndexRearrangementForStreams
     void setIndexRearrangementForStreams(std::unique_ptr<IndexRearrangementForStreams>&& indexRearrangement);

@@ -33,18 +33,14 @@
 #ifndef GridReader_H
 #define GridReader_H
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include "Calculation/Calculation.h"
 #include <basics/PointerDefinitions.h>
 
 #include "gpu/GridGenerator/io/SimulationFileWriter/SimulationFileWriter.h"
-namespace vf::parallel
-{
-class Communicator;
-}
 
 class Parameter;
 class GridBuilder;
@@ -53,7 +49,7 @@ class CudaMemoryManager;
 class GridProvider
 {
 public:
-    static std::shared_ptr<GridProvider> makeGridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager, vf::parallel::Communicator& communicator);
+    static std::shared_ptr<GridProvider> makeGridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager, int processId);
     static std::shared_ptr<GridProvider> makeGridReader(FILEFORMAT format, std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> cudaMemoryManager);
 
     virtual void allocArrays_CoordNeighborGeo() = 0;

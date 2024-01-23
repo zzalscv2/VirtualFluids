@@ -56,12 +56,12 @@
 using namespace vf::lbm::dir;
 
 GridGenerator::GridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para,
-                             std::shared_ptr<CudaMemoryManager> cudaMemoryManager, vf::parallel::Communicator &communicator)
-    : mpiProcessID(communicator.getProcessID()), builder(builder)
+                             std::shared_ptr<CudaMemoryManager> cudaMemoryManager, int processId)
+    : mpiProcessID(processId), builder(builder)
 {
     this->para = para;
     this->cudaMemoryManager = cudaMemoryManager;
-    this->indexRearrangement = std::make_unique<IndexRearrangementForStreams>(para, builder, communicator);
+    this->indexRearrangement = std::make_unique<IndexRearrangementForStreams>(para, builder);
     this->interpolationGrouper =
         std::make_unique<InterpolationCellGrouper>(para->getParHallLevels(), para->getParDallLevels(), builder);
 }
