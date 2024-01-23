@@ -26,39 +26,22 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_Output Output
-//! \ingroup gpu_core core
+//! \addtogroup MetaData
+//! \ingroup basics
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
-#ifndef PerformanceMeasurement_H
-#define PerformanceMeasurement_H
+#ifndef VF_BASICS_YAML_METADATA_H
+#define VF_BASICS_YAML_METADATA_H
 
-#include <basics/DataTypes.h>
-#include <basics/Timer/Timer.h>
+#include "MetaData.h"
 
-#include <parallel/Communicator.h>
-
-class Parameter;
-
-class PerformanceMeasurement
+namespace vf::basics
 {
-public:
-    PerformanceMeasurement(const Parameter& para);
 
-    double getNups() const;
-    double totalRuntimeInSeconds() const;
-    void log(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator);
+void writeYAML(const MetaData& meta_data, const std::string& filename);
 
-private:
-    double totalNumberOfNodes { 0 };
-    double totalNumberOfNodesCorrected { 0 };
-    double timestepStart { 0 };
-
-    double totalTime { 0. };
-    double nups { 0. };
-    bool firstOutput { true };
-};
+}
 
 #endif
 
