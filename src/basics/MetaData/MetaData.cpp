@@ -140,7 +140,7 @@ void logPostSimulation(const MetaData& meta_data)
     printf("\n");
     VF_LOG_INFO("... finish Running simulation...");
     VF_LOG_INFO("Total runtime: {:.0f} ms", meta_data.simulation.runtimeSeconds * 1000);
-    VF_LOG_INFO("NUPS: {:.0f}", meta_data.simulation.nups);
+    VF_LOG_INFO("NUPS: {:.0f} ({:04.1f}e6 NUPS)", meta_data.simulation.nups, meta_data.simulation.nups * 1e-6);
     printf("\n");
 }
 
