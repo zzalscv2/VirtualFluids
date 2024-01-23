@@ -31,28 +31,12 @@
 //! \{
 //! \author Martin Schoenherr
 //=======================================================================================
-#define _USE_MATH_DEFINES
-
+#include <basics/DataTypes.h>
 #include <basics/config/ConfigurationFile.h>
 
-#include <exception>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <cmath>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-
-//////////////////////////////////////////////////////////////////////////
-
-#include <basics/DataTypes.h>
 #include <logger/Logger.h>
 
-#include <basics/PointerDefinitions.h>
-
-//////////////////////////////////////////////////////////////////////////
+#include <parallel/MPICommunicator.h>
 
 #include "GridGenerator/geometries/Conglomerate/Conglomerate.h"
 #include "GridGenerator/geometries/TriangularMesh/TriangularMesh.h"
@@ -60,23 +44,15 @@
 #include "GridGenerator/grid/BoundaryConditions/Side.h"
 #include "GridGenerator/grid/GridBuilder/LevelGridBuilder.h"
 #include "GridGenerator/grid/GridBuilder/MultipleGridBuilder.h"
-
 #include "GridGenerator/io/GridVTKWriter/GridVTKWriter.h"
 #include "GridGenerator/io/STLReaderWriter/STLReader.h"
 #include "GridGenerator/io/STLReaderWriter/STLWriter.h"
 #include "GridGenerator/io/SimulationFileWriter/SimulationFileWriter.h"
 
-//////////////////////////////////////////////////////////////////////////
-
-#include "gpu/core/DataStructureInitializer/GridProvider.h"
-#include "gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h"
 #include "gpu/core/BoundaryConditions/BoundaryConditionFactory.h"
-#include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/Calculation/Simulation.h"
-#include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 
-#include <parallel/MPICommunicator.h>
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

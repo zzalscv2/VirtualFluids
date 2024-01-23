@@ -34,7 +34,6 @@
 #include <string>
 
 #include <basics/DataTypes.h>
-#include <basics/PointerDefinitions.h>
 #include <basics/config/ConfigurationFile.h>
 
 #include <logger/Logger.h>
@@ -46,12 +45,8 @@
 
 #include <gpu/core/BoundaryConditions/BoundaryConditionFactory.h>
 #include <gpu/core/Calculation/Simulation.h>
-#include <gpu/core/Cuda/CudaMemoryManager.h>
-#include <gpu/core/DataStructureInitializer/GridProvider.h>
-#include <gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h>
 #include <gpu/core/GridScaling/GridScalingFactory.h>
 #include <gpu/core/Kernel/KernelTypes.h>
-#include <gpu/core/Output/FileWriter.h>
 #include <gpu/core/Parameter/Parameter.h>
 
 void run(const vf::basics::ConfigurationFile& config)
@@ -149,6 +144,10 @@ void run(const vf::basics::ConfigurationFile& config)
 
     bcFactory.setNoSlipBoundaryCondition(BoundaryConditionFactory::NoSlipBC::NoSlipBounceBack);
     bcFactory.setVelocityBoundaryCondition(BoundaryConditionFactory::VelocityBC::VelocityBounceBack);
+
+    //////////////////////////////////////////////////////////////////////////
+    // run simulation
+    //////////////////////////////////////////////////////////////////////////
 
     Simulation simulation(para, gridBuilder, &bcFactory, &scalingFactory);
     simulation.run();
