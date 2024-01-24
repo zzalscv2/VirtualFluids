@@ -68,6 +68,10 @@ option(VF_ENABLE_SANITIZER_LEAK "Enable leak sanitizer" OFF)
 option(VF_ENABLE_SANITIZER_THREAD "Enable thread sanitizer" OFF)
 option(VF_ENABLE_SANITIZER_MEMORY "Enable memory sanitizer" OFF)
 
+# rangecheck
+option(VF_NO_RANGECHECK "Disable rangecheck in Debug" OFF)
+option(VF_RANGECHECK "Enable rangecheck in Release, if VF_NO_RANGECHECK is OFF" OFF)
+
 #############################################################
 ###                  Libraries                            ###
 #############################################################
