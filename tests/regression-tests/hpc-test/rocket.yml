@@ -6,11 +6,11 @@ user: $PHOENIX_REMOTE_USER
 private_keyfile: $PHOENIX_PRIVATE_KEY
 
 copy:
-  - from: regression-tests/hpc-test/test.job.sh
+  - from: tests/regression-tests/hpc-test/test.job.sh
     to: virtualfluids-mpich-bind/test.job
     overwrite: true
 
-  - from: regression-tests/hpc-test/Rockylinux9.sif
+  - from: tests/regression-tests/hpc-test/Rockylinux9.sif
     to: virtualfluids-mpich-bind/Rockylinux9.sif
     overwrite: true
 

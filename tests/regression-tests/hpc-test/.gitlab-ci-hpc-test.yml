@@ -18,8 +18,8 @@ build-singularity-image:
     - privileged
 
   variables:
-    SINGULARITY_IMAGE: "regression-tests/hpc-test/Rockylinux9.sif"
-    SINGULARITY_FILE: "regression-tests/hpc-test/Rockylinux9.def"
+    SINGULARITY_IMAGE: "tests/regression-tests/hpc-test/Rockylinux9.sif"
+    SINGULARITY_FILE: "tests/regression-tests/hpc-test/Rockylinux9.def"
 
   artifacts:
     expire_in: 1 hrs
@@ -31,7 +31,7 @@ build-singularity-image:
       files:
         - $SINGULARITY_FILE
     paths:
-      - regression-tests/hpc-test/
+      - tests/regression-tests/hpc-test/
 
   script:
     - |
@@ -59,7 +59,7 @@ run-simulation:
     - pip install hpc-rocket==0.4.0
 
   script:
-    - hpc-rocket launch --watch regression-tests/hpc-test/rocket.yml
+    - hpc-rocket launch --watch tests/regression-tests/hpc-test/rocket.yml
     - cat results-regression-test/virtualfluids.out
 
   artifacts:
