@@ -14,8 +14,8 @@ copy:
     to: virtualfluids-mpich-bind/Rockylinux9.sif
     overwrite: true
 
-  - from: apps/cpu/FlowAroundCylinder/cylinder.cfg
-    to: virtualfluids-mpich-bind/cylinder.cfg
+  - from: apps/cpu/LidDrivenCavity/LidDrivenCavity_regression_test.cfg
+    to: virtualfluids-mpich-bind/LidDrivenCavity_regression_test.cfg
     overwrite: true
 
 collect:

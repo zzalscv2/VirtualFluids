@@ -84,7 +84,7 @@ validate-simulation:
     - fieldcompare --version
     - rm -rf reference_data && mkdir -p reference_data
     - git clone --depth 1 --filter=blob:none --sparse https://github.com/irmb/test_data reference_data
-    - cd reference_data && git sparse-checkout add regression_tests/cpu/FlowAroundCylinder4processes && cd ..
+    - cd reference_data && git sparse-checkout add regression_tests/cpu/LidDrivenCavity4processes && cd ..
 
   script:
-     - fieldcompare dir results-regression-test/FlowAroundCylinder reference_data/regression_tests/cpu/FlowAroundCylinder4processes --include-files "*.vtu"
+     - fieldcompare dir results-regression-test/LidDrivenCavity reference_data/regression_tests/cpu/LidDrivenCavity4processes --include-files "*.vtu"
