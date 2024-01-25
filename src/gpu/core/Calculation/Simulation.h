@@ -77,6 +77,9 @@ public:
     Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder, BoundaryConditionFactory* bcFactory,
                SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory* scalingFactory = nullptr);
 
+    Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> memoryManager,
+               vf::parallel::Communicator &communicator, GridProvider &gridProvider, BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory = nullptr);
+
     ~Simulation();
     void run();
 
