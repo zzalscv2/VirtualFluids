@@ -31,34 +31,19 @@
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
-#ifndef PerformanceMeasurement_H
-#define PerformanceMeasurement_H
+#ifndef GPU_META_DATA_CREATOR_H
+#define GPU_META_DATA_CREATOR_H
 
-#include <basics/DataTypes.h>
-#include <basics/Timer/Timer.h>
-
-#include <parallel/Communicator.h>
+#include <basics/MetaData/MetaData.h>
 
 class Parameter;
 
-class PerformanceMeasurement
+namespace vf::gpu
 {
-public:
-    PerformanceMeasurement(const Parameter& para);
 
-    double getNups() const;
-    double totalRuntimeInSeconds() const;
-    void log(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator);
+vf::basics::MetaData createMetaData(const Parameter& parameter);
 
-private:
-    double totalNumberOfNodes { 0 };
-    double totalNumberOfNodesCorrected { 0 };
-    double timestepStart { 0 };
-
-    double totalTime { 0. };
-    double nups { 0. };
-    bool firstOutput { true };
-};
+}
 
 #endif
 

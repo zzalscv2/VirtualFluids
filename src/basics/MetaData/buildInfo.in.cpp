@@ -26,29 +26,99 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup basics
+//! \addtogroup MetaData
+//! \ingroup basics
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
-#ifndef buildInfo_H
-#define buildInfo_H
 
 namespace buildInfo
 {
 
-const char* gitCommitHash();
-const char* gitBranch();
-const char* buildType();
-const char* compilerFlags();
-const char* compilerFlagWarnings();
-const char* compilerDefinitions();
-const char* buildMachine();
-const char* projectDir();
-const char* binaryDir();
-const char* precision();
+const char* gitCommitHash()
+{
+    return "@git_commit_hash@";
+}
+
+const char* gitBranch()
+{
+    return "@git_branch@";
+}
+
+const char* buildType()
+{
+    return "@CMAKE_BUILD_TYPE@";
+}
+
+const char* compilerFlags()
+{
+    return "@BUILD_COMPILE_OPTIONS@";
+}
+
+const char* compilerFlagWarnings()
+{
+    return "@BUILD_COMPILE_WARNINGS@";
+}
+
+const char* compilerDefinitions()
+{
+    return "@BUILD_COMPILE_DEFINITIONS@";
+}
+
+const char* buildMachine()
+{
+    return "@BUILD_computerName@";
+}
+
+const char* projectDir()
+{
+    return "@CMAKE_SOURCE_DIR@";
+}
+
+const char* binaryDir()
+{
+    return "@CMAKE_BINARY_DIR@";
+}
+
+const char* precision()
+{
+    return "@BUILD_PRECISION@";
+}
+
+const char* compiler()
+{
+    return "@CMAKE_CXX_COMPILER_ID@";
+}
+
+const char* compiler_version()
+{
+    return "@CMAKE_CXX_COMPILER_VERSION@";
+}
+
+#ifdef VF_MPI
+const char* mpi_library()
+{
+    return "@MPI_CXX_LIBRARIES@";
+}
+
+const char* mpi_version()
+{
+    return "@MPI_CXX_VERSION@";
+}
+#endif
+
+#ifdef _OPENMP
+const char* openmp_library()
+{
+    return "@OpenMP_CXX_LIBRARIES@";
+}
+
+const char* openmp_version()
+{
+    return "@OpenMP_CXX_VERSION@";
+}
+#endif
 
 } // namespace buildInfo
-
-#endif
 
 //! \}

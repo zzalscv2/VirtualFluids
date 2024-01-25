@@ -26,64 +26,40 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup basics
+//! \addtogroup MetaData
+//! \ingroup basics
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
+#ifndef buildInfo_H
+#define buildInfo_H
 
 namespace buildInfo
 {
 
-const char* gitCommitHash()
-{
-    return "@git_commit_hash@";
-}
-
-const char* gitBranch()
-{
-    return "@git_branch@";
-}
-
-const char* buildType()
-{
-    return "@CMAKE_BUILD_TYPE@";
-}
-
-const char* compilerFlags()
-{
-    return "@BUILD_COMPILE_OPTIONS@";
-}
-
-const char* compilerFlagWarnings()
-{
-    return "@BUILD_COMPILE_WARNINGS@";
-}
-
-const char* compilerDefinitions()
-{
-    return "@BUILD_COMPILE_DEFINITIONS@";
-}
-
-const char* buildMachine()
-{
-    return "@BUILD_computerName@";
-}
-
-const char* projectDir()
-{
-    return "@CMAKE_SOURCE_DIR@";
-}
-
-const char* binaryDir()
-{
-    return "@CMAKE_BINARY_DIR@";
-}
-
-const char* precision()
-{
-    return "@BUILD_PRECISION@";
-}
+const char* gitCommitHash();
+const char* gitBranch();
+const char* buildType();
+const char* compilerFlags();
+const char* compilerFlagWarnings();
+const char* compilerDefinitions();
+const char* buildMachine();
+const char* projectDir();
+const char* binaryDir();
+const char* precision();
+const char* compiler();
+const char* compiler_version();
+#ifdef VF_MPI
+const char* mpi_library();
+const char* mpi_version();
+#endif
+#ifdef _OPENMP
+const char* openmp_library();
+const char* openmp_version();
+#endif
 
 } // namespace buildInfo
+
+#endif
 
 //! \}

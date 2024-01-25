@@ -31,12 +31,6 @@
 //! \{
 //! \author Henry Korb, Henrik Asmuth, Anna Wellmann
 //=======================================================================================
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <iostream>
-#include <string>
-#include <vector>
-//////////////////////////////////////////////////////////////////////////
 
 #include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
@@ -57,12 +51,12 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "gpu/core/BoundaryConditions/BoundaryConditionFactory.h"
+#include "gpu/core/Calculation/Simulation.h"
+#include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/DataStructureInitializer/GridProvider.h"
 #include "gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h"
-#include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/GridScaling/GridScalingFactory.h"
 #include "gpu/core/Kernel/KernelTypes.h"
-#include "gpu/core/Calculation/Simulation.h"
 #include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/PreCollisionInteractor/Actuator/ActuatorFarmStandalone.h"
@@ -147,6 +141,8 @@ void run(const vf::basics::ConfigurationFile& config)
     //////////////////////////////////////////////////////////////////////////
 
     auto para = std::make_shared<Parameter>(&config);
+
+    para->worldLength = rotorDiameter;
 
     para->setOutputPrefix(simulationName);
 
@@ -254,10 +250,6 @@ void run(const vf::basics::ConfigurationFile& config)
         para->addProbe(timeseriesProbe);
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    // set copy mesh to simulation
-    //////////////////////////////////////////////////////////////////////////
-
     vf::parallel::Communicator& communicator = *vf::parallel::MPICommunicator::getInstance();
     auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
 
@@ -269,27 +261,6 @@ void run(const vf::basics::ConfigurationFile& config)
 
     VF_LOG_INFO("Start Running ActuatorLine Showcase...\n");
 
-    VF_LOG_INFO("world parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("dt [s]                 = {}", deltaT);
-    VF_LOG_INFO("world_domain   [m]     = {},{},{}", lengthX, lengthY, lengthZ);
-    VF_LOG_INFO("world_velocity [m/s]   = {}", velocity);
-    VF_LOG_INFO("dx [m]                 = {}", deltaX);
-    VF_LOG_INFO("");
-
-    VF_LOG_INFO("LB parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("lb_velocity [dx/dt]    = {}", velocityLB);
-    VF_LOG_INFO("lb_viscosity [dx^2/dt] = {}", viscosityLB);
-    VF_LOG_INFO("");
-
-    VF_LOG_INFO("simulation parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("n timesteps            = {}", timeStepOut);
-    VF_LOG_INFO("write_nth_timestep     = {}", timeStepEnd);
-    VF_LOG_INFO("output_path            = {}", para->getOutputPath());
-    VF_LOG_INFO("");
-
     VF_LOG_INFO("turbine parameters:");
     VF_LOG_INFO("--------------");
     VF_LOG_INFO("rotorDiameter [m]      = {}", rotorDiameter);
@@ -298,8 +269,8 @@ void run(const vf::basics::ConfigurationFile& config)
     VF_LOG_INFO("smearingWidth [m]      = {}", smearingWidth);
     VF_LOG_INFO("tipSpeedRatio          = {}", tipSpeedRatio);
 
-    Simulation sim(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory);
-    sim.run();
+    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory);
+    simulation.run();
 }
 
 int main(int argc, char* argv[])

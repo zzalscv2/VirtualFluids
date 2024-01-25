@@ -47,7 +47,7 @@ clean:
 
 sbatch:
   script: multigpu_test/slurm4GPU.job
-  from: regression-tests/multigpu_test/slurm4GPU.job
+  from: tests/regression-tests/multigpu_test/slurm4GPU.job
   overwrite: true
 
 continue_if_job_fails: true

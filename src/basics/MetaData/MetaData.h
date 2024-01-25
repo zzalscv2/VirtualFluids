@@ -26,39 +26,108 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_Output Output
-//! \ingroup gpu_core core
+//! \addtogroup MetaData
+//! \ingroup basics
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
-#ifndef PerformanceMeasurement_H
-#define PerformanceMeasurement_H
+#ifndef VF_BASICS_METADATA_H
+#define VF_BASICS_METADATA_H
 
-#include <basics/DataTypes.h>
-#include <basics/Timer/Timer.h>
+#include <array>
+#include <string>
+#include <vector>
 
-#include <parallel/Communicator.h>
+#include "DataTypes.h"
 
-class Parameter;
+#include <logger/Logger.h>
 
-class PerformanceMeasurement
+namespace vf::basics
 {
-public:
-    PerformanceMeasurement(const Parameter& para);
 
-    double getNups() const;
-    double totalRuntimeInSeconds() const;
-    void log(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator);
+std::string getCurrentTime();
 
-private:
-    double totalNumberOfNodes { 0 };
-    double totalNumberOfNodesCorrected { 0 };
-    double timestepStart { 0 };
+struct MetaData
+{
+    MetaData();
 
-    double totalTime { 0. };
-    double nups { 0. };
-    bool firstOutput { true };
+    struct Simulation
+    {
+        std::string startDateTime;
+        double runtimeSeconds;
+
+        double reynoldsNumber;
+        double lb_velocity;
+        double lb_viscosity;
+
+        double nups;
+        std::string collisionKernel;
+
+        uint numberOfTimeSteps;
+        std::array<real, 3> quadricLimiters;
+    };
+
+    struct World
+    {
+        double length;
+        double velocity;
+    };
+
+    struct Discretization
+    {
+        double dt;
+        double dx;
+        double totalNumberOfNodes;
+        uint numberOfLevels;
+        std::vector<int> numberOfNodesPerLevel;
+    };
+
+    struct BuildInfo
+    {
+        std::string git_commit_hash;
+        std::string git_branch;
+        std::string build_type;
+        std::string remote;
+        std::string compiler_flags;
+        std::string precision;
+        std::string compiler_definitions;
+        std::string compiler;
+        std::string compiler_version;
+#ifdef VF_MPI
+        std::string mpi_library;
+        std::string mpi_version;
+#endif
+#ifdef _OPENMP
+        std::string openmp_library;
+        std::string openmp_version;
+#endif
+    };
+
+    struct GPU
+    {
+        std::string name;
+        std::string compute_capability;
+    };
+
+    std::string name {};
+
+    uint numberOfProcesses {};
+    uint numberOfThreads {};
+
+    std::string vf_hardware {};
+
+    Simulation simulation;
+    World world;
+    Discretization discretization;
+    BuildInfo buildInfo;
+    std::vector<GPU> gpus;
 };
+
+void logPreSimulation(const MetaData& meta_data);
+
+void logPostSimulation(const MetaData& meta_data);
+
+} // namespace vf::basics
 
 #endif
 

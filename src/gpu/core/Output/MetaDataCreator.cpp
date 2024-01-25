@@ -31,55 +31,67 @@
 //! \{
 //! \author Soeren Peters
 //=======================================================================================
-#include "PerformanceMeasurement.h"
-
-#include <logger/Logger.h>
+#include "MetaDataCreator.h"
 
 #include "Parameter/Parameter.h"
+#include "cuda_helper/DeviceInfo.h"
+#include "logger/Logger.h"
 
-PerformanceMeasurement::PerformanceMeasurement(const Parameter& para) : timestepStart(para.getTimestepStart())
+#include <omp.h>
+
+namespace vf::gpu
 {
-    for (int level = para.getCoarse(); level <= para.getFine(); level++) {
-        totalNumberOfNodesCorrected += para.getParH(level)->numberOfNodes * pow(2., level);
-        totalNumberOfNodes += para.getParH(level)->numberOfNodes;
+
+vf::basics::MetaData createMetaData(const Parameter& parameter)
+{
+    vf::basics::MetaData meta_data;
+
+    meta_data.name = parameter.getOutputPrefix();
+
+    meta_data.world.length = parameter.worldLength;
+    meta_data.world.velocity = parameter.getVelocityRatio() * parameter.getVelocity();
+    meta_data.discretization.dx = parameter.worldLength / parameter.getParH(0)->gridNX;
+
+    meta_data.simulation.lb_velocity = parameter.getVelocity();
+    meta_data.simulation.lb_viscosity = parameter.getViscosity();
+
+    meta_data.discretization.dt = meta_data.simulation.lb_velocity / meta_data.world.velocity * meta_data.discretization.dx;
+    meta_data.simulation.reynoldsNumber = parameter.getRe();
+
+    meta_data.simulation.numberOfTimeSteps = parameter.getTimestepEnd();
+
+    meta_data.simulation.collisionKernel = parameter.getMainKernel();
+
+    meta_data.simulation.quadricLimiters[0] = parameter.getQuadricLimitersHost()[0];
+    meta_data.simulation.quadricLimiters[1] = parameter.getQuadricLimitersHost()[1];
+    meta_data.simulation.quadricLimiters[2] = parameter.getQuadricLimitersHost()[2];
+
+    meta_data.discretization.totalNumberOfNodes = 0.;
+    for (int level = parameter.getCoarse(); level <= parameter.getFine(); level++) {
+        meta_data.discretization.totalNumberOfNodes += parameter.getParH(level)->numberOfNodes;
+        meta_data.discretization.numberOfNodesPerLevel.push_back(parameter.getParH(level)->numberOfNodes);
     }
-}
 
-double PerformanceMeasurement::getNups() const
-{
-    return nups;
-}
+    meta_data.discretization.numberOfLevels = parameter.getMaxLevel() + 1;
 
-double PerformanceMeasurement::totalRuntimeInSeconds() const
-{
-    return totalTime;
-}
+    meta_data.numberOfProcesses = parameter.getNumprocs();
 
-void PerformanceMeasurement::log(vf::basics::Timer& timer, uint timestep, vf::parallel::Communicator& communicator)
-{
-    totalTime += timer.getTimeInSeconds();
-    const uint numberOfTimeSteps = timestep - timestepStart;
+    const int numOfThreads = omp_get_num_threads();
+    meta_data.numberOfThreads = numOfThreads;
 
-    nups = numberOfTimeSteps * totalNumberOfNodesCorrected / totalTime;
-    const real bandwidth = (27.0 + 1.0) * 4.0 * numberOfTimeSteps * totalNumberOfNodes / (totalTime * 1.0E9);
+    meta_data.vf_hardware = "GPU";
 
-    const double meganups = nups / 1.0E6;
-
-    if (this->firstOutput && communicator.isRoot()) // only display the legend once
-    {
-        VF_LOG_INFO("PID \t --- Average performance ---  Processing time (ms) \t Nups in Mio \t Bandwidth in GB/sec");
-        this->firstOutput = false;
+    int count = 1;
+    for (const auto& deviceId : parameter.getDevices()) {
+        meta_data.gpus.push_back({ vf::cuda::getGPUName(deviceId), vf::cuda::getComputeCapability(deviceId) });
+        if (count >= parameter.getNumprocs())
+            break;
+        count++;
     }
 
-    VF_LOG_INFO(" {} \t --- Average performance --- {:>8.1f}/ {:<8.1f} \t   {:5.1f} \t       {:4.1f}",
-                communicator.getProcessID(), timer.getTimeInSeconds() * 1000, totalTime * 1000, meganups, bandwidth);
-
-    // When using multiple GPUs, sum the nups of all processes
-    if (communicator.getNumberOfProcesses() > 1) {
-        const double nupsSum = communicator.reduceSum(nups);
-        if (communicator.isRoot())
-            VF_LOG_INFO("Sum of all {} processes: Nups in Mio: {:.1f}", communicator.getNumberOfProcesses(), nupsSum);
-    }
+    return meta_data;
 }
+
+} // namespace vf::gpu
 
 //! \}
