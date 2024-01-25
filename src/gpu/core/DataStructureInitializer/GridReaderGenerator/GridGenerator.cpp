@@ -56,7 +56,7 @@
 using namespace vf::lbm::dir;
 
 GridGenerator::GridGenerator(std::shared_ptr<GridBuilder> builder, std::shared_ptr<Parameter> para,
-                             std::shared_ptr<CudaMemoryManager> cudaMemoryManager, vf::parallel::Communicator &communicator)
+                             std::shared_ptr<CudaMemoryManager> cudaMemoryManager, vf::parallel::Communicator& communicator)
     : mpiProcessID(communicator.getProcessID()), builder(builder)
 {
     this->para = para;

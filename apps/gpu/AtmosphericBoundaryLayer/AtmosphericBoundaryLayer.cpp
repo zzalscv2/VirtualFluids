@@ -34,7 +34,6 @@
 #include <numeric>
 
 #include <basics/DataTypes.h>
-#include <basics/PointerDefinitions.h>
 #include <basics/config/ConfigurationFile.h>
 #include <basics/constants/NumericConstants.h>
 
@@ -57,12 +56,8 @@
 
 #include "gpu/core/BoundaryConditions/BoundaryConditionFactory.h"
 #include "gpu/core/Calculation/Simulation.h"
-#include "gpu/core/Cuda/CudaMemoryManager.h"
-#include "gpu/core/DataStructureInitializer/GridProvider.h"
-#include "gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h"
 #include "gpu/core/GridScaling/GridScalingFactory.h"
 #include "gpu/core/Kernel/KernelTypes.h"
-#include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/PreCollisionInteractor/PrecursorWriter.h"
 #include "gpu/core/PreCollisionInteractor/Probes/PlanarAverageProbe.h"
@@ -391,8 +386,6 @@ void run(const vf::basics::ConfigurationFile& config)
         para->addProbe(precursorWriter);
     }
 
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    auto gridGenerator = GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
     auto tmFactory = std::make_shared<TurbulenceModelFactory>(para);
     tmFactory->readConfigFile(config);
 
@@ -406,7 +399,7 @@ void run(const vf::basics::ConfigurationFile& config)
         VF_LOG_INFO("Process ID {} is a mid subdomain");
     printf("\n");
 
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory, &scalingFactory);
+    Simulation simulation(para, gridBuilder, &bcFactory, tmFactory, &scalingFactory);
     simulation.run();
 }
 

@@ -33,16 +33,13 @@
 //=======================================================================================
 #include <string>
 
-//////////////////////////////////////////////////////////////////////////
-
 #include <basics/DataTypes.h>
-#include <basics/PointerDefinitions.h>
 #include <basics/StringUtilities/StringUtil.h>
 #include <basics/config/ConfigurationFile.h>
-#include <logger/Logger.h>
-#include <parallel/MPICommunicator.h>
 
-//////////////////////////////////////////////////////////////////////////
+#include <logger/Logger.h>
+
+#include <parallel/MPICommunicator.h>
 
 #include "GridGenerator/geometries/Cuboid/Cuboid.h"
 #include "GridGenerator/geometries/Sphere/Sphere.h"
@@ -57,17 +54,11 @@
 #include "GridGenerator/io/SimulationFileWriter/SimulationFileWriter.h"
 #include "GridGenerator/utilities/communication.h"
 
-//////////////////////////////////////////////////////////////////////////
-
 #include "gpu/core/BoundaryConditions/BoundaryConditionFactory.h"
 #include "gpu/core/Calculation/Simulation.h"
-#include "gpu/core/Cuda/CudaMemoryManager.h"
-#include "gpu/core/DataStructureInitializer/GridProvider.h"
-#include "gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h"
 #include "gpu/core/GridScaling/GridScalingFactory.h"
 #include "gpu/core/Kernel/KernelFactory/KernelFactoryImp.h"
 #include "gpu/core/Kernel/KernelTypes.h"
-#include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/PreProcessor/PreProcessorFactory/PreProcessorFactoryImp.h"
 
@@ -187,10 +178,7 @@ void run(const vf::basics::ConfigurationFile& config)
     bcFactory.setVelocityBoundaryCondition(BoundaryConditionFactory::VelocityBC::VelocityInterpolatedCompressible);
     bcFactory.setPressureBoundaryCondition(BoundaryConditionFactory::PressureBC::PressureNonEquilibriumCompressible);
 
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    SPtr<GridProvider> gridGenerator = GridProvider::makeGridGenerator(gridBuilderFacade->getGridBuilder(), para, cudaMemoryManager, communicator);
-
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, &scalingFactory);
+    Simulation simulation(para, gridBuilderFacade->getGridBuilder(), &bcFactory, &scalingFactory);
     simulation.run();
 }
 
