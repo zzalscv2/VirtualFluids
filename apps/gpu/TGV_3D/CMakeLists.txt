@@ -30,10 +30,6 @@
 #  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 #
 #=======================================================================================
-PROJECT(TGV_3D LANGUAGES CUDA CXX)
+PROJECT(TGV_3D)
 
-vf_add_executable(PRIVATE_LINK basics gpu_core GridGenerator FILES TGV_3D.cpp)
-
-set_source_files_properties(TGV_3D.cpp PROPERTIES LANGUAGE CUDA)
-
-set_target_properties(TGV_3D PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+vf_add_executable(PRIVATE_LINK gpu_core)
