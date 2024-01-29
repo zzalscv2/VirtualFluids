@@ -492,8 +492,8 @@ gcov_gcc:
       -DCMAKE_CUDA_ARCHITECTURES=70
     - make -j4
     - ctest --output-on-failure
-    - cd .. && mkdir coverage && cd build
-    - gcovr -r ../ -f ../src --print-summary --html ../coverage/coverage.html --html-details --xml ../coverage/coverage.xml --gcov-executable gcov-12 .
+    - cd .. && mkdir coverage
+    - gcovr -r . -f src/ --print-summary --html coverage/coverage.html --html-details --xml coverage/coverage.xml --gcov-executable gcov-12
 
   artifacts:
     expire_in: 1 week
