@@ -277,6 +277,7 @@ regression_test_4gpu:
   before_script:
     - pip install hpc-rocket==0.6.0
     - pip install "fieldcompare[all]"
+    - apt-get update && apt-get install -y git-lfs
 
   script:
     - hpc-rocket launch tests/regression-tests/multigpu_test/rocket4GPU.yml --watch --save-jobid hpcrocket4GPU.log
@@ -312,6 +313,7 @@ regression_test_8gpu:
   before_script:
     - pip install hpc-rocket==0.6.0
     - pip install "fieldcompare[all]"
+    - apt-get update && apt-get install -y git-lfs
 
   script:
     - hpc-rocket launch tests/regression-tests/multigpu_test/rocket8GPU.yml --watch --save-jobid hpcrocket8GPU.log
@@ -366,6 +368,7 @@ gpu_numerical_tests:
     - linux
 
   before_script:
+    - apt-get update && apt-get install -y git-lfs
     - cd /tmp
     - git clone --depth 1 --filter=blob:none --sparse https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data
     - cd virtualfluids-reference-data

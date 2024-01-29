@@ -39,7 +39,7 @@ ENV TZ="$TZ"
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update &&   \
     apt-get install -y  \
-    git wget unzip software-properties-common \
+    git git-lfs wget unzip software-properties-common \
     build-essential g++-12 gcc-12 gdb \
     ccache              \
     ninja-build         \
