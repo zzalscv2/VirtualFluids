@@ -186,10 +186,7 @@ void run(const vf::basics::ConfigurationFile& config)
 
     bcFactory.setVelocityBoundaryCondition(BoundaryConditionFactory::VelocityBC::VelocityInterpolatedCompressible);
 
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    SPtr<GridProvider> gridGenerator = GridProvider::makeGridGenerator(gridBuilderFacade->getGridBuilder(), para, cudaMemoryManager, communicator);
-
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, &scalingFactory);
+    Simulation simulation(para, gridBuilderFacade->getGridBuilder(), &bcFactory, &scalingFactory);
     simulation.run();
 }
 

@@ -33,22 +33,24 @@
 #ifndef GridReader_H
 #define GridReader_H
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include "Calculation/Calculation.h"
 #include <basics/PointerDefinitions.h>
 
 #include "gpu/GridGenerator/io/SimulationFileWriter/SimulationFileWriter.h"
+
+class Parameter;
+class GridBuilder;
+class CudaMemoryManager;
+
 namespace vf::parallel
 {
 class Communicator;
 }
 
-class Parameter;
-class GridBuilder;
-class CudaMemoryManager;
 
 class GridProvider
 {

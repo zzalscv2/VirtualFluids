@@ -193,11 +193,7 @@ if write_precursor:
     para.add_probe(precursor_writer)
 
 #%%
-cuda_memory_manager = gpu.CudaMemoryManager(para)
-grid_generator = gpu.GridProvider.make_grid_generator(grid_builder, para, cuda_memory_manager, communicator)
-#%%
-#%%
-sim = gpu.Simulation(para, cuda_memory_manager, communicator, grid_generator, bc_factory, tm_factory, grid_scaling_factory)
+sim = gpu.Simulation(para, grid_builder, bc_factory, tm_factory, grid_scaling_factory)
 #%%
 sim.run()
 MPI.Finalize()

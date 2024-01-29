@@ -33,6 +33,7 @@
 //=======================================================================================
 #include "Simulation.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -47,6 +48,8 @@
 #include <logger/Logger.h>
 
 #include <parallel/Communicator.h>
+#include <parallel/MPICommunicator.h>
+#include <parallel/NullCommunicator.h>
 
 #include "Calculation/Calculation.h"
 #include "Calculation/UpdateGrid27.h"
@@ -91,20 +94,35 @@ std::string getFileName(const std::string& fname, int step, int myID)
     return std::string(fname + "_Restart_" + std::to_string(myID) + "_" + std::to_string(step));
 }
 
+Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder,
+                       BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory)
+    : Simulation(para, builder, bcFactory, std::make_shared<TurbulenceModelFactory>(para), scalingFactory)
+{
+}
+
+Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder,
+                       BoundaryConditionFactory* bcFactory, SPtr<TurbulenceModelFactory> tmFactory,
+                       GridScalingFactory* scalingFactory)
+    : para(para), cudaMemoryManager(std::make_shared<CudaMemoryManager>(para)),
+#ifdef VF_MPI
+      communicator(*vf::parallel::MPICommunicator::getInstance())
+#else
+      communicator(*vf::parallel::NullCommunicator::getInstance())
+#endif
+      ,
+      kernelFactory(std::make_unique<KernelFactoryImp>()), preProcessorFactory(std::make_shared<PreProcessorFactoryImp>()),
+      dataWriter(std::make_unique<FileWriter>())
+{
+    auto gridGenerator = GridProvider::makeGridGenerator(builder, para, cudaMemoryManager, communicator);
+    init(*gridGenerator, bcFactory, tmFactory, scalingFactory);
+}
+
 Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> memoryManager,
                        vf::parallel::Communicator &communicator, GridProvider &gridProvider, BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory)
     : para(para), cudaMemoryManager(memoryManager), communicator(communicator), kernelFactory(std::make_unique<KernelFactoryImp>()),
       preProcessorFactory(std::make_shared<PreProcessorFactoryImp>()), dataWriter(std::make_unique<FileWriter>())
 {
     this->tmFactory = SPtr<TurbulenceModelFactory>( new TurbulenceModelFactory(para) );
-    init(gridProvider, bcFactory, tmFactory, scalingFactory);
-}
-
-Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> memoryManager,
-                       vf::parallel::Communicator &communicator, GridProvider &gridProvider, BoundaryConditionFactory* bcFactory, SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory* scalingFactory)
-    : para(para), cudaMemoryManager(memoryManager), communicator(communicator), kernelFactory(std::make_unique<KernelFactoryImp>()),
-      preProcessorFactory(std::make_shared<PreProcessorFactoryImp>()), dataWriter(std::make_unique<FileWriter>())
-{
     init(gridProvider, bcFactory, tmFactory, scalingFactory);
 }
 

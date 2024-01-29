@@ -33,13 +33,10 @@
 //=======================================================================================
 
 #include <basics/DataTypes.h>
-#include <basics/PointerDefinitions.h>
 #include <basics/config/ConfigurationFile.h>
 #include <basics/constants/NumericConstants.h>
 
 #include <logger/Logger.h>
-
-#include <parallel/MPICommunicator.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -52,9 +49,6 @@
 
 #include "gpu/core/BoundaryConditions/BoundaryConditionFactory.h"
 #include "gpu/core/Calculation/Simulation.h"
-#include "gpu/core/Cuda/CudaMemoryManager.h"
-#include "gpu/core/DataStructureInitializer/GridProvider.h"
-#include "gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h"
 #include "gpu/core/GridScaling/GridScalingFactory.h"
 #include "gpu/core/Kernel/KernelTypes.h"
 #include "gpu/core/Output/FileWriter.h"
@@ -250,11 +244,6 @@ void run(const vf::basics::ConfigurationFile& config)
         para->addProbe(timeseriesProbe);
     }
 
-    vf::parallel::Communicator& communicator = *vf::parallel::MPICommunicator::getInstance();
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-
-    auto gridGenerator = GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
-
     //////////////////////////////////////////////////////////////////////////
     // run simulation
     //////////////////////////////////////////////////////////////////////////
@@ -269,7 +258,7 @@ void run(const vf::basics::ConfigurationFile& config)
     VF_LOG_INFO("smearingWidth [m]      = {}", smearingWidth);
     VF_LOG_INFO("tipSpeedRatio          = {}", tipSpeedRatio);
 
-    Simulation simulation(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory);
+    Simulation simulation(para, gridBuilder, &bcFactory, tmFactory);
     simulation.run();
 }
 

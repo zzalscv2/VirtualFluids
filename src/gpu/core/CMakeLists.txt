@@ -34,7 +34,7 @@
 project(gpu_core LANGUAGES CUDA CXX)
 
 
-vf_add_library(NAME gpu_core PUBLIC_LINK basics lbm parallel logger project_options project_warnings PRIVATE_LINK GridGenerator cuda_helper OpenMP::OpenMP_CXX)
+vf_add_library(NAME gpu_core PUBLIC_LINK basics lbm parallel logger GridGenerator project_options project_warnings PRIVATE_LINK cuda_helper OpenMP::OpenMP_CXX)
 
 #SET(TPN_WIN32 "/EHsc")
 #https://stackoverflow.com/questions/6832666/lnk2019-when-including-asio-headers-solution-generated-with-cmake

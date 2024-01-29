@@ -36,16 +36,16 @@
 
 #include "../GridProvider.h"
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "Calculation/Calculation.h"
-
 
 class Parameter;
 class GridBuilder;
 class IndexRearrangementForStreams;
 class InterpolationCellGrouper;
+
 namespace vf::parallel
 {
 class Communicator;
