@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Source Files
 
 ## C++ header files must have the extension .h. Source files must have the extension .cpp. In Addition .cu for cuda definition and .cuh for cuda header files.

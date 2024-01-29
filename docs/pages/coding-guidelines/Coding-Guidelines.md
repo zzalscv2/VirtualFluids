@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Coding Guidelines
 
 This document lists C++ coding recommendations common in the C++ development community. The recommendations are based on established standards collected from several sources, individual experience, local requirements/needs, as well as suggestions.
@@ -13,3 +15,5 @@ The main goal of the recommendation is to improve readability and thereby the un
 3. <!-- DOXYGEN_MAKE_REF -->[Files](Source-Files.md)
 4. <!-- DOXYGEN_MAKE_REF -->[Statements](Statements.md)
 5. <!-- DOXYGEN_MAKE_REF -->[Comments](Comments.md)
+
+https://git.rz.tu-bs.de/soe.peters/VirtualFluids/-/merge_requests/new?merge_request%5Bsource_project_id%5D=335&merge_request%5Btarget_project_id%5D=257&merge_request%5Btarget_branch%5D=develop

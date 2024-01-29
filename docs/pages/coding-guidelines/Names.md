@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Names
 In general, names should be chosen to be self-explanatory and as short as possible. We are using CamelCase for naming variables and functions. The following table gives an overview of the naming conventions used in the code.
 

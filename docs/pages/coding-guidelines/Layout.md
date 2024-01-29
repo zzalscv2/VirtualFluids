@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Layout
 
  VirtualFluids project contains a [clang-format file](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/blob/main/.clang-format). clang-format is a tool to automatically format the C++ code. The .clang-format file includes all formatting rules of the project. Some most important rules a listed below.
