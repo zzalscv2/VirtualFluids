@@ -15,5 +15,3 @@ The main goal of the recommendation is to improve readability and thereby the un
 3. <!-- DOXYGEN_MAKE_REF -->[Files](Source-Files.md)
 4. <!-- DOXYGEN_MAKE_REF -->[Statements](Statements.md)
 5. <!-- DOXYGEN_MAKE_REF -->[Comments](Comments.md)
-
-https://git.rz.tu-bs.de/soe.peters/VirtualFluids/-/merge_requests/new?merge_request%5Bsource_project_id%5D=335&merge_request%5Btarget_project_id%5D=257&merge_request%5Btarget_branch%5D=develop
