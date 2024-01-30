@@ -18,6 +18,7 @@ stages:
   before_script:
     - chmod -R +x ./tests/regression-tests/*
     - pip install fieldcompare
+    - apt-get update && apt-get install -y git-lfs
 
   artifacts:
     expire_in: 1 hrs

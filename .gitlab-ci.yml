@@ -277,16 +277,17 @@ regression_test_4gpu:
   before_script:
     - pip install hpc-rocket==0.6.0
     - pip install "fieldcompare[all]"
+    - apt-get update && apt-get install -y git-lfs
 
   script:
     - hpc-rocket launch tests/regression-tests/multigpu_test/rocket4GPU.yml --watch --save-jobid hpcrocket4GPU.log
     - cat output/4GPU/slurm4GPU.out
-    - git clone --depth 1 --filter=blob:none --sparse https://github.com/irmb/test_data
-    - cd test_data
+    - git clone --depth 1 --filter=blob:none --sparse https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data
+    - cd virtualfluids-reference-data
     - git sparse-checkout set regression_tests/gpu/DrivenCavity_4GPU_2Levels regression_tests/gpu/SphereMultiGPU_4GPU_2Levels
     - cd ..
-    - fieldcompare dir output/4GPU test_data/regression_tests/gpu/DrivenCavity_4GPU_2Levels --include-files "DrivenCavityMultiGPU*.vtu"
-    - fieldcompare dir output/4GPU test_data/regression_tests/gpu/SphereMultiGPU_4GPU_2Levels --include-files "SphereMultiGPU*.vtu"
+    - fieldcompare dir output/4GPU virtualfluids-reference-data/regression_tests/gpu/DrivenCavity_4GPU_2Levels --include-files "DrivenCavityMultiGPU*.vtu"
+    - fieldcompare dir output/4GPU virtualfluids-reference-data/regression_tests/gpu/SphereMultiGPU_4GPU_2Levels --include-files "SphereMultiGPU*.vtu"
 
   after_script:
     - hpc-rocket cancel tests/regression-tests/multigpu_test/rocket4GPU.yml --read-jobid-from hpcrocket4GPU.log
@@ -312,16 +313,17 @@ regression_test_8gpu:
   before_script:
     - pip install hpc-rocket==0.6.0
     - pip install "fieldcompare[all]"
+    - apt-get update && apt-get install -y git-lfs
 
   script:
     - hpc-rocket launch tests/regression-tests/multigpu_test/rocket8GPU.yml --watch --save-jobid hpcrocket8GPU.log
     - cat output/8GPU/slurm8GPU.out
-    - git clone --depth 1 --filter=blob:none --sparse https://github.com/irmb/test_data
-    - cd test_data
+    - git clone --depth 1 --filter=blob:none --sparse https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data
+    - cd virtualfluids-reference-data
     - git sparse-checkout set regression_tests/gpu/DrivenCavity_8GPU_2Levels regression_tests/gpu/SphereMultiGPU_8GPU_2Levels
     - cd ..
-    - fieldcompare dir output/8GPU test_data/regression_tests/gpu/DrivenCavity_8GPU_2Levels --include-files "DrivenCavityMultiGPU*.vtu"
-    - fieldcompare dir output/8GPU test_data/regression_tests/gpu/SphereMultiGPU_8GPU_2Levels --include-files "SphereMultiGPU*.vtu"
+    - fieldcompare dir output/8GPU virtualfluids-reference-data/regression_tests/gpu/DrivenCavity_8GPU_2Levels --include-files "DrivenCavityMultiGPU*.vtu"
+    - fieldcompare dir output/8GPU virtualfluids-reference-data/regression_tests/gpu/SphereMultiGPU_8GPU_2Levels --include-files "SphereMultiGPU*.vtu"
   
   after_script:
     - hpc-rocket cancel tests/regression-tests/multigpu_test/rocket8GPU.yml --read-jobid-from hpcrocket8GPU.log
@@ -366,9 +368,10 @@ gpu_numerical_tests:
     - linux
 
   before_script:
+    - apt-get update && apt-get install -y git-lfs
     - cd /tmp
-    - git clone --depth 1 --filter=blob:none --sparse https://github.com/irmb/test_data
-    - cd test_data
+    - git clone --depth 1 --filter=blob:none --sparse https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data
+    - cd virtualfluids-reference-data
     - git sparse-checkout set numerical_tests_gpu/grids numerical_tests_gpu/grids 
     - cd /tmp && wget https://fftw.org/fftw-3.3.10.tar.gz
     - tar -xzf fftw-3.3.10.tar.gz && cd fftw-3.3.10
@@ -388,7 +391,7 @@ gpu_numerical_tests:
 
   script:
     - echo 'Numerical Tests execution is disabled, because the K17CompressibleNavierStokes produces NaNs in the tests. https://git.rz.tu-bs.de/irmb/VirtualFluids_dev/-/issues/168'
-    # - $CI_PROJECT_DIR/build/bin/NumericalTests $CI_PROJECT_DIR/apps/gpu/tests/NumericalTests/configK17chim_nu10tm3.txt /tmp/test_data/numerical_tests_gpu/ 2>&1 | tee -a numerical_tests_gpu_results.txt
+    # - $CI_PROJECT_DIR/build/bin/NumericalTests $CI_PROJECT_DIR/apps/gpu/tests/NumericalTests/configK17chim_nu10tm3.txt /tmp/virtualfluids-reference-data/numerical_tests_gpu/ 2>&1 | tee -a numerical_tests_gpu_results.txt
 
   cache:
     key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
