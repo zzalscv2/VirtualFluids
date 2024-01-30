@@ -38,15 +38,15 @@ run_regression_test "$REFERENCE_DATA_DIR" "$CMAKE_FLAGS" "$APPLICATION" "$RESULT
 
 The first line sources the regression test executor script. The next lines are the test-specific configuration. The configuration consists of four parts:
 
-1. The reference data directory. This directory contains the reference data for the test. The directory structure needs to match the directory structure in the [test_data](https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data). The corresponding reference data needs to be uploaded first to the test_data repository.
+1. The reference data directory. This directory contains the reference data for the test. The directory structure needs to match the directory structure in the [reference data](https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data). The corresponding reference data needs to be uploaded first to the reference data repository.
 2. The CMake flags for the build of VirtualFluids. The flags are used to build VirtualFluids for the test.
 3. The application to be executed. The application is executed by the regression test executor script.
 4. The path to the produced data. The produced data is compared to the reference data.
 
 To summarize, adding a new test is usually a two-step process:
 
-1. upload some reference data set to [test_data](https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data) repository:
-   - clone the test_data repository
+1. upload some reference data set to [reference data](https://git.rz.tu-bs.de/irmb/virtualfluids-reference-data) repository:
+   - clone the reference data repository
    - create a new folder in the `regression_tests` directory and add your data
    - commit and push the changes
 2. create a new test file:
