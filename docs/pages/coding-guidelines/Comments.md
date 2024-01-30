@@ -6,15 +6,15 @@
 
 Example:
 ```cpp
-NOT:
+// NOT:
 Point () {} // constructor
 int nc; // number of cars
 f = m * a; // force = mass * acceleration
-BETTER:
-force = mass * acceleration;
-```
 
-In general, the use of comments should be minimized by making the code self-documenting by appropriate name choices and an explicit logical structure.
+// BETTER:
+force = mass * acceleration;
+
+In general, the use of comments should be minimized by making the code self-documenting through appropriate name choices and an explicit logical structure.
 
 ## All comments should be written in English.
 

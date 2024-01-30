@@ -2,7 +2,7 @@
 <!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Layout
 
- VirtualFluids project contains a [clang-format file](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/blob/main/.clang-format). clang-format is a tool to automatically format the C++ code. The .clang-format file includes all formatting rules of the project. Some most important rules a listed below.
+ VirtualFluids project contains a [clang-format file](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/blob/main/.clang-format). Clang-format is a tool to automatically format C++ code. The .clang-format file includes all formatting rules of the project. The most important rules a listed below.
 
 
 ## Spaces
@@ -23,7 +23,7 @@ for (i = 0; i < nElements; i++) {
 
 Example:
 ```cpp
-a = (b + c) * d ; // NOT: a=(b+c) * d
+a = (b + c) * d; // NOT: a=(b+c) * d
 while (true) { // NOT: while(true)
 // . . .
 doSomething (a, b, c, d) ; // NOT: doSomething ( a, b, c, d) ;
@@ -76,8 +76,7 @@ if (condition) {
 }
 if (condition) {
     statements;
-}
-else if (condition) {
+} else if (condition) {
     statements;
 } else {
     statements;
@@ -122,7 +121,6 @@ do {
     statements;
 } while (condition);
 ```
-
 
 ## A switch statement should have the following form
 
@@ -172,7 +170,6 @@ for (initialization; condition; update)
 
 It is a common recommendation that brackets should always be used in all these cases. However, brackets are in general a language construct that groups several statements. Brackets are per definition superfluous on a single statement. A common argument against this syntax is that the code will break if an additional statement is added without also adding the brackets.
 
-
 ## Logical units within a block should be separated by one blank line.
 
 Example:
@@ -195,7 +192,6 @@ Enhance readability by introducing white space between logical units of a block.
 ## Methods should be separated by one blank line.
 
 Example: NA
-
 
 ## Alignment can be used wherever it enhances readability.
 

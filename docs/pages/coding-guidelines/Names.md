@@ -1,7 +1,8 @@
 <!-- SPDX-License-Identifier: GPL-3.0-or-later -->
 <!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Names
-In general, names should be chosen to be self-explanatory and as short as possible. We are using CamelCase for naming variables and functions. The following table gives an overview of the naming conventions used in the code.
+
+In general, names should be self-explanatory and as short as possible. We are using CamelCase for naming variables and functions. The following table gives an overview of the naming conventions used in the code.
 
 | Type | Spelling | Example |
 |------|----------|---------|
@@ -46,7 +47,6 @@ model::analyzer, io::iomanager, common::math::geometry
 
 Common practice in the C++ development community
 
-
 ## All names must be written in English.
 
 Example: 
@@ -74,8 +74,8 @@ The latter seems natural in the class declaration, but proves superfluous in use
 ## The plural form should be used on names representing a collection of objects.
 
 ```cpp
-vector<Point> points ;
-int values [ ] ;
+vector<Point> points;
+int neighbors[10];
 ```
 
 Enhances readability since the name gives the user an immediate clue of the type of the variable and the operations that can be performed on its elements.
@@ -89,25 +89,18 @@ computeAverage(); //NOT: compAvg();
 
 There are two types of words to consider. First are the common words listed in a language dictionary. These must never be abbreviated. Never write:
 
-cmd instead of command
-
-cp instead of copy
-
-pt instead of point
-
-comp instead of compute
-
-init instead of initialize
+* cmd instead of command
+* cp instead of copy
+* pt instead of point
+* comp instead of compute
+* init instead of initialize
 
 etc.
 
 Then there are domain-specific phrases that are more naturally known through their abbreviations/acronyms. These phrases should be kept abbreviated. Never write:
 
-HypertextMarkupLanguage instead of html
-
-CentralProcessingUnit instead of cpu
-
-PriceEarningRatio instead of pe
+* HypertextMarkupLanguage instead of html
+* CentralProcessingUnit instead of cpu
 
 etc.
 
@@ -124,7 +117,8 @@ Many variables in a C/C++ environment are pointers, so a convention like this is
 
 Example:
 ```cpp
-bool isError; // NOT: isNoError bool isFound; // NOT: isNotFound
+bool isError; // NOT: isNoError
+bool isFound; // NOT: isNotFound
 ```
 
 The problem arises when such a name is used in conjunction with the logical negation operator as this results in a double negative. It is not immediately apparent what !isNotFound means.

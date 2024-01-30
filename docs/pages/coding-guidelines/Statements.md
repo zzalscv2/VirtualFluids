@@ -15,7 +15,6 @@ getCenter(&x, &y, &z);
 
 In these cases, it should be left uninitialized rather than initialized to some phony value.
 
-
 ## C++ pointers and references should have their reference symbol next to the type rather than to the name.
 
 Example:
@@ -44,14 +43,13 @@ Example: NA
 
 Keeping the operations on a variable within a small scope, it is easier to control the effects and side effects of the variable.
 
-
-## do-while loops can be avoided.
+## Do-while loops can be avoided.
 
 Example: NA
 
-_do-while_ loops are less readable than ordinary while loops and for loops since the conditional is at the bottom of the loop. The reader must scan the entire loop in order to understand the scope of the loop. In addition, _do-while_ loops are not needed. Any _do-while_ loop can easily be rewritten into a _while_ loop or a _for_ loop. Reducing the number of constructs used enhances readability.
+_do-while_ loops are less readable than ordinary while loops and for loops since the conditional is at the bottom of the loop. The reader must scan the entire loop in order to understand the scope of the loop. In addition, _do-while_ loops are not needed. Any _do-while_ loop can easily be rewritten into a _while_ loop or a _for_ loop. Reducing the number of constructs enhances readability.
 
-## The form while(true) should be used for infinite loops.
+## The form while (true) should be used for infinite loops.
 
 Example:
 ```cpp
@@ -106,8 +104,8 @@ Makes sure that the exceptions don't obscure the normal path of execution. This 
 
 Example:
 ```cpp
-if (isDone) // NOT: if (isDone) doCleanup () ;
-    doCleanup ();
+if (isDone) // NOT: if (isDone) doCleanup();
+    doCleanup();
 ```
 
 This is for debugging purposes. When writing on a single line, it is not apparent whether the test is true or not.
@@ -128,13 +126,11 @@ if (!(fileHandle = open(fileName,"w"))) {
 
 Conditionals with executable statements are just very difficult to read. This is especially true for programmers new to C/C++.
 
-
 ## The use of magic numbers in the code should be avoided. Numbers other than 0 and 1 should be considered and declared as named constants instead.
 
 Example: NA
 
 If the number does not have an obvious meaning by itself, the readability is enhanced by introducing a named constant instead. A different approach is to introduce a method from which the constant can be accessed.
-
 
 ## Floating point constants should always be written with a digit before the decimal point.
 
@@ -145,7 +141,7 @@ double total = 0.5; // NOT: double total = .5;
 
 The number and expression system in C++ is borrowed from mathematics and one should adhere to mathematical conventions for syntax wherever possible. Also, 0.5 is a lot more readable than .5; There is no way it can be mixed with the integer 5.
 
-## goto must not be used.
+## Goto must not be used.
 
 Example: NA
 

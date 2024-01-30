@@ -2,7 +2,8 @@
 <!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Source Files
 
-## C++ header files must have the extension .h. Source files must have the extension .cpp. In Addition .cu for cuda definition and .cuh for cuda header files.
+## C++ file extensions must be .h, .cpp, .cu or .cuh
+- C++ header files must have the extension .h. Source files must have the extension .cpp. In Addition, we use .cu for cuda definition and .cuh for cuda header files.
 
 Example:
 ```cpp
@@ -16,7 +17,7 @@ Example:
 MyClass.h, MyClass.cpp
 ```
 
-Makes it easy to nd the associated files of a given class. An obvious exception is template classes that must be both declared and defined inside a .h file.
+Makes it easy to find the associated files of a given class. An obvious exception are template classes that must be both declared and defined inside a .h file.
 
 ## All definitions should reside in source files.
 
@@ -44,13 +45,14 @@ Example:
 ```cpp
 #ifndef MODULE_CLASSNAME_H
 #define MODULE_CLASSNAME_H
-:
+...
 #endif // MODULE_CLASSNAME_H
 ```
 
-The construction is to avoid compilation errors. The name convention resembles the location of the file inside the source tree and prevents naming conflicts. The include guard should be named after the file name in uppercase letters with the extension replaced by _H. The name should be prefixed by the name of the module in uppercase letters.
+The include guard avoids compilation errors. The name convention resembles the location of the file inside the source tree and prevents naming conflicts. The include guard should be named after the file name in uppercase letters with the extension replaced by _H. The name should be prefixed by the name of the module in uppercase letters.
 
-## Include statements should be sorted and grouped. Sorted by their hierarchical position in the system with low level files included first. Leave an empty line between groups of include statements.
+## Include statements should be sorted and grouped in the following form
+- they should be sorted by their hierarchical position in the system with low level files included first. Leave an empty line between groups of include statements.
 
 We want to include self implemented files always starting with the library name. e.g.: `#include <lbm/constants/D3Q27.h>`
 
@@ -80,7 +82,7 @@ Example:
 ```
 
 
-## If it is possible include statements must be located in the cpp file and forward declarated in the header file.
+## If possible include statements must be located in the cpp file and forward declarated in the header file.
 
 Example:
 ```cpp
