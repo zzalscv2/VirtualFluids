@@ -87,20 +87,20 @@ Example:
 computeAverage(); //NOT: compAvg();
 ```
 
-There are two types of words to consider. First are the common words listed in a language dictionary. These must never be abbreviated. Never write:
+There are two types of words to consider. First are the common words listed in a language dictionary. These must never be abbreviated. Write:
 
-* cmd instead of command
-* cp instead of copy
-* pt instead of point
-* comp instead of compute
-* init instead of initialize
+* command instead of cmd
+* copy instead of cp
+* point instead of pt
+* compute instead of cp
+* initialize instead of init
 
 etc.
 
-Then there are domain-specific phrases that are more naturally known through their abbreviations/acronyms. These phrases should be kept abbreviated. Never write:
+Then there are domain-specific phrases that are more naturally known through their abbreviations/acronyms. These phrases should be kept abbreviated. Write:
 
-* HypertextMarkupLanguage instead of html
-* CentralProcessingUnit instead of cpu
+* html instead of HypertextMarkupLanguage
+* cpu instead of CentralProcessingUnit 
 
 etc.
 
