@@ -2,6 +2,15 @@
 <!-- SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder -->
 # Changelog
 
+## [0.1.2](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/milestones/3) - 2024-XX-XX
+
+### Added
+- [ALL] MetaData Writer class was added for writing the simulation parameters to a YAML file.
+- [DOCS] Adds Coding Guidelines to the documentation. The guidelines can be found [here](https://irmb.gitlab-pages.rz.tu-bs.de/VirtualFluids/coding-guidelines.html).
+
+### Fixes
+- [GPU] Pressure BoundaryCondition was not working correctly for all directions. This is now fixed.
+
 ## [0.1.1](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/milestones/2) - 2024-01-12
 
 ### Added
