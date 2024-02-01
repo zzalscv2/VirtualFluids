@@ -41,6 +41,9 @@
 #ifndef WallModelProbe_H
 #define WallModelProbe_H
 
+#include <vector>
+#include <string>
+
 #include <basics/PointerDefinitions.h>
 #include <logger/Logger.h>
 
@@ -53,7 +56,9 @@ struct WallModelProbeLevelData
 {
     uint numberOfAveragedValues, numberOfFluidNodes;
     std::string timeseriesFileName;
-    std::vector<std::vector<real>> data;
+    std::vector<std::vector<real>> instantaneousData, averagedData;
+    std::vector<real> timestepTime;
+    bool firstWrite = true;
     WallModelProbeLevelData(std::string fileName, uint numberOfFluidNodes)
         : timeseriesFileName(fileName), numberOfFluidNodes(numberOfFluidNodes)
     {
@@ -71,7 +76,7 @@ public:
           tStartWritingOutput(tStartWritingOutput), tBetweenAverages(tBetweenAverages), tBetweenWriting(tBetweenWriting),
           averageEveryTimestep(averageEveryTimestep), computeTemporalAverages(computeTemporalAverages),
           outputStress(outputStress), evaluatePressureGradient(evaluatePressureGradient),
-          Sampler(para, cudaMemoryManager, probeName, outputPath)
+          Sampler(para, cudaMemoryManager, outputPath, probeName)
     {
         if (tStartTemporalAveraging < tStartAveraging)
             throw std::runtime_error("WallModelProbe: tStartTemporalAveraging must be larger than tStartAveraging!");
@@ -86,7 +91,8 @@ public:
     void getTaggedFluidNodes(GridProvider* gridProvider) override {};
 
 private:
-    std::vector<PostProcessingVariable> getPostProcessingVariables();
+    std::vector<std::string> getVariableNames();
+    int getNumberOfInstantaneousQuantities() { return evaluatePressureGradient ? 13 : 10; }
     void calculateQuantities(WallModelProbeLevelData* levelData, uint t, int level);
     void write(int level);
     uint countFluidNodes(int level);

@@ -53,56 +53,51 @@ using indexIterator = thrust::device_vector<uint>::iterator;
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-std::vector<PostProcessingVariable> WallModelProbe::getPostProcessingVariables()
+std::vector<std::string> WallModelProbe::getVariableNames()
 {
-    std::function<real(int)> velocityRatio = [this](int level) { return para->getScaledVelocityRatio(level); };
-    std::function<real(int)> stressRatio = [this](int level) { return para->getScaledStressRatio(level); };
-    std::function<real(int)> forceRatio = [this](int level) { return para->getScaledForceRatio(level); };
-
-    std::vector<PostProcessingVariable> postProcessingVariables;
-    postProcessingVariables.emplace_back("vx_el_spatMean", velocityRatio);
-    postProcessingVariables.emplace_back("vy_el_spatMean", velocityRatio);
-    postProcessingVariables.emplace_back("vz_el_spatMean", velocityRatio);
-    postProcessingVariables.emplace_back("vx1_spatMean", velocityRatio);
-    postProcessingVariables.emplace_back("vy1_spatMean", velocityRatio);
-    postProcessingVariables.emplace_back("vz1_spatMean", velocityRatio);
-    postProcessingVariables.emplace_back("u_star_spatMean", velocityRatio);
-    postProcessingVariables.emplace_back("Fx_spatMean", outputStress ? stressRatio : forceRatio);
-    postProcessingVariables.emplace_back("Fy_spatMean", outputStress ? stressRatio : forceRatio);
-    postProcessingVariables.emplace_back("Fz_spatMean", outputStress ? stressRatio : forceRatio);
+    std::vector<std::string> variableNames;
+    variableNames.emplace_back("vx_el_spatMean");
+    variableNames.emplace_back("vy_el_spatMean");
+    variableNames.emplace_back("vz_el_spatMean");
+    variableNames.emplace_back("vx1_spatMean");
+    variableNames.emplace_back("vy1_spatMean");
+    variableNames.emplace_back("vz1_spatMean");
+    variableNames.emplace_back("u_star_spatMean");
+    variableNames.emplace_back("Fx_spatMean");
+    variableNames.emplace_back("Fy_spatMean");
+    variableNames.emplace_back("Fz_spatMean");
     if (computeTemporalAverages) {
-        postProcessingVariables.emplace_back("vx_el_spatTmpMean", velocityRatio);
-        postProcessingVariables.emplace_back("vy_el_spatTmpMean", velocityRatio);
-        postProcessingVariables.emplace_back("vz_el_spatTmpMean", velocityRatio);
-        postProcessingVariables.emplace_back("vx1_spatTmpMean", velocityRatio);
-        postProcessingVariables.emplace_back("vy1_spatTmpMean", velocityRatio);
-        postProcessingVariables.emplace_back("vz1_spatTmpMean", velocityRatio);
-        postProcessingVariables.emplace_back("u_star_spatTmpMean", velocityRatio);
-        postProcessingVariables.emplace_back("Fx_spatTmpMean", outputStress ? stressRatio : forceRatio);
-        postProcessingVariables.emplace_back("Fy_spatTmpMean", outputStress ? stressRatio : forceRatio);
-        postProcessingVariables.emplace_back("Fz_spatTmpMean", outputStress ? stressRatio : forceRatio);
+        variableNames.emplace_back("vx_el_spatTmpMean");
+        variableNames.emplace_back("vy_el_spatTmpMean");
+        variableNames.emplace_back("vz_el_spatTmpMean");
+        variableNames.emplace_back("vx1_spatTmpMean");
+        variableNames.emplace_back("vy1_spatTmpMean");
+        variableNames.emplace_back("vz1_spatTmpMean");
+        variableNames.emplace_back("u_star_spatTmpMean");
+        variableNames.emplace_back("Fx_spatTmpMean");
+        variableNames.emplace_back("Fy_spatTmpMean");
+        variableNames.emplace_back("Fz_spatTmpMean");
     }
     if (evaluatePressureGradient) {
-        postProcessingVariables.emplace_back("dpdx_spatMean", forceRatio);
-        postProcessingVariables.emplace_back("dpdy_spatMean", forceRatio);
-        postProcessingVariables.emplace_back("dpdz_spatMean", forceRatio);
+        variableNames.emplace_back("dpdx_spatMean");
+        variableNames.emplace_back("dpdy_spatMean");
+        variableNames.emplace_back("dpdz_spatMean");
         if (computeTemporalAverages) {
-            postProcessingVariables.emplace_back("dpdx_spatTmpMean", forceRatio);
-            postProcessingVariables.emplace_back("dpdy_spatTmpMean", forceRatio);
-            postProcessingVariables.emplace_back("dpdz_spatTmpMean", forceRatio);
+            variableNames.emplace_back("dpdx_spatTmpMean");
+            variableNames.emplace_back("dpdy_spatTmpMean");
+            variableNames.emplace_back("dpdz_spatTmpMean");
         }
     }
-    return postProcessingVariables;
+    return variableNames;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
 void WallModelProbe::init()
 {
 
-    std::vector<std::string> variableNames;
-    for (auto variable : getPostProcessingVariables()) {
-        variableNames.push_back(variable.name);
-    }
+    std::vector<std::string> variableNames  = getVariableNames();
+
+    const int numberOfQuantities = getNumberOfInstantaneousQuantities();
 
     const real x[1] { 0 };
     const real y[1] { 0 };
@@ -113,7 +108,7 @@ void WallModelProbe::init()
         TimeseriesFileWriter::writeHeader(fileName, 1, variableNames, x, y, z);
         const uint numberOfFluidNodes = evaluatePressureGradient ? countFluidNodes(level) : 0;
         levelData.emplace_back(fileName, numberOfFluidNodes);
-        levelData.back().data.push_back(std::vector<real>(variableNames.size(), 0));
+        levelData.back().averagedData.push_back(std::vector<real>(numberOfQuantities, 0));
     }
 }
 
@@ -127,11 +122,11 @@ void WallModelProbe::sample(int level, uint t)
     const uint tAfterStartAvg = t - tStartAveraging;
     const uint tAfterStartOut = t - tStartWritingOutput;
 
-    if (t > tStartAveraging && ((tAfterStartAvg % tBetweenAverages == 0 && isCoarseTimestep) || averageEveryTimestep)) {
+    if (t >= tStartAveraging && ((tAfterStartAvg % tBetweenAverages == 0 && isCoarseTimestep) || averageEveryTimestep)) {
         calculateQuantities(data, tLevel, level);
     }
 
-    if (t > tStartWritingOutput && isCoarseTimestep && tAfterStartOut % tBetweenWriting == 0) {
+    if (t >= tStartWritingOutput && isCoarseTimestep && tAfterStartOut % tBetweenWriting == 0) {
         write(level);
     }
 }
@@ -139,10 +134,10 @@ void WallModelProbe::sample(int level, uint t)
 ///////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-T computeMean(T* device_pointer, uint numberOfPoints)
+T computeMean(T* devicePointer, uint numberOfPoints, T conversionFactor)
 {
-    thrust::device_ptr<T> thrust_pointer = thrust::device_pointer_cast(device_pointer);
-    return thrust::reduce(thrust_pointer, thrust_pointer + numberOfPoints) / real(numberOfPoints);
+    thrust::device_ptr<T> thrustPointer = thrust::device_pointer_cast(devicePointer);
+    return  thrust::reduce(thrustPointer, thrustPointer + numberOfPoints) / real(numberOfPoints) * conversionFactor;
 }
 
 struct isValidNode {
@@ -153,29 +148,29 @@ struct isValidNode {
 };
 
 template <typename T>
-T computeIndexBasedMean(T* device_pointer, uint* typeOfGridNode, uint numberOfNodes, uint numberOfFluidNodes)
+T computeIndexBasedMean(T* devicePointer, uint* typeOfGridNode, uint numberOfNodes, uint numberOfFluidNodes, T conversionFactor)
 {
-    thrust::device_ptr<T> thrust_pointer = thrust::device_pointer_cast(device_pointer);
+    thrust::device_ptr<T> thrustPointer = thrust::device_pointer_cast(devicePointer);
     thrust::device_ptr<uint> typePointer = thrust::device_pointer_cast(typeOfGridNode);
-    auto begin = thrust::make_zip_iterator(thrust::make_tuple(thrust_pointer, typePointer));
-    auto end = thrust::make_zip_iterator(thrust::make_tuple(thrust_pointer + numberOfNodes, typePointer + numberOfNodes));
+    auto begin = thrust::make_zip_iterator(thrust::make_tuple(thrustPointer, typePointer));
+    auto end = thrust::make_zip_iterator(thrust::make_tuple(thrustPointer + numberOfNodes, typePointer + numberOfNodes));
     auto iter_begin = thrust::make_transform_iterator(begin, isValidNode());
     auto iter_end = thrust::make_transform_iterator(end, isValidNode());
 
-    return thrust::reduce(iter_begin, iter_end) / real(numberOfFluidNodes);
+    return thrust::reduce(iter_begin, iter_end) / real(numberOfFluidNodes) * conversionFactor;
 }
 
 template <typename T>
-void computeAndSaveMean(T* device_pointer, uint numberOfPoints, std::vector<T>& quantityArray)
+void computeAndSaveMean(T* devicePointer, uint numberOfPoints, std::vector<T>& quantityArray, T conversionFactor)
 {
-    quantityArray.push_back(computeMean(device_pointer, numberOfPoints));
+    quantityArray.push_back(computeMean(devicePointer, numberOfPoints, conversionFactor));
 }
 
 template <typename T>
-void computeAndSaveIndexBasedMean(T* device_pointer, uint* typeOfGridNode, uint numberOfNodes, uint numberOfFluidNodes,
-                                  std::vector<real>& quantitiesArray)
+void computeAndSaveIndexBasedMean(T* devicePointer, uint* typeOfGridNode, uint numberOfNodes, uint numberOfFluidNodes,
+                                  std::vector<real>& quantitiesArray, T conversionFactor)
 {
-    quantitiesArray.push_back(computeIndexBasedMean(device_pointer, typeOfGridNode, numberOfNodes, numberOfFluidNodes));
+    quantitiesArray.push_back(computeIndexBasedMean(devicePointer, typeOfGridNode, numberOfNodes, numberOfFluidNodes, conversionFactor));
 }
 
 template <typename T>
@@ -192,83 +187,91 @@ uint WallModelProbe::countFluidNodes(int level)
 
 void WallModelProbe::calculateQuantities(WallModelProbeLevelData* data, uint t, int level)
 {
-    const bool doTemporalAveraging = (t > tStartTemporalAveraging) && computeTemporalAverages;
     const uint nPoints = para->getParD(level)->stressBC.numberOfBCnodes;
     if (nPoints < 1)
         return;
-    const real inverseNumberOfAveragedValues = c1o1 / real(data->numberOfAveragedValues + 1);
     auto paraDevice = para->getParD(level);
+    const int numberOfQuantities = getNumberOfInstantaneousQuantities();
 
-    std::vector<real> newTimestep;
-    newTimestep.reserve(getPostProcessingVariables().size() + 1);
-    newTimestep.push_back(t * para->getScaledTimeRatio(level));
+    data->timestepTime.push_back(t * para->getScaledTimeRatio(level));
 
-    computeAndSaveMean(paraDevice->stressBC.Vx, nPoints, newTimestep);
-    computeAndSaveMean(paraDevice->stressBC.Vy, nPoints, newTimestep);
-    computeAndSaveMean(paraDevice->stressBC.Vz, nPoints, newTimestep);
+    data->instantaneousData.resize(data->instantaneousData.size() + 1);
+    std::vector<real>& newInstantaneous = data->instantaneousData.back();
+    newInstantaneous.reserve(numberOfQuantities);
 
-    computeAndSaveMean(paraDevice->stressBC.Vx1, nPoints, newTimestep);
-    computeAndSaveMean(paraDevice->stressBC.Vy1, nPoints, newTimestep);
-    computeAndSaveMean(paraDevice->stressBC.Vz1, nPoints, newTimestep);
+    const real velocityFactor = para->getScaledVelocityRatio(level);
+    const real stressFactor = para->getScaledStressRatio(level);
+    const real forceFactor = para->getScaledForceRatio(level);
 
-    computeAndSaveMean(paraDevice->wallModel.u_star, nPoints, newTimestep);
+    computeAndSaveMean(paraDevice->stressBC.Vx, nPoints, newInstantaneous, velocityFactor);
+    computeAndSaveMean(paraDevice->stressBC.Vy, nPoints, newInstantaneous, velocityFactor);
+    computeAndSaveMean(paraDevice->stressBC.Vz, nPoints, newInstantaneous, velocityFactor);
 
-    computeAndSaveMean(paraDevice->wallModel.Fx, nPoints, newTimestep);
-    computeAndSaveMean(paraDevice->wallModel.Fy, nPoints, newTimestep);
-    computeAndSaveMean(paraDevice->wallModel.Fz, nPoints, newTimestep);
+    computeAndSaveMean(paraDevice->stressBC.Vx1, nPoints, newInstantaneous, velocityFactor);
+    computeAndSaveMean(paraDevice->stressBC.Vy1, nPoints, newInstantaneous, velocityFactor);
+    computeAndSaveMean(paraDevice->stressBC.Vz1, nPoints, newInstantaneous, velocityFactor);
 
-    if (doTemporalAveraging) {
-        std::vector<real>& oldMeans = data->data.back();
-        const size_t start = newTimestep.size();
-        computeTemporalAverage(newTimestep, oldMeans[start + 0], newTimestep[0], inverseNumberOfAveragedValues);
-        computeTemporalAverage(newTimestep, oldMeans[start + 1], newTimestep[1], inverseNumberOfAveragedValues);
-        computeTemporalAverage(newTimestep, oldMeans[start + 2], newTimestep[2], inverseNumberOfAveragedValues);
+    computeAndSaveMean(paraDevice->wallModel.u_star, nPoints, newInstantaneous, velocityFactor);
 
-        computeTemporalAverage(newTimestep, oldMeans[start + 3], newTimestep[3], inverseNumberOfAveragedValues);
-        computeTemporalAverage(newTimestep, oldMeans[start + 4], newTimestep[4], inverseNumberOfAveragedValues);
-        computeTemporalAverage(newTimestep, oldMeans[start + 5], newTimestep[5], inverseNumberOfAveragedValues);
-
-        computeTemporalAverage(newTimestep, oldMeans[start + 6], newTimestep[6], inverseNumberOfAveragedValues);
-
-        computeTemporalAverage(newTimestep, oldMeans[start + 7], newTimestep[7], inverseNumberOfAveragedValues);
-        computeTemporalAverage(newTimestep, oldMeans[start + 8], newTimestep[8], inverseNumberOfAveragedValues);
-        computeTemporalAverage(newTimestep, oldMeans[start + 9], newTimestep[9], inverseNumberOfAveragedValues);
-        data->numberOfAveragedValues++;
-    }
+    computeAndSaveMean(paraDevice->wallModel.Fx, nPoints, newInstantaneous, outputStress ? stressFactor : forceFactor);
+    computeAndSaveMean(paraDevice->wallModel.Fy, nPoints, newInstantaneous, outputStress ? stressFactor : forceFactor);
+    computeAndSaveMean(paraDevice->wallModel.Fz, nPoints, newInstantaneous, outputStress ? stressFactor : forceFactor);
 
     if (this->evaluatePressureGradient) {
-        const size_t startPressureGradient = newTimestep.size();
         computeAndSaveIndexBasedMean(paraDevice->forceX_SP, paraDevice->typeOfGridNode, paraDevice->numberOfNodes,
-                                     data->numberOfFluidNodes, newTimestep);
+                                     data->numberOfFluidNodes, newInstantaneous, forceFactor);
         computeAndSaveIndexBasedMean(paraDevice->forceY_SP, paraDevice->typeOfGridNode, paraDevice->numberOfNodes,
-                                     data->numberOfFluidNodes, newTimestep);
+                                     data->numberOfFluidNodes, newInstantaneous, forceFactor);
         computeAndSaveIndexBasedMean(paraDevice->forceZ_SP, paraDevice->typeOfGridNode, paraDevice->numberOfNodes,
-                                     data->numberOfFluidNodes, newTimestep);
+                                     data->numberOfFluidNodes, newInstantaneous, forceFactor);
+    }
 
-        if (doTemporalAveraging) {
-            const size_t startTempAvg = newTimestep.size();
-            std::vector<real>& oldMeans = data->data.back();
-            computeTemporalAverage(newTimestep, oldMeans[startTempAvg + 0], newTimestep[startPressureGradient + 0],
-                                   inverseNumberOfAveragedValues);
-            computeTemporalAverage(newTimestep, oldMeans[startTempAvg + 1], newTimestep[startPressureGradient + 1],
-                                   inverseNumberOfAveragedValues);
-            computeTemporalAverage(newTimestep, oldMeans[startTempAvg + 2], newTimestep[startPressureGradient + 2],
-                                   inverseNumberOfAveragedValues);
-            computeTemporalAverage(newTimestep, oldMeans[startTempAvg + 3], newTimestep[startPressureGradient + 3],
-                                   inverseNumberOfAveragedValues);
+    if (computeTemporalAverages) {
+        if(t > tStartTemporalAveraging){
+            const real inverseNumberOfAveragedValues = c1o1 / real(data->numberOfAveragedValues + 1);
+            std::vector<real>& oldAverages = data->averagedData.back();
+            std::vector<real> newAverages;
+            newAverages.reserve(numberOfQuantities);
+            for(int i=0; i<numberOfQuantities; i++)
+                computeTemporalAverage(newAverages, oldAverages[i], newInstantaneous[i], inverseNumberOfAveragedValues);
+            data->averagedData.push_back(newAverages);
+            data->numberOfAveragedValues++;
+        } else {
+            std::vector newAverages(numberOfQuantities, c0o1);
+            data->averagedData.push_back(newAverages);
         }
     }
-    data->data.push_back(newTimestep);
 }
 
 void WallModelProbe::write(int level)
 {
     auto data = &levelData[level];
-    std::vector dataToWrite(data->data.begin() + 1, data->data.end());
+
+    if(data->timestepTime.empty())
+        return;
+
+    std::vector<std::vector<real>> dataToWrite;
+    for(size_t i=0; i<data->timestepTime.size(); i++)
+    {
+        std::vector<real> row;
+        row.reserve(data->instantaneousData[i].size() + (computeTemporalAverages ? data->averagedData[i+1].size() : 0) + 1);
+        row.push_back(data->timestepTime[i]);
+        std::copy(data->instantaneousData[i].begin(), data->instantaneousData[i].end(), std::back_inserter(row));
+        if(computeTemporalAverages)
+            std::copy(data->averagedData[i+1].begin(), data->averagedData[i+1].end(), std::back_inserter(row));
+        dataToWrite.push_back(row);
+    }
+
     TimeseriesFileWriter::appendData(data->timeseriesFileName, dataToWrite);
-    auto lastTimestep = data->data.back();
-    data->data.clear();
-    data->data.push_back(lastTimestep);
+
+    data->timestepTime.clear();
+    data->instantaneousData.clear();
+    if(computeTemporalAverages){
+        auto lastTimestep = data->averagedData.back();
+        data->averagedData.clear();
+        data->averagedData.push_back(lastTimestep);
+    }
 }
+
 
 //! \}
