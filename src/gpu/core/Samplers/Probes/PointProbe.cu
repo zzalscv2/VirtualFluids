@@ -143,7 +143,7 @@ void PointProbe::addProbePoint(real pointCoordX, real pointCoordY, real pointCoo
 void PointProbe::addProbePointsFromList(std::vector<real>& pointCoordsX, std::vector<real>& pointCoordsY,
                                         std::vector<real>& pointCoordsZ)
 {
-    if ((pointCoordsX.size() != pointCoordsY.size()) && (pointCoordsY.size() != pointCoordsZ.size()))
+    if ((pointCoordsX.size() != pointCoordsY.size()) || (pointCoordsY.size() != pointCoordsZ.size()))
         throw std::runtime_error("Probe::addProbePointsFromList(): point lists have different lengths!");
 
     this->pointCoordsX.insert(this->pointCoordsX.end(), pointCoordsX.begin(), pointCoordsX.end());

@@ -62,7 +62,7 @@ public:
     void getTaggedFluidNodes(GridProvider* gridProvider) override;
 
 private:
-    bool isAvailableStatistic(Statistic _variable) override;
+    bool isAvailableStatistic(Statistic variable) override;
 
     std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable) override;
 
@@ -73,7 +73,6 @@ private:
     void calculateQuantities(SPtr<ProbeStruct> probeStruct, uint t, int level) override;
     uint getNumberOfTimestepsInTimeseries(int level) override
     {
-        (void)para;
         return outputTimeSeries ? tBetweenWriting * exp2(level) : 1;
     }
 
