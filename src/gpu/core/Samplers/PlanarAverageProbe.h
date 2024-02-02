@@ -110,7 +110,7 @@ public:
 private:
     std::vector<PostProcessingVariable> getPostProcessingVariables(PlanarAverageProbe::Statistic variable,
                                                                    bool includeTimeAverage);
-    void calculateQuantities(PlanarAverageProbeLevelData* data, uint t, int level, bool doTimeAverages);
+    void calculateQuantities(int level, bool doTimeAverages);
     std::vector<unsigned long long> findIndicesInPlane(int level);
     void findCoordinatesForPlanes(int level, std::vector<real>& coordinateX, std::vector<real>& coordinateY,
                                   std::vector<real>& coordinateZ);

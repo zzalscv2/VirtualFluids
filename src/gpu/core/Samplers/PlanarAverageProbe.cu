@@ -239,7 +239,7 @@ void PlanarAverageProbe::init()
         std::vector<unsigned long long> indices = findIndicesInPlane(level);
         findCoordinatesForPlanes(level, data->coordinateX, data->coordinateY, data->coordinateZ);
         data->numberOfPlanes = static_cast<uint>(data->coordinateX.size());
-        data->numberOfPointsPerPlane = indices.size();
+        data->numberOfPointsPerPlane = static_cast<uint>(indices.size());
         cudaMemoryManager->cudaAllocPlanarAverageProbeIndices(this, level);
         std::copy(indices.begin(), indices.end(), data->indicesOfFirstPlaneH);
         cudaMemoryManager->cudaCopyPlanarAverageProbeIndicesHtoD(this, level);
@@ -257,10 +257,10 @@ void PlanarAverageProbe::sample(int level, uint t)
 
     const uint t_level = para->getTimeStep(level, t, true);
     const uint levelFactor = exp2(level);
-    const bool doTimeAverages = t_level >= (tStartTemporalAveraging * levelFactor);
+    const bool doTimeAverages = computeTimeAverages && t_level >= (tStartTemporalAveraging * levelFactor);
 
     if ((t_level - tStartAveraging * levelFactor) % tBetweenAverages * levelFactor == 0) {
-        calculateQuantities(&levelData[level], t_level, level, doTimeAverages);
+        calculateQuantities(level, doTimeAverages);
     }
 
     if (t_level % tBetweenWriting * exp(level) == 0) {
@@ -464,9 +464,9 @@ std::vector<real> computeNewTimeAverages(std::vector<real>& oldAverages, std::ve
     return newAverages;
 }
 
-void PlanarAverageProbe::calculateQuantities(PlanarAverageProbeLevelData* data, uint t_level, int level, bool doTimeAverages)
+void PlanarAverageProbe::calculateQuantities(int level, bool doTimeAverages)
 {
-
+    auto data = &levelData[level];
     auto parameter = para->getParD(level);
     calculateMacroscopicQuantitiesCompressible(
         parameter->velocityX, parameter->velocityY, parameter->velocityZ, parameter->rho, parameter->pressure,
@@ -475,9 +475,6 @@ void PlanarAverageProbe::calculateQuantities(PlanarAverageProbeLevelData* data, 
     cudaDeviceSynchronize();
 
     const uint* neighborInNormalDirection = getNeighborIndicesInPlaneNormal(level);
-
-    const bool doTmpAveraging = t_level >= (tStartTemporalAveraging * exp2(level));
-    const bool useTurbulentViscosity = para->getUseTurbulentViscosity();
 
     const real invNPointsPerPlane = c1o1 / static_cast<real>(data->numberOfPointsPerPlane);
     const real invNumberOfTimesteps = c1o1 / static_cast<real>(data->numberOfTimestepsInTimeAverage + 1);
