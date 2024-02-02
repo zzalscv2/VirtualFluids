@@ -61,7 +61,7 @@ void UpdateGrid27::updateGrid(int level, unsigned int t)
     }
 
     //////////////////////////////////////////////////////////////////////////
-    
+
     interactWithProbes(level, t);
 
     //////////////////////////////////////////////////////////////////////////
@@ -85,15 +85,13 @@ void UpdateGrid27::updateGrid(int level, unsigned int t)
     this->preCollisionBC(level, t);
 
     //////////////////////////////////////////////////////////////////////////
-    if( level != para->getFine() )
-    {   
+    if (level != para->getFine()) {
         refinement(this, para.get(), level);
     }
 
     //////////////////////////////////////////////////////////////////////////
-    
-    interactWithActuators(level, t);
 
+    interactWithActuators(level, t);
 }
 
 void UpdateGrid27::collisionAllNodes(int level, unsigned int t)
@@ -250,10 +248,6 @@ void UpdateGrid27::postCollisionBC(int level, uint t)
     this->bcKernelManager->runGeoBCKernelPost(level);
 
     //////////////////////////////////////////////////////////////////////////
-    // O U T F L O W
-    this->bcKernelManager->runOutflowBCKernelPre(level);
-
-    //////////////////////////////////////////////////////////////////////////
     // P R E C U R S O R
     this->bcKernelManager->runPrecursorBCKernelPost(level, t, cudaMemoryManager.get());
 
@@ -305,10 +299,6 @@ void UpdateGrid27::preCollisionBC(int level, unsigned int t)
     // P R E S S U R E
     this->bcKernelManager->runPressureBCKernelPre(level);
 
-    //////////////////////////////////////////////////////////////////////////
-    // O U T F L O W
-    this->bcKernelManager->runOutflowBCKernelPre(level);
-
     //////////////////////////////////////////////////////////////////////////////////
     ////only for a round off error test
     //para->cudaCopyTestREtoHost(0,para->getParH(0)->pressureBC.numberOfBCnodes);
@@ -354,7 +344,7 @@ void UpdateGrid27::exchangeData(int level)
 
 UpdateGrid27::UpdateGrid27(SPtr<Parameter> para, vf::parallel::Communicator &comm, SPtr<CudaMemoryManager> cudaMemoryManager,
                            std::vector<SPtr<Kernel>>& kernels,
-                           std::vector<SPtr<AdvectionDiffusionKernel>>& adkernels, BoundaryConditionFactory* bcFactory,
+                           std::vector<SPtr<AdvectionDiffusionKernel>>& adkernels, const BoundaryConditionFactory* bcFactory,
                            SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory* scalingFactory)
     : para(para), comm(comm), cudaMemoryManager(cudaMemoryManager), kernels(kernels), tmFactory(tmFactory)
 {

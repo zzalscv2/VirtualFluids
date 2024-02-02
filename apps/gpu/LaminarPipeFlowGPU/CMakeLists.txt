@@ -1,4 +1,4 @@
-# #######################################################################################
+#=======================================================================================
 # ____          ____    __    ______     __________   __      __       __        __
 # \    \       |    |  |  |  |   _   \  |___    ___| |  |    |  |     /  \      |  |
 #  \    \      |    |  |  |  |  |_)   |     |  |     |  |    |  |    /    \     |  |
@@ -23,20 +23,13 @@
 #  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 #  for more details.
 #
+#  You should have received a copy of the GNU General Public License along
+#  with VirtualFluids (see COPYING.txt). If not, see <http://www.gnu.org/licenses/>.
+#
 #  SPDX-License-Identifier: GPL-3.0-or-later
 #  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 #
-#################################################################################
-# VirtualFluids MACHINE FILE
-# Responsible: Anna Wellmann
-# OS:          Windows 11
-#################################################################################
+#=======================================================================================
+PROJECT(LaminarPipeFLowGPU)
 
-set(CMAKE_CUDA_ARCHITECTURES 86)     # Nvidia GeForce RTX 3060
-
-# add invidual apps here
-set(GPU_APP "apps/gpu/")
-list(APPEND USER_APPS 
-    "${GPU_APP}DrivenCavityMultiGPU"
-    "${GPU_APP}SphereMultiGPU"
-    )
+vf_add_executable(PRIVATE_LINK gpu_core)

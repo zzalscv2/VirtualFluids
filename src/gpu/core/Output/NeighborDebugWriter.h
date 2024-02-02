@@ -1,3 +1,4 @@
+
 //=======================================================================================
 // ____          ____    __    ______     __________   __      __       __        __
 // \    \       |    |  |  |  |   _   \  |___    ___| |  |    |  |     /  \      |  |
@@ -26,21 +27,39 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_BoundaryConditions BoundaryConditions
+//! \addtogroup gpu_Output Output
 //! \ingroup gpu_core core
 //! \{
-//! \author Martin Schoenherr, Anna Wellmann
-//======================================================================================
-#ifndef Outflow_H
-#define Outflow_H
+//! \author Anna Wellmann
+//=======================================================================================
+#ifndef NEIGHBORDEBUGWRITER_H
+#define NEIGHBORDEBUGWRITER_H
 
-#include "Calculation/Calculation.h"
+#include <string>
 
+class Parameter;
 struct LBMSimulationParameter;
+class WbWriter;
+struct QforDirectionalBoundaryCondition;
+struct QforBoundaryConditions;
 
-void OutflowNonReflecting(LBMSimulationParameter* parameterDevice, QforDirectionalBoundaryCondition* boundaryCondition);
+namespace NeighborDebugWriter
+{
 
-void OutflowNonReflectingPressureCorrection(LBMSimulationParameter* parameterDevice, QforDirectionalBoundaryCondition* boundaryCondition);
+//! \brief Write the links to the neighbors as lines for all 27 directions.
+void writeNeighborLinkLines(Parameter* para);
+
+//! \brief Write the links to the neighbors as lines for the specified direction.
+void writeNeighborLinkLinesForDirection(LBMSimulationParameter* parH, int direction, const std::string& filePath,
+                                        WbWriter* writer);
+
+void writeBoundaryConditionNeighbors(QforDirectionalBoundaryCondition* boundaryCondition, LBMSimulationParameter* parH,
+                                     std::string& filePathBase);
+
+void writeBoundaryConditionNeighbors(QforBoundaryConditions* boundaryCondition, LBMSimulationParameter* parH,
+                                     std::string& filePathBase);
+
+} // namespace NeighborDebugWriter
 
 #endif
 
