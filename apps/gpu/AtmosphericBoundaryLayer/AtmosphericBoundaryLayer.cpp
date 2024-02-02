@@ -74,7 +74,7 @@
 #include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/Samplers/PrecursorWriter.h"
-#include "gpu/core/Samplers/Probes/PlanarAverageProbe.h"
+#include "gpu/core/Samplers/PlanarAverageProbe.h"
 #include "gpu/core/Samplers/Probes/PlaneProbe.h"
 #include "gpu/core/Samplers/WallModelProbe.h"
 #include "gpu/core/TurbulenceModels/TurbulenceModelFactory.h"
@@ -355,7 +355,7 @@ void run(const vf::basics::ConfigurationFile& config)
     if (!usePrecursorInflow && (isFirstSubDomain || !isMultiGPU)) {
         const auto planarAverageProbe = std::make_shared<PlanarAverageProbe>(
             para, cudaMemoryManager, para->getOutputPath(), "planarAverageProbe", timeStepStartAveraging,
-            timeStepStartTemporalAveraging, timeStepAveraging, timeStepStartOutProbe, timeStepOutProbe, 'z');
+            timeStepStartTemporalAveraging, timeStepAveraging, timeStepStartOutProbe, timeStepOutProbe, PlanarAverageProbe::PlaneNormal::z, true);
         planarAverageProbe->addAllAvailableStatistics();
         planarAverageProbe->setFileNameToNOut();
         para->addSampler(planarAverageProbe);
