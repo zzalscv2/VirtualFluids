@@ -13,6 +13,7 @@ f = m * a; // force = mass * acceleration
 
 // BETTER:
 force = mass * acceleration;
+```
 
 In general, the use of comments should be minimized by making the code self-documenting through appropriate name choices and an explicit logical structure.
 

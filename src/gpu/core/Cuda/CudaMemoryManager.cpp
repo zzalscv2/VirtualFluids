@@ -406,6 +406,51 @@ void CudaMemoryManager::cudaFreePress(int lev)
     checkCudaErrors( cudaFreeHost(parameter->getParH(lev)->pressureBC.kN));
     checkCudaErrors( cudaFreeHost(parameter->getParH(lev)->pressureBC.RhoBC));
 }
+
+void CudaMemoryManager::cudaAllocDirectionalBoundaryCondition(QforDirectionalBoundaryCondition& boundaryConditionHost,
+                                                              QforDirectionalBoundaryCondition& boundaryConditionDevice)
+{
+    unsigned int mem_size_Q_k = sizeof(int) * boundaryConditionHost.numberOfBCnodes;
+    unsigned int mem_size_Q_q = sizeof(real) * boundaryConditionHost.numberOfBCnodes;
+
+    // Host
+    checkCudaErrors(cudaMallocHost((void**)&(boundaryConditionHost.q27[0]), parameter->getD3Qxx() * mem_size_Q_q));
+    checkCudaErrors(cudaMallocHost((void**)&(boundaryConditionHost.k),                              mem_size_Q_k));
+    checkCudaErrors(cudaMallocHost((void**)&(boundaryConditionHost.kN),                             mem_size_Q_k));
+    checkCudaErrors(cudaMallocHost((void**)&(boundaryConditionHost.RhoBC),                          mem_size_Q_q));
+
+    // Device
+    checkCudaErrors(cudaMalloc((void**)&(boundaryConditionDevice.q27[0]), parameter->getD3Qxx() * mem_size_Q_q));
+    checkCudaErrors(cudaMalloc((void**)&(boundaryConditionDevice.k),                              mem_size_Q_k));
+    checkCudaErrors(cudaMalloc((void**)&(boundaryConditionDevice.kN),                             mem_size_Q_k));
+    checkCudaErrors(cudaMalloc((void**)&(boundaryConditionDevice.RhoBC),                          mem_size_Q_q));
+
+    //////////////////////////////////////////////////////////////////////////
+    double tmp = 2. * (double)mem_size_Q_k + (double)mem_size_Q_q + (double)parameter->getD3Qxx() * (double)mem_size_Q_q;
+    setMemsizeGPU(tmp, false);
+}
+
+void CudaMemoryManager::cudaCopyDirectionalBoundaryCondition(QforDirectionalBoundaryCondition& boundaryConditionHost,
+                                                             QforDirectionalBoundaryCondition& boundaryConditionDevice)
+{
+    unsigned int mem_size_Q_k = sizeof(int)*boundaryConditionHost.numberOfBCnodes;
+    unsigned int mem_size_Q_q = sizeof(real)*boundaryConditionHost.numberOfBCnodes;
+
+    checkCudaErrors( cudaMemcpy(boundaryConditionDevice.q27[0], boundaryConditionHost.q27[0], parameter->getD3Qxx()* mem_size_Q_q, cudaMemcpyHostToDevice));
+    checkCudaErrors( cudaMemcpy(boundaryConditionDevice.k,      boundaryConditionHost.k,                             mem_size_Q_k, cudaMemcpyHostToDevice));
+    checkCudaErrors( cudaMemcpy(boundaryConditionDevice.kN,     boundaryConditionHost.kN,                            mem_size_Q_k, cudaMemcpyHostToDevice));
+    checkCudaErrors( cudaMemcpy(boundaryConditionDevice.RhoBC,  boundaryConditionHost.RhoBC,                         mem_size_Q_q, cudaMemcpyHostToDevice));
+}
+
+void CudaMemoryManager::cudaFreeDirectionalBoundaryCondition(QforDirectionalBoundaryCondition& boundaryConditionHost,
+                                                             QforDirectionalBoundaryCondition& boundaryConditionDevice)
+{
+    checkCudaErrors( cudaFreeHost(boundaryConditionHost.q27[0]));
+    checkCudaErrors( cudaFreeHost(boundaryConditionHost.k));
+    checkCudaErrors( cudaFreeHost(boundaryConditionHost.kN));
+    checkCudaErrors( cudaFreeHost(boundaryConditionHost.RhoBC));
+}
+
 //Forcing
 void CudaMemoryManager::cudaAllocForcing()
 {

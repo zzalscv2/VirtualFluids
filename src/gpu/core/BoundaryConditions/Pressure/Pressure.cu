@@ -40,7 +40,7 @@
 #include "BoundaryConditions/Pressure/Pressure_Device.cuh"
 #include "Parameter/Parameter.h"
 
-void PressureNonEquilibriumIncompressible(LBMSimulationParameter* parameterDevice, QforBoundaryConditions* boundaryCondition)
+void PressureNonEquilibriumIncompressible(LBMSimulationParameter* parameterDevice, QforDirectionalBoundaryCondition* boundaryCondition)
 {
     dim3 grid = vf::cuda::getCudaGrid( parameterDevice->numberofthreads,  boundaryCondition->numberOfBCnodes);
     dim3 threads(parameterDevice->numberofthreads, 1, 1 );
@@ -57,11 +57,11 @@ void PressureNonEquilibriumIncompressible(LBMSimulationParameter* parameterDevic
         parameterDevice->neighborZ,
         parameterDevice->numberOfNodes,
         parameterDevice->isEvenTimestep,
-        vf::lbm::dir::dP00); // #TODO: https://git.rz.tu-bs.de/irmb/VirtualFluids_dev/-/issues/176
+        static_cast<int>(boundaryCondition->direction));
     getLastCudaError("PressureNonEquilibriumIncompressible_Device execution failed");
 }
 //////////////////////////////////////////////////////////////////////////
-void PressureNonEquilibriumCompressible(LBMSimulationParameter* parameterDevice, QforBoundaryConditions* boundaryCondition)
+void PressureNonEquilibriumCompressible(LBMSimulationParameter* parameterDevice, QforDirectionalBoundaryCondition* boundaryCondition)
 {
     dim3 grid = vf::cuda::getCudaGrid( parameterDevice->numberofthreads,  boundaryCondition->numberOfBCnodes);
     dim3 threads(parameterDevice->numberofthreads, 1, 1 );
@@ -78,7 +78,7 @@ void PressureNonEquilibriumCompressible(LBMSimulationParameter* parameterDevice,
         parameterDevice->neighborZ,
         parameterDevice->numberOfNodes,
         parameterDevice->isEvenTimestep,
-        vf::lbm::dir::dP00);  // #TODO: https://git.rz.tu-bs.de/irmb/VirtualFluids_dev/-/issues/176
+        static_cast<int>(boundaryCondition->direction));
     getLastCudaError("PressureNonEquilibriumCompressible_Device execution failed");
 }
 

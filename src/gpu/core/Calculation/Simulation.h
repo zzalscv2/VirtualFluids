@@ -72,13 +72,13 @@ class TurbulenceModelFactory;
 class Simulation
 {
 public:
-    Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder, BoundaryConditionFactory* bcFactory,
+    Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder, const BoundaryConditionFactory* bcFactory,
                GridScalingFactory* scalingFactory = nullptr);
-    Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder, BoundaryConditionFactory* bcFactory,
+    Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder, const BoundaryConditionFactory* bcFactory,
                SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory* scalingFactory = nullptr);
 
     Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> memoryManager,
-               vf::parallel::Communicator &communicator, GridProvider &gridProvider, BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory = nullptr);
+               vf::parallel::Communicator &communicator, GridProvider &gridProvider, const BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory = nullptr);
 
     ~Simulation();
     void run();
@@ -95,8 +95,8 @@ public:
     void initTimers();
 
 private:
-    void init(GridProvider &gridProvider, BoundaryConditionFactory *bcFactory, SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory *scalingFactory);
-    void allocNeighborsOffsetsScalesAndBoundaries(GridProvider& gridProvider);
+    void init(GridProvider &gridProvider, const BoundaryConditionFactory *bcFactory, SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory *scalingFactory);
+    void allocNeighborsOffsetsScalesAndBoundaries(GridProvider& gridProvider, const BoundaryConditionFactory* bcFactory);
     void readAndWriteFiles(uint timestep);
 
     std::unique_ptr<KernelFactory> kernelFactory;
