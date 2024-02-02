@@ -167,9 +167,11 @@ std::vector<PostProcessingVariable> PlanarAverageProbe::getPostProcessingVariabl
             postProcessingVariables.emplace_back("vz_spatialMean", velocityRatio);
             if (includeTimeAverages)
                 postProcessingVariables.emplace_back("vz_spatioTemporalMean", velocityRatio);
-            postProcessingVariables.emplace_back("EddyViscosity_spatialMean", viscosityRatio);
-            if (includeTimeAverages)
-                postProcessingVariables.emplace_back("EddyViscosity_spatioTemporalMean", viscosityRatio);
+            if(para->getUseTurbulentViscosity()){
+                postProcessingVariables.emplace_back("EddyViscosity_spatialMean", viscosityRatio);
+                if (includeTimeAverages)
+                    postProcessingVariables.emplace_back("EddyViscosity_spatioTemporalMean", viscosityRatio);
+            }
             break;
         case Statistic::Covariances:
             postProcessingVariables.emplace_back("vxvx_spatialMean", stressRatio);
@@ -337,7 +339,6 @@ real updateTimeAverage(real newValue, real oldAverage, real invNumberOfTimesteps
 real computeMean(iterPair x, real invNPointsPerPlane)
 {
     const real sum = thrust::reduce(std::get<0>(x), std::get<1>(x));
-    printf("sum %f \n", sum);
     return sum * invNPointsPerPlane;
 }
 
@@ -345,7 +346,6 @@ Means computeMeans(iterPair vx, iterPair vy, iterPair vz, real invNPointsPerPlan
 {
     Means means;
     means.vx = computeMean(vx, invNPointsPerPlane);
-    printf("vx: %f\n", means.vx);
     means.vy = computeMean(vy, invNPointsPerPlane);
     means.vz = computeMean(vz, invNPointsPerPlane);
     return means;
@@ -409,7 +409,7 @@ Flatnesses computeFlatnesses(iterPair vx, iterPair vy, iterPair vz, Means means,
 }
 
 std::vector<real> computePlaneStatistics(std::vector<PlanarAverageProbe::Statistic>& statistics, iterPair vx, iterPair vy,
-                                         iterPair vz, real invNPointsPerPlane)
+                                         iterPair vz, iterPair turbulentViscosity, real invNPointsPerPlane, bool useTurbulentViscosity)
 {
     std::vector<real> averages;
 
@@ -420,6 +420,8 @@ std::vector<real> computePlaneStatistics(std::vector<PlanarAverageProbe::Statist
     averages.push_back(means.vx);
     averages.push_back(means.vy);
     averages.push_back(means.vz);
+    if(useTurbulentViscosity)
+        averages.push_back(computeMean(turbulentViscosity, invNPointsPerPlane));
 
     if (!isStatisticIn(PlanarAverageProbe::Statistic::Covariances, statistics))
         return averages;
@@ -486,11 +488,11 @@ void PlanarAverageProbe::calculateQuantities(PlanarAverageProbeLevelData* data, 
         getPermutationIterators(parameter->velocityY, data->indicesOfFirstPlaneD, data->numberOfPointsPerPlane);
     const auto velocityZ =
         getPermutationIterators(parameter->velocityZ, data->indicesOfFirstPlaneD, data->numberOfPointsPerPlane);
-    // const auto nut = getPermutationIterators(para->getParD(level)->turbViscosity, data->indicesOfFirstPlaneD,
-    //                                          data->numberOfPointsPerPlane);
+    const auto turbulentViscosity = getPermutationIterators(para->getParD(level)->turbViscosity, data->indicesOfFirstPlaneD,
+                                             data->numberOfPointsPerPlane);
 
     for (uint plane = 0; plane < data->numberOfPlanes; plane++) {
-        data->instantaneous[plane] = computePlaneStatistics(statistics, velocityX, velocityY, velocityZ, invNPointsPerPlane);
+        data->instantaneous[plane] = computePlaneStatistics(statistics, velocityX, velocityY, velocityZ, turbulentViscosity, invNPointsPerPlane, para->getUseTurbulentViscosity());
 
         if (doTimeAverages)
             data->timeAverages[plane] =
@@ -534,7 +536,7 @@ void PlanarAverageProbe::writeParallelFile(uint t)
 
 void PlanarAverageProbe::writeGridFile(int level, uint t)
 {
-    const std::string fname = outputPath + makeGridFileName(probeName, level, para->getMyProcessID(), t, 0);
+    const std::string fname = outputPath + makeGridFileName(probeName, level, para->getMyProcessID(), t, 1);
     std::vector<UbTupleFloat3> nodes;
     std::vector<std::string> nodedatanames = this->getVarNames(this->computeTimeAverages);
 
