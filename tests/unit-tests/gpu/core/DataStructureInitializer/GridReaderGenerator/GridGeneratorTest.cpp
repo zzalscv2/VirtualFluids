@@ -59,7 +59,7 @@ private:
 public:
     uint numberOfSendIndices = 0;
 
-    explicit LevelGridBuilderStub(SPtr<Grid> grid) : LevelGridBuilder(), grid(grid){};
+    explicit LevelGridBuilderStub(SPtr<Grid> grid) : grid(std::move(grid)){};
 
     uint getCommunicationProcess(int direction) override
     {

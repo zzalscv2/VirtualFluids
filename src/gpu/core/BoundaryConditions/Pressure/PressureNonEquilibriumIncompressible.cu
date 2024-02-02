@@ -224,8 +224,14 @@ __global__ void PressureNonEquilibriumIncompressible_Device(
       f1_TSE  = (D.f[dMPM])[k1bnw ];
 
       //////////////////////////////////////////////////////////////////////////
-      real drho1    =  f1_ZERO+f1_E+f1_W+f1_N+f1_S+f1_T+f1_B+f1_NE+f1_SW+f1_SE+f1_NW+f1_TE+f1_BW+f1_BE+f1_TW+f1_TN+f1_BS+f1_BN+f1_TS+
-                          f1_TNE+f1_TSW+f1_TSE+f1_TNW+f1_BNE+f1_BSW+f1_BSE+f1_BNW;
+      real drho1 =((((f1_TNE + f1_BSW) + (f1_BNW + f1_TSE)) +
+                    ((f1_TNW + f1_BSE) + (f1_TSW + f1_BNE))) +
+                   (((f1_TS + f1_BN) + (f1_BS + f1_TN)) +
+                    ((f1_TW + f1_BE) + (f1_TE + f1_BW)) +
+                    ((f1_NW + f1_SE) + (f1_SW + f1_NE))) +
+                  (f1_ZERO)) +
+                  ((f1_W + f1_E) + (f1_N + f1_S) + (f1_T + f1_B));
+
 
       real vx1      =  ((f1_TSE - f1_BNW) - (f1_TNW - f1_BSE)) + ((f1_TNE - f1_BSW) - (f1_TSW - f1_BNE)) +
                     ((f1_BE - f1_TW)   + (f1_TE - f1_BW))   + ((f1_SE - f1_NW)   + (f1_NE - f1_SW)) +

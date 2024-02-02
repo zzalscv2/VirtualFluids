@@ -31,19 +31,15 @@
 //! \{
 //! \author Anna Wellmann
 //=======================================================================================
-#ifndef NEIGHBORDEBUG_HPP
-#define NEIGHBORDEBUG_HPP
-
-#include <logger/Logger.h>
 
 #include <basics/utilities/UbSystem.h>
 #include <basics/writer/WbWriterVtkXmlBinary.h>
-
-#include <GridGenerator/grid/NodeValues.h>
-
 #include <lbm/constants/D3Q27.h>
+#include <logger/Logger.h>
 
 #include "Calculation/Calculation.h"
+#include "GridGenerator/grid/NodeValues.h"
+#include "Output/NeighborDebugWriter.h"
 #include "Parameter/Parameter.h"
 #include "StringUtilities/StringUtil.h"
 #include "Utilities/FindNeighbors.h"
@@ -51,7 +47,7 @@
 namespace NeighborDebugWriter
 {
 
-inline void writeNeighborLinkLines(LBMSimulationParameter *parH, int direction, const std::string &name, WbWriter *writer)
+void writeNeighborLinkLinesForDirection(LBMSimulationParameter* parH, int direction, const std::string& filePath, WbWriter* writer)
 {
     VF_LOG_INFO("Write node links in direction {}.", direction);
 
@@ -59,40 +55,80 @@ inline void writeNeighborLinkLines(LBMSimulationParameter *parH, int direction, 
     std::vector<UbTupleInt2> cells;
 
     for (size_t position = 0; position < parH->numberOfNodes; position++) {
-        if (parH->typeOfGridNode[position] != GEO_FLUID) continue;
+        if (parH->typeOfGridNode[position] != GEO_FLUID)
+            continue;
 
         const double x1 = parH->coordinateX[position];
         const double x2 = parH->coordinateY[position];
         const double x3 = parH->coordinateZ[position];
 
-        const uint positionNeighbor = getNeighborIndex(parH, (uint)position, direction);
+        const uint neighborIndex = getNeighborIndex(parH, (uint)position, direction);
 
-        const double x1Neighbor = parH->coordinateX[positionNeighbor];
-        const double x2Neighbor = parH->coordinateY[positionNeighbor];
-        const double x3Neighbor = parH->coordinateZ[positionNeighbor];
+        const double x1Neighbor = parH->coordinateX[neighborIndex];
+        const double x2Neighbor = parH->coordinateY[neighborIndex];
+        const double x3Neighbor = parH->coordinateZ[neighborIndex];
 
         nodes.emplace_back(float(x1), float(x2), float(x3));
         nodes.emplace_back(float(x1Neighbor), float(x2Neighbor), float(x3Neighbor));
 
         cells.emplace_back((int)nodes.size() - 2, (int)nodes.size() - 1);
     }
-    writer->writeLines(name, nodes, cells);
+    writer->writeLines(filePath, nodes, cells);
 }
 
-inline void writeNeighborLinkLinesDebug(Parameter *para)
+void writeNeighborLinkLines(Parameter* para)
 {
     for (int level = 0; level <= para->getMaxLevel(); level++) {
         for (size_t direction = vf::lbm::dir::STARTDIR; direction <= vf::lbm::dir::ENDDIR; direction++) {
             const std::string fileName = para->getFName() + "_" + StringUtil::toString<int>(level) + "_Link_" +
                                          std::to_string(direction) + "_Debug.vtk";
-            writeNeighborLinkLines(para->getParH(level).get(), (int)direction, fileName,
+            writeNeighborLinkLinesForDirection(para->getParH(level).get(), (int)direction, fileName,
                                    WbWriterVtkXmlBinary::getInstance());
         }
     }
 }
 
-} // namespace NeighborDebugWriter
+void writeBoundaryConditionNeighbors(int* nodesIndices, int* neighborNodeIndices, uint numberOfBCnodes,
+                                     LBMSimulationParameter* parH, std::string& filePathBase)
+{
+    auto filePath = filePathBase + "_BoundaryConditionNeighborLinks_Debug.vtk";
 
-#endif
+    std::vector<UbTupleFloat3> nodes;
+    std::vector<UbTupleInt2> cells;
+
+    for (uint i = 0; i < numberOfBCnodes; i++) {
+        const double x1 = parH->coordinateX[nodesIndices[i]];
+        const double x2 = parH->coordinateY[nodesIndices[i]];
+        const double x3 = parH->coordinateZ[nodesIndices[i]];
+
+        const double x1Neighbor = parH->coordinateX[neighborNodeIndices[i]];
+        const double x2Neighbor = parH->coordinateY[neighborNodeIndices[i]];
+        const double x3Neighbor = parH->coordinateZ[neighborNodeIndices[i]];
+
+        nodes.emplace_back(float(x1), float(x2), float(x3));
+        nodes.emplace_back(float(x1Neighbor), float(x2Neighbor), float(x3Neighbor));
+
+        cells.emplace_back((int)nodes.size() - 2, (int)nodes.size() - 1);
+    }
+    WbWriterVtkXmlBinary::getInstance()->writeLines(filePath, nodes, cells);
+}
+
+void writeBoundaryConditionNeighbors(QforDirectionalBoundaryCondition* boundaryCondition, LBMSimulationParameter* parH,
+                                     std::string& filePathBase)
+{
+    VF_LOG_INFO("Write links to neighbor nodes for boundary condition in direction {}.", boundaryCondition->direction);
+    writeBoundaryConditionNeighbors(boundaryCondition->k, boundaryCondition->kN, boundaryCondition->numberOfBCnodes, parH,
+                                    filePathBase);
+}
+
+void writeBoundaryConditionNeighbors(QforBoundaryConditions* boundaryCondition, LBMSimulationParameter* parH,
+                                     std::string& filePathBase)
+{
+    VF_LOG_INFO("Write links to neighbor nodes for boundary condition.");
+    writeBoundaryConditionNeighbors(boundaryCondition->k, boundaryCondition->kN, boundaryCondition->numberOfBCnodes, parH,
+                                    filePathBase);
+}
+
+} // namespace NeighborDebugWriter
 
 //! \}

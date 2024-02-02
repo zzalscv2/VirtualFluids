@@ -68,7 +68,8 @@
 #include "Output/InterfaceDebugWriter.hpp"
 #include "Output/MeasurePointWriter.hpp"
 #include "Output/MetaDataCreator.h"
-#include "Output/NeighborDebugWriter.hpp"
+#include "Output/NeighborDebugWriter.h"
+#include "Output/QDebugVtkWriter.hpp"
 #include "Parameter/EdgeNodeFinder.h"
 #include "Parameter/Parameter.h"
 #include "PostProcessor/Calc2ndMoments.h"
@@ -95,13 +96,13 @@ std::string getFileName(const std::string& fname, int step, int myID)
 }
 
 Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder,
-                       BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory)
+                       const BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory)
     : Simulation(para, builder, bcFactory, std::make_shared<TurbulenceModelFactory>(para), scalingFactory)
 {
 }
 
 Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder,
-                       BoundaryConditionFactory* bcFactory, SPtr<TurbulenceModelFactory> tmFactory,
+                       const BoundaryConditionFactory* bcFactory, SPtr<TurbulenceModelFactory> tmFactory,
                        GridScalingFactory* scalingFactory)
     : para(para), cudaMemoryManager(std::make_shared<CudaMemoryManager>(para)),
 #ifdef VF_MPI
@@ -118,7 +119,7 @@ Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuil
 }
 
 Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemoryManager> memoryManager,
-                       vf::parallel::Communicator &communicator, GridProvider &gridProvider, BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory)
+                       vf::parallel::Communicator &communicator, GridProvider &gridProvider, const BoundaryConditionFactory* bcFactory, GridScalingFactory* scalingFactory)
     : para(para), cudaMemoryManager(memoryManager), communicator(communicator), kernelFactory(std::make_unique<KernelFactoryImp>()),
       preProcessorFactory(std::make_shared<PreProcessorFactoryImp>()), dataWriter(std::make_unique<FileWriter>())
 {
@@ -126,7 +127,7 @@ Simulation::Simulation(std::shared_ptr<Parameter> para, std::shared_ptr<CudaMemo
     init(gridProvider, bcFactory, tmFactory, scalingFactory);
 }
 
-void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFactory, SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory *scalingFactory)
+void Simulation::init(GridProvider &gridProvider, const BoundaryConditionFactory *bcFactory, SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory *scalingFactory)
 {
     gridProvider.initalGridInformations();
 
@@ -152,7 +153,7 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
 
     cudaMemoryManager->setMemsizeGPU(0, true);
     //////////////////////////////////////////////////////////////////////////
-    allocNeighborsOffsetsScalesAndBoundaries(gridProvider);
+    allocNeighborsOffsetsScalesAndBoundaries(gridProvider, bcFactory);
 
     //! Get tagged fluid nodes with corresponding value for CollisionTemplate from interactors
     for (SPtr<PreCollisionInteractor>& actuator : para->getActuators()) {
@@ -307,7 +308,8 @@ void Simulation::init(GridProvider &gridProvider, BoundaryConditionFactory *bcFa
     //////////////////////////////////////////////////////////////////////////
     // Init UpdateGrid
     //////////////////////////////////////////////////////////////////////////
-    this->updateGrid27 = std::make_unique<UpdateGrid27>(para, communicator, cudaMemoryManager, kernels, adKernels, bcFactory, tmFactory, scalingFactory);
+    this->updateGrid27 = std::make_unique<UpdateGrid27>(para, communicator, cudaMemoryManager, kernels, adKernels, bcFactory,
+                                                        tmFactory, scalingFactory);
 
     //////////////////////////////////////////////////////////////////////////
     // Write Initialized Files
@@ -361,11 +363,11 @@ void Simulation::initTimers()
     averageTimer.start();
 }
 
-void Simulation::allocNeighborsOffsetsScalesAndBoundaries(GridProvider &gridProvider)
+void Simulation::allocNeighborsOffsetsScalesAndBoundaries(GridProvider &gridProvider, const BoundaryConditionFactory* bcFactory)
 {
     gridProvider.allocArrays_CoordNeighborGeo();
     gridProvider.allocArrays_OffsetScale();
-    gridProvider.allocArrays_BoundaryValues(); // allocArrays_BoundaryValues() has to be called after allocArrays_OffsetScale() because of initCommunicationArraysForCommAfterFinetoCoarse()
+    gridProvider.allocArrays_BoundaryValues(bcFactory); // allocArrays_BoundaryValues() has to be called after allocArrays_OffsetScale() because of initCommunicationArraysForCommAfterFinetoCoarse()
     gridProvider.allocArrays_BoundaryQs();
 }
 
