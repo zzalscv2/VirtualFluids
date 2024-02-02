@@ -32,6 +32,7 @@ r"""
 """
 from __future__ import annotations
 from typing import ClassVar, List
+from enum import Enum
 
 import gpu
 
@@ -68,9 +69,14 @@ class Probe(gpu.Sampler):
     def add_statistic(self, variable: Statistic) -> None: ...
     def set_file_name_to_n_out(self) -> None: ...
 
+class PlaneNormal(Enum):
+    X = ...
+    Y = ...
+    Z = ...
+
 
 class PlanarAverageProbe(Probe):
-    def __init__(self, para: gpu.Parameter, cuda_memory_manager: gpu.CudaMemoryManager, probe_name: str, output_path: str, t_start_avg: int, t_start_tmp_avg: int, t_avg: int, t_start_out: int, t_out: int, plane_normal: str) -> None: ...
+    def __init__(self, para: gpu.Parameter, cuda_memory_manager: gpu.CudaMemoryManager, probe_name: str, output_path: str, t_start_avg: int, t_start_tmp_avg: int, t_avg: int, t_start_out: int, t_out: int, plane_normal: PlaneNormal, average_every_timestep: bool) -> None: ...
 
 
 class PlaneProbe(Probe):

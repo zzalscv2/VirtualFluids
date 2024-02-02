@@ -34,7 +34,7 @@
 #include <gpu/core/Samplers/Probes/PointProbe.h>
 #include <gpu/core/Samplers/Probes/PlaneProbe.h>
 #include <gpu/core/Samplers/WallModelProbe.h>
-#include <gpu/core/Samplers/Probes/PlanarAverageProbe.h>
+#include <gpu/core/Samplers/PlanarAverageProbe.h>
 #include <gpu/core/Samplers/Sampler.h>
 
 namespace probes
@@ -104,7 +104,12 @@ namespace probes
                         py::arg("t_out"))
         .def("set_probe_plane", &PlaneProbe::setProbePlane, py::arg("pos_x"), py::arg("pos_y"), py::arg("pos_z"), py::arg("delta_x"), py::arg("delta_y"), py::arg("delta_z"));
 
-        py::class_<PlanarAverageProbe, Probe, std::shared_ptr<PlanarAverageProbe>>(probeModule, "PlanarAverageProbe")
+        py::enum_<PlanarAverageProbe::PlaneNormal>(probeModule, "PlaneNormal")
+        .value("x", PlanarAverageProbe::PlaneNormal::x)
+        .value("y", PlanarAverageProbe::PlaneNormal::y)
+        .value("z", PlanarAverageProbe::PlaneNormal::z);
+
+        py::class_<PlanarAverageProbe, Sampler, std::shared_ptr<PlanarAverageProbe>>(probeModule, "PlanarAverageProbe")
         .def(py::init<  SPtr<Parameter>,
                         SPtr<CudaMemoryManager>,
                         const std::string,
@@ -114,7 +119,8 @@ namespace probes
                         uint,
                         uint,
                         uint,
-                        char>(),
+                        PlanarAverageProbe::PlaneNormal,
+                        bool>(),
                         py::arg("para"),
                         py::arg("cuda_memory_manager"),
                         py::arg("probe_name"),
@@ -124,7 +130,8 @@ namespace probes
                         py::arg("t_avg"),
                         py::arg("t_start_out"),
                         py::arg("t_out"),
-                        py::arg("plane_normal"));
+                        py::arg("plane_normal"),
+                        py::arg("compute_time_averages"));
 
 
         py::class_<WallModelProbe, Sampler, std::shared_ptr<WallModelProbe>>(probeModule, "WallModelProbe")
