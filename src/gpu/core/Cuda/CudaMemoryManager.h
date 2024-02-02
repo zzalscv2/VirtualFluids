@@ -43,6 +43,7 @@
 class Parameter;
 class ActuatorFarm;
 class Probe;
+class PlanarAverageProbe;
 class VelocitySetter;
 class PrecursorWriter;
 
@@ -330,6 +331,10 @@ public:
     void cudaCopyProbeQuantitiesAndOffsetsHtoD(Probe* probe, int level);
     void cudaCopyProbeQuantitiesAndOffsetsDtoH(Probe* probe, int level);
     void cudaFreeProbeQuantitiesAndOffsets(Probe* probe, int level);
+
+    void cudaAllocPlanarAverageProbeIndices(PlanarAverageProbe* planarAverageProbe, int level);
+    void cudaCopyPlanarAverageProbeIndicesHtoD(PlanarAverageProbe* planarAverageProbe, int level);
+    void cudaFreePlanarAverageProbeIndices(PlanarAverageProbe* planarAverageProbe, int level);
 
     // Precursor Writer
     void cudaAllocPrecursorWriter(PrecursorWriter* writer, int level);

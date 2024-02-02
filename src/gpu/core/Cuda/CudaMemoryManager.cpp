@@ -46,6 +46,7 @@
 #include "CudaStreamManager.h"
 #include "PreCollisionInteractor/Actuator/ActuatorFarm.h"
 #include "Samplers/Probes/Probe.h"
+#include "Samplers/PlanarAverageProbe.h"
 #include "Samplers/PrecursorWriter.h"
 
 void CudaMemoryManager::cudaCopyPrint(int lev)
@@ -2403,6 +2404,28 @@ void CudaMemoryManager::cudaFreeProbeQuantitiesAndOffsets(Probe* probe, int leve
     checkCudaErrors( cudaFree    (probe->getProbeStruct(level)->quantitiesD) );
     checkCudaErrors( cudaFree    (probe->getProbeStruct(level)->arrayOffsetsD) );
 }
+
+void CudaMemoryManager::cudaAllocPlanarAverageProbeIndices(PlanarAverageProbe* planarAverageProbe, int level)
+{
+    const size_t size = sizeof(unsigned long long)*planarAverageProbe->getLevelData(level)->numberOfPointsPerPlane;
+    checkCudaErrors( cudaMallocHost((void**) &planarAverageProbe->getLevelData(level)->indicesOfFirstPlaneH, size) );
+    checkCudaErrors( cudaMalloc    ((void**) &planarAverageProbe->getLevelData(level)->indicesOfFirstPlaneD, size) );
+    setMemsizeGPU(size, false);
+}
+
+void CudaMemoryManager::cudaCopyPlanarAverageProbeIndicesHtoD(PlanarAverageProbe* planarAverageProbe, int level)
+{
+    auto data = planarAverageProbe->getLevelData(level);
+    checkCudaErrors( cudaMemcpy(data->indicesOfFirstPlaneD, data->indicesOfFirstPlaneH, sizeof(unsigned long long)*data->numberOfPointsPerPlane, cudaMemcpyHostToDevice) );
+}
+
+void CudaMemoryManager::cudaFreePlanarAverageProbeIndices(PlanarAverageProbe* planarAverageProbe, int level)
+{
+    checkCudaErrors( cudaFreeHost(planarAverageProbe->getLevelData(level)->indicesOfFirstPlaneH) );
+    checkCudaErrors( cudaFree(planarAverageProbe->getLevelData(level)->indicesOfFirstPlaneD) );
+}
+
+
 
 void CudaMemoryManager::cudaAllocPrecursorWriter(PrecursorWriter* writer, int level)
 {
