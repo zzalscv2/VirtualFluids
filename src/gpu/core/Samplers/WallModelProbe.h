@@ -82,6 +82,8 @@ public:
             throw std::runtime_error("WallModelProbe: tStartTemporalAveraging must be larger than tStartAveraging!");
         if (averageEveryTimestep)
             VF_LOG_INFO("WallModelProbe: averageEveryTimestep is true, ignoring tBetweenAverages");
+        if(tBetweenAverages == 0 && !averageEveryTimestep)
+            throw std::runtime_error("WallModelProbe: tBetweenAverages must be larger than 0!");
     }
 
     ~WallModelProbe() = default;
