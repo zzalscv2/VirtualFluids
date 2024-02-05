@@ -55,7 +55,8 @@
 #include "Calculation/Calculation.h"
 #include "Sampler.h"
 
-class GridProvider;
+class Parameter;
+class CudaMemoryManager;
 
 enum class OutputVariable {
    //! - Velocities
@@ -104,6 +105,8 @@ public:
         OutputVariable outputVariable,
         uint maxTimestepsPerFile=uint(1e4)
     ): 
+    para(para),
+    cudaMemoryManager(cudaMemoryManager),
     xPos(xPos),
     yMin(yMin),
     yMax(yMax),
@@ -113,7 +116,7 @@ public:
     tSave(tSave),
     outputVariable(outputVariable),
     maxtimestepsPerFile(maxTimestepsPerFile),
-    Sampler(para, cudaMemoryManager, outputPath, probeName)
+    Sampler(outputPath, probeName)
     {
         nodedatanames = determineNodeDataNames();
         writeFuture = std::async([](){});
@@ -153,6 +156,8 @@ private:
     }
 
 private:
+    SPtr<Parameter> para;
+    SPtr<CudaMemoryManager> cudaMemoryManager;
     std::vector<SPtr<PrecursorStruct>> precursorStructs;
     std::string fileName, outputPath;
     std::vector<std::string> nodedatanames;

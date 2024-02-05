@@ -50,6 +50,8 @@
 
 #include <basics/DataTypes.h>
 
+class Parameter;
+class CudaMemoryManager;
 struct PlanarAverageProbeLevelData
 {
     unsigned long long *indicesOfFirstPlaneH, *indicesOfFirstPlaneD;
@@ -75,10 +77,10 @@ public:
                        const std::string probeName, uint tStartAveraging, uint tStartTemporalAveraging,
                        uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting,
                        PlanarAverageProbe::PlaneNormal planeNormal, bool computeTimeAverages)
-        : tStartAveraging(tStartAveraging), tStartTemporalAveraging(tStartTemporalAveraging),
+        : para(para), cudaMemoryManager(cudaMemoryManager), tStartAveraging(tStartAveraging), tStartTemporalAveraging(tStartTemporalAveraging),
           tBetweenAverages(tBetweenAverages), tStartWritingOutput(tStartWritingOutput), tBetweenWriting(tBetweenWriting),
           computeTimeAverages(computeTimeAverages), planeNormal(planeNormal),
-          Sampler(para, cudaMemoryManager, outputPath, probeName)
+          Sampler(outputPath, probeName)
     {
         if (tStartTemporalAveraging < tStartAveraging && computeTimeAverages)
             throw std::runtime_error("PlaneAverageProbe: tStartTemporalAveraging must be larger than tStartAveraging!");
@@ -122,6 +124,8 @@ private:
     void writeParallelFile(uint tWrite);
 
 private:
+    SPtr<Parameter> para;
+    SPtr<CudaMemoryManager> cudaMemoryManager;
     uint tStartAveraging, tStartTemporalAveraging, tBetweenAverages, tStartWritingOutput, tBetweenWriting;
     bool computeTimeAverages, nameFilesWithFileCount = false;
     PlaneNormal planeNormal;

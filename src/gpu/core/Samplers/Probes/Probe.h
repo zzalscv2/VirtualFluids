@@ -50,6 +50,8 @@
 #include <basics/PointerDefinitions.h>
 
 struct LBMSimulationParameter;
+class Parameter;
+class CudaMemoryManager;
 
 //=======================================================================================
 //! \note How to add new Statistics
@@ -76,23 +78,18 @@ struct LBMSimulationParameter;
 //!
 
 enum class Statistic {
-    // Variables currently available in Point and Plane probe (all temporal pointwise statistics)
     Instantaneous,
     Means,
     Variances,
-
-    // Variables available in PlanarAverage probe and (partially) in WallModelProbe
-    // Spatial statistics are typically computed across fixed spatial subdomains, e.g. a plane of constant height
-    // Spatio-temporal statistics additionally average the spatial stats in time
-    SpatialMeans,
-    SpatioTemporalMeans,
-    SpatialCovariances,
-    SpatioTemporalCovariances,
-    SpatialSkewness,
-    SpatioTemporalSkewness,
-    SpatialFlatness,
-    SpatioTemporalFlatness,
     LAST,
+};
+
+struct PostProcessingVariable
+{
+    std::string name;
+    std::function<real(int)> conversionFactor;
+    PostProcessingVariable(std::string name, std::function<real(int)> conversionFactor)
+        : name(name), conversionFactor(conversionFactor) {};
 };
 
 struct ProbeStruct
@@ -170,10 +167,10 @@ public:
           const std::string probeName, const uint tStartAveraging, const uint tStartTemporalAverage,
           const uint tBetweenAverages, const uint tStartWritingOutput, const uint tBetweenWriting,
           const bool hasDeviceQuantityArray, const bool outputTimeSeries)
-        : tStartAveraging(tStartAveraging), tStartTemporalAverage(tStartTemporalAverage), tBetweenAverages(tBetweenAverages),
+        : para(para), cudaMemoryManager(cudaMemoryManager), tStartAveraging(tStartAveraging), tStartTemporalAverage(tStartTemporalAverage), tBetweenAverages(tBetweenAverages),
           tStartWritingOutput(tStartWritingOutput), tBetweenWriting(tBetweenWriting),
           hasDeviceQuantityArray(hasDeviceQuantityArray), outputTimeSeries(outputTimeSeries),
-          Sampler(para, cudaMemoryManager, outputPath, probeName)
+          Sampler(outputPath, probeName)
     {
         if (tStartWritingOutput < tStartAveraging)
             throw std::runtime_error("Probe: tStartWritingOutput must be larger than tStartAveraging!");
@@ -241,6 +238,8 @@ private:
     }
 
 protected:
+    SPtr<Parameter> para;
+    SPtr<CudaMemoryManager> cudaMemoryManager;
     std::vector<SPtr<ProbeStruct>> probeParams;
     bool quantities[int(Statistic::LAST)] = {};
     //! flag initiating memCopy in Point and PlaneProbe. Other probes are only based on

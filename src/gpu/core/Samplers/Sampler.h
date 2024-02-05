@@ -42,9 +42,7 @@
 #include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
 
-class Parameter;
 class GridProvider;
-class CudaMemoryManager;
 
 inline std::string fixOutputPath(const std::string path)
 {
@@ -53,20 +51,14 @@ inline std::string fixOutputPath(const std::string path)
     return path + "/";
 }
 
-struct PostProcessingVariable
-{
-    std::string name;
-    std::function<real(int)> conversionFactor;
-    PostProcessingVariable(std::string name, std::function<real(int)> conversionFactor)
-        : name(name), conversionFactor(conversionFactor) {};
-};
+
 
 class Sampler
 {
 public:
-    Sampler(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, const std::string outputPath,
+    Sampler(const std::string outputPath,
             const std::string probeName)
-        : para(para), cudaMemoryManager(cudaMemoryManager), outputPath(fixOutputPath(outputPath)), probeName(probeName)
+        : outputPath(fixOutputPath(outputPath)), probeName(probeName)
     {
     }
     virtual ~Sampler() = default;
@@ -76,8 +68,6 @@ public:
     virtual void getTaggedFluidNodes(GridProvider* gridProvider) = 0;
 
 protected:
-    SPtr<Parameter> para;
-    SPtr<CudaMemoryManager> cudaMemoryManager;
     std::string outputPath;
     std::string probeName;
 };

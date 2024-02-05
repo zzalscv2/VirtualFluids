@@ -52,6 +52,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////////
 
+class Parameter;
+class CudaMemoryManager;
+
 struct WallModelProbeLevelData
 {
     uint numberOfAveragedValues, numberOfFluidNodes;
@@ -72,11 +75,11 @@ public:
                    const std::string probeName, uint tStartAveraging, uint tStartTemporalAveraging, uint tBetweenAverages,
                    uint tStartWritingOutput, uint tBetweenWriting, bool averageEveryTimestep, bool computeTemporalAverages,
                    bool outputStress, bool evaluatePressureGradient)
-        : tStartAveraging(tStartAveraging), tStartTemporalAveraging(tStartTemporalAveraging),
+        : para(para), cudaMemoryManager(cudaMemoryManager), tStartAveraging(tStartAveraging), tStartTemporalAveraging(tStartTemporalAveraging),
           tStartWritingOutput(tStartWritingOutput), tBetweenAverages(tBetweenAverages), tBetweenWriting(tBetweenWriting),
           averageEveryTimestep(averageEveryTimestep), computeTemporalAverages(computeTemporalAverages),
           outputStress(outputStress), evaluatePressureGradient(evaluatePressureGradient),
-          Sampler(para, cudaMemoryManager, outputPath, probeName)
+          Sampler(outputPath, probeName)
     {
         if (tStartTemporalAveraging < tStartAveraging)
             throw std::runtime_error("WallModelProbe: tStartTemporalAveraging must be larger than tStartAveraging!");
@@ -100,6 +103,8 @@ private:
     uint countFluidNodes(int level);
 
 private:
+    SPtr<Parameter> para;
+    SPtr<CudaMemoryManager> cudaMemoryManager;
     uint tStartAveraging, tStartTemporalAveraging, tBetweenAverages, tStartWritingOutput, tBetweenWriting;
     bool outputStress = false;             //!> if true, output wall force is converted to a stress
     bool evaluatePressureGradient = false; //!> if true, mean global pressure gradient will also be evaluated
