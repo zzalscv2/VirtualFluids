@@ -82,7 +82,7 @@ public:
     {
         if (tStartTemporalAveraging < tStartAveraging && computeTimeAverages)
             throw std::runtime_error("PlaneAverageProbe: tStartTemporalAveraging must be larger than tStartAveraging!");
-        if(tBetweenWriting == 0)
+        if (tBetweenWriting == 0)
             throw std::runtime_error("PlaneAverageProbe: tBetweenWriting must be larger than 0!");
     }
     ~PlanarAverageProbe();
@@ -108,17 +108,18 @@ public:
     }
 
 private:
-    std::vector<PostProcessingVariable> getPostProcessingVariables(PlanarAverageProbe::Statistic variable,
-                                                                   bool includeTimeAverage);
+    std::vector<std::string> getVariableNames(PlanarAverageProbe::Statistic statistic, bool namesForTimeAverages);
+    void copyDataToNodedata(std::vector<std::vector<real>>& data, std::vector<std::vector<double>>& nodeData);
     void calculateQuantities(int level, bool doTimeAverages);
     std::vector<unsigned long long> findIndicesInPlane(int level);
     void findCoordinatesForPlanes(int level, std::vector<real>& coordinateX, std::vector<real>& coordinateY,
                                   std::vector<real>& coordinateZ);
+    std::vector<real> computePlaneStatistics(int level);
 
-    std::vector<std::string> getVarNames(bool includeTimeAverage);
+    std::vector<std::string> getAllVariableNames();
     const uint* getNeighborIndicesInPlaneNormal(int level);
-    void writeGridFile(int level, uint t);
-    void writeParallelFile(uint t);
+    void writeGridFile(int level, uint tWrite);
+    void writeParallelFile(uint tWrite);
 
 private:
     uint tStartAveraging, tStartTemporalAveraging, tBetweenAverages, tStartWritingOutput, tBetweenWriting;
