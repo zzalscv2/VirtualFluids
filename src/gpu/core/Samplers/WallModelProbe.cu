@@ -176,7 +176,7 @@ void computeAndSaveIndexBasedMean(T* devicePointer, uint* typeOfGridNode, uint n
 template <typename T>
 void computeTemporalAverage(std::vector<T>& quantityArray, T oldMean, T currentValue, real invNumberOfAverages)
 {
-    quantityArray.push_back(oldMean + (currentValue - oldMean) * invNumberOfAverages);
+    quantityArray.push_back(computeNewTimeAverage(oldMean, currentValue, invNumberOfAverages));
 }
 
 uint WallModelProbe::countFluidNodes(int level)
