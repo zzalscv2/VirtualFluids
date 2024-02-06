@@ -232,10 +232,10 @@ build-regression-tests-ci:
   stage: test
 
   before_script:
-    - pip install -r utilities/ci-regression-tests/requirements.txt
+    - pip install -r utilities/ci-tests/requirements.txt
 
   script:
-    - python3 utilities/ci-regression-tests/generate-ci.py
+    - python3 utilities/ci-tests/generate-regression-test-ci.py
 
   artifacts:
     expire_in: 1 week
@@ -263,13 +263,49 @@ trigger-regression-tests:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
 
 ###############################################################################
+build-performance-tests-ci:
+  image: python:3.10
+  stage: test
+
+  before_script:
+    - pip install -r utilities/ci-tests/requirements.txt
+
+  script:
+    - python3 utilities/ci-tests/generate-performance-test-ci.py
+
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - generated/
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "weeklySchedule"
+      when: always
+    - when: manual
+      allow_failure: true
+
+  needs: []
+
+trigger-performance-tests:
+  stage: test
+  needs:
+    - build-performance-tests-ci
+  trigger:
+    include:
+      - artifact: generated/performance-tests-ci.yml
+        job: build-performance-tests-ci
+    strategy: depend
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+
+###############################################################################
 regression_test_4gpu:
   image: python:latest
   stage: test
   needs: []
 
   rules:
-    - if: $REMOTE_USER && $REMOTE_HOST && $PRIVATE_KEY && $CI_PIPELINE_SOURCE == "schedule"
+    - if: $PHOENIX_REMOTE_USER && $PHOENIX_REMOTE_HOST && $PHOENIX_PRIVATE_KEY && $CI_PIPELINE_SOURCE == "weeklySchedule"
       when: always
     - when: manual
       allow_failure: true
@@ -305,7 +341,7 @@ regression_test_8gpu:
   needs: []
 
   rules:
-    - if: $REMOTE_USER && $REMOTE_HOST && $PRIVATE_KEY && $CI_PIPELINE_SOURCE == "schedule"
+    - if: $PHOENIX_REMOTE_USER && $PHOENIX_REMOTE_HOST && $PHOENIX_PRIVATE_KEY && $CI_PIPELINE_SOURCE == "weeklySchedule"
       when: always
     - when: manual
       allow_failure: true
