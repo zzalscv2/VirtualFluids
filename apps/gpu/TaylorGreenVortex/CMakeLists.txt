@@ -30,6 +30,6 @@
 #  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 #
 #=======================================================================================
-PROJECT(TGV_3D)
+PROJECT(TaylorGreenVortex)
 
 vf_add_executable(PRIVATE_LINK gpu_core)
