@@ -109,62 +109,33 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       ////////////////////////////////////////////////////////////////////////////////
       //! subtract the equilibrium (eq) to obtain the non-equilibrium (neq) (for neighboring node)
       //!
-
-      real f_Neighbor_d000 = f_Neighbor[d000];
-      real f_Neighbor_dP00 = f_Neighbor[dP00];
-      real f_Neighbor_dM00 = f_Neighbor[dM00];
-      real f_Neighbor_d0P0 = f_Neighbor[d0P0];
-      real f_Neighbor_d0M0 = f_Neighbor[d0M0];
-      real f_Neighbor_d00P = f_Neighbor[d00P];
-      real f_Neighbor_d00M = f_Neighbor[d00M];
-      real f_Neighbor_dPP0 = f_Neighbor[dPP0];
-      real f_Neighbor_dMM0 = f_Neighbor[dMM0];
-      real f_Neighbor_dPM0 = f_Neighbor[dPM0];
-      real f_Neighbor_dMP0 = f_Neighbor[dMP0];
-      real f_Neighbor_dP0P = f_Neighbor[dP0P];
-      real f_Neighbor_dM0M = f_Neighbor[dM0M];
-      real f_Neighbor_dP0M = f_Neighbor[dP0M];
-      real f_Neighbor_dM0P = f_Neighbor[dM0P];
-      real f_Neighbor_d0PP = f_Neighbor[d0PP];
-      real f_Neighbor_d0MM = f_Neighbor[d0MM];
-      real f_Neighbor_d0PM = f_Neighbor[d0PM];
-      real f_Neighbor_d0MP = f_Neighbor[d0MP];
-      real f_Neighbor_dPPP = f_Neighbor[dPPP];
-      real f_Neighbor_dMMM = f_Neighbor[dMMM];
-      real f_Neighbor_dPPM = f_Neighbor[dPPM];
-      real f_Neighbor_dMMP = f_Neighbor[dMMP];
-      real f_Neighbor_dPMP = f_Neighbor[dPMP];
-      real f_Neighbor_dMPM = f_Neighbor[dMPM];
-      real f_Neighbor_dPMM = f_Neighbor[dPMM];
-      real f_Neighbor_dMPP = f_Neighbor[dMPP];
-
-      f_Neighbor_d000 -= c8o27*  (drho1-(drho1+c1o1)*cusq);
-      f_Neighbor_dP00 -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*( vx1        )+c9o2*( vx1        )*( vx1        )-cusq));
-      f_Neighbor_dM00 -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(-vx1        )+c9o2*(-vx1        )*(-vx1        )-cusq));
-      f_Neighbor_d0P0 -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(    vx2     )+c9o2*(     vx2    )*(     vx2    )-cusq));
-      f_Neighbor_d0M0 -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(   -vx2     )+c9o2*(    -vx2    )*(    -vx2    )-cusq));
-      f_Neighbor_d00P -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(         vx3)+c9o2*(         vx3)*(         vx3)-cusq));
-      f_Neighbor_d00M -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(        -vx3)+c9o2*(        -vx3)*(        -vx3)-cusq));
-      f_Neighbor_dPP0 -= c1o54*  (drho1+(drho1+c1o1)*(c3o1*( vx1+vx2    )+c9o2*( vx1+vx2    )*( vx1+vx2    )-cusq));
-      f_Neighbor_dMM0 -= c1o54*  (drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2    )+c9o2*(-vx1-vx2    )*(-vx1-vx2    )-cusq));
-      f_Neighbor_dPM0 -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1-vx2    )+c9o2*( vx1-vx2    )*( vx1-vx2    )-cusq));
-      f_Neighbor_dMP0 -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2    )+c9o2*(-vx1+vx2    )*(-vx1+vx2    )-cusq));
-      f_Neighbor_dP0P -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    +vx3)+c9o2*( vx1    +vx3)*( vx1    +vx3)-cusq));
-      f_Neighbor_dM0M -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    -vx3)+c9o2*(-vx1    -vx3)*(-vx1    -vx3)-cusq));
-      f_Neighbor_dP0M -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    -vx3)+c9o2*( vx1    -vx3)*( vx1    -vx3)-cusq));
-      f_Neighbor_dM0P -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    +vx3)+c9o2*(-vx1    +vx3)*(-vx1    +vx3)-cusq));
-      f_Neighbor_d0PP -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2+vx3)+c9o2*(     vx2+vx3)*(     vx2+vx3)-cusq));
-      f_Neighbor_d0MM -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2-vx3)+c9o2*(    -vx2-vx3)*(    -vx2-vx3)-cusq));
-      f_Neighbor_d0PM -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2-vx3)+c9o2*(     vx2-vx3)*(     vx2-vx3)-cusq));
-      f_Neighbor_d0MP -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2+vx3)+c9o2*(    -vx2+vx3)*(    -vx2+vx3)-cusq));
-      f_Neighbor_dPPP -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2+vx3)+c9o2*( vx1+vx2+vx3)*( vx1+vx2+vx3)-cusq));
-      f_Neighbor_dMMM -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2-vx3)+c9o2*(-vx1-vx2-vx3)*(-vx1-vx2-vx3)-cusq));
-      f_Neighbor_dPPM -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2-vx3)+c9o2*( vx1+vx2-vx3)*( vx1+vx2-vx3)-cusq));
-      f_Neighbor_dMMP -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2+vx3)+c9o2*(-vx1-vx2+vx3)*(-vx1-vx2+vx3)-cusq));
-      f_Neighbor_dPMP -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2+vx3)+c9o2*( vx1-vx2+vx3)*( vx1-vx2+vx3)-cusq));
-      f_Neighbor_dMPM -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2-vx3)+c9o2*(-vx1+vx2-vx3)*(-vx1+vx2-vx3)-cusq));
-      f_Neighbor_dPMM -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2-vx3)+c9o2*( vx1-vx2-vx3)*( vx1-vx2-vx3)-cusq));
-      f_Neighbor_dMPP -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2+vx3)+c9o2*(-vx1+vx2+vx3)*(-vx1+vx2+vx3)-cusq));
+      f_Neighbor[d000] -= c8o27*  (drho1-(drho1+c1o1)*cusq);
+      f_Neighbor[dP00] -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*( vx1        )+c9o2*( vx1        )*( vx1        )-cusq));
+      f_Neighbor[dM00] -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(-vx1        )+c9o2*(-vx1        )*(-vx1        )-cusq));
+      f_Neighbor[d0P0] -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(    vx2     )+c9o2*(     vx2    )*(     vx2    )-cusq));
+      f_Neighbor[d0M0] -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(   -vx2     )+c9o2*(    -vx2    )*(    -vx2    )-cusq));
+      f_Neighbor[d00P] -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(         vx3)+c9o2*(         vx3)*(         vx3)-cusq));
+      f_Neighbor[d00M] -= c2o27*  (drho1+(drho1+c1o1)*(c3o1*(        -vx3)+c9o2*(        -vx3)*(        -vx3)-cusq));
+      f_Neighbor[dPP0] -= c1o54*  (drho1+(drho1+c1o1)*(c3o1*( vx1+vx2    )+c9o2*( vx1+vx2    )*( vx1+vx2    )-cusq));
+      f_Neighbor[dMM0] -= c1o54*  (drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2    )+c9o2*(-vx1-vx2    )*(-vx1-vx2    )-cusq));
+      f_Neighbor[dPM0] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1-vx2    )+c9o2*( vx1-vx2    )*( vx1-vx2    )-cusq));
+      f_Neighbor[dMP0] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2    )+c9o2*(-vx1+vx2    )*(-vx1+vx2    )-cusq));
+      f_Neighbor[dP0P] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    +vx3)+c9o2*( vx1    +vx3)*( vx1    +vx3)-cusq));
+      f_Neighbor[dM0M] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    -vx3)+c9o2*(-vx1    -vx3)*(-vx1    -vx3)-cusq));
+      f_Neighbor[dP0M] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    -vx3)+c9o2*( vx1    -vx3)*( vx1    -vx3)-cusq));
+      f_Neighbor[dM0P] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    +vx3)+c9o2*(-vx1    +vx3)*(-vx1    +vx3)-cusq));
+      f_Neighbor[d0PP] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2+vx3)+c9o2*(     vx2+vx3)*(     vx2+vx3)-cusq));
+      f_Neighbor[d0MM] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2-vx3)+c9o2*(    -vx2-vx3)*(    -vx2-vx3)-cusq));
+      f_Neighbor[d0PM] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2-vx3)+c9o2*(     vx2-vx3)*(     vx2-vx3)-cusq));
+      f_Neighbor[d0MP] -=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2+vx3)+c9o2*(    -vx2+vx3)*(    -vx2+vx3)-cusq));
+      f_Neighbor[dPPP] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2+vx3)+c9o2*( vx1+vx2+vx3)*( vx1+vx2+vx3)-cusq));
+      f_Neighbor[dMMM] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2-vx3)+c9o2*(-vx1-vx2-vx3)*(-vx1-vx2-vx3)-cusq));
+      f_Neighbor[dPPM] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2-vx3)+c9o2*( vx1+vx2-vx3)*( vx1+vx2-vx3)-cusq));
+      f_Neighbor[dMMP] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2+vx3)+c9o2*(-vx1-vx2+vx3)*(-vx1-vx2+vx3)-cusq));
+      f_Neighbor[dPMP] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2+vx3)+c9o2*( vx1-vx2+vx3)*( vx1-vx2+vx3)-cusq));
+      f_Neighbor[dMPM] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2-vx3)+c9o2*(-vx1+vx2-vx3)*(-vx1+vx2-vx3)-cusq));
+      f_Neighbor[dPMM] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2-vx3)+c9o2*( vx1-vx2-vx3)*( vx1-vx2-vx3)-cusq));
+      f_Neighbor[dMPP] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2+vx3)+c9o2*(-vx1+vx2+vx3)*(-vx1+vx2+vx3)-cusq));
 
       ////////////////////////////////////////////////////////////////////////////////
       //! redefine drho1 with rhoBClocal
@@ -174,33 +145,33 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       ////////////////////////////////////////////////////////////////////////////////
       //! add the equilibrium (eq), which is calculated with rhoBClocal (for neighboring node)
       //!
-      f_Neighbor_d000 += c8o27*  (drho1-(drho1+c1o1)*cusq);
-      f_Neighbor_dP00 += c2o27*  (drho1+(drho1+c1o1)*(c3o1*( vx1        )+c9o2*( vx1        )*( vx1        )-cusq));
-      f_Neighbor_dM00 += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(-vx1        )+c9o2*(-vx1        )*(-vx1        )-cusq));
-      f_Neighbor_d0P0 += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(    vx2     )+c9o2*(     vx2    )*(     vx2    )-cusq));
-      f_Neighbor_d0M0 += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(   -vx2     )+c9o2*(    -vx2    )*(    -vx2    )-cusq));
-      f_Neighbor_d00P += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(         vx3)+c9o2*(         vx3)*(         vx3)-cusq));
-      f_Neighbor_d00M += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(        -vx3)+c9o2*(        -vx3)*(        -vx3)-cusq));
-      f_Neighbor_dPP0 += c1o54*  (drho1+(drho1+c1o1)*(c3o1*( vx1+vx2    )+c9o2*( vx1+vx2    )*( vx1+vx2    )-cusq));
-      f_Neighbor_dMM0 += c1o54*  (drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2    )+c9o2*(-vx1-vx2    )*(-vx1-vx2    )-cusq));
-      f_Neighbor_dPM0 +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1-vx2    )+c9o2*( vx1-vx2    )*( vx1-vx2    )-cusq));
-      f_Neighbor_dMP0 +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2    )+c9o2*(-vx1+vx2    )*(-vx1+vx2    )-cusq));
-      f_Neighbor_dP0P +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    +vx3)+c9o2*( vx1    +vx3)*( vx1    +vx3)-cusq));
-      f_Neighbor_dM0M +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    -vx3)+c9o2*(-vx1    -vx3)*(-vx1    -vx3)-cusq));
-      f_Neighbor_dP0M +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    -vx3)+c9o2*( vx1    -vx3)*( vx1    -vx3)-cusq));
-      f_Neighbor_dM0P +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    +vx3)+c9o2*(-vx1    +vx3)*(-vx1    +vx3)-cusq));
-      f_Neighbor_d0PP +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2+vx3)+c9o2*(     vx2+vx3)*(     vx2+vx3)-cusq));
-      f_Neighbor_d0MM +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2-vx3)+c9o2*(    -vx2-vx3)*(    -vx2-vx3)-cusq));
-      f_Neighbor_d0PM +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2-vx3)+c9o2*(     vx2-vx3)*(     vx2-vx3)-cusq));
-      f_Neighbor_d0MP +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2+vx3)+c9o2*(    -vx2+vx3)*(    -vx2+vx3)-cusq));
-      f_Neighbor_dPPP +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2+vx3)+c9o2*( vx1+vx2+vx3)*( vx1+vx2+vx3)-cusq));
-      f_Neighbor_dMMM +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2-vx3)+c9o2*(-vx1-vx2-vx3)*(-vx1-vx2-vx3)-cusq));
-      f_Neighbor_dPPM +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2-vx3)+c9o2*( vx1+vx2-vx3)*( vx1+vx2-vx3)-cusq));
-      f_Neighbor_dMMP +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2+vx3)+c9o2*(-vx1-vx2+vx3)*(-vx1-vx2+vx3)-cusq));
-      f_Neighbor_dPMP +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2+vx3)+c9o2*( vx1-vx2+vx3)*( vx1-vx2+vx3)-cusq));
-      f_Neighbor_dMPM +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2-vx3)+c9o2*(-vx1+vx2-vx3)*(-vx1+vx2-vx3)-cusq));
-      f_Neighbor_dPMM +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2-vx3)+c9o2*( vx1-vx2-vx3)*( vx1-vx2-vx3)-cusq));
-      f_Neighbor_dMPP +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2+vx3)+c9o2*(-vx1+vx2+vx3)*(-vx1+vx2+vx3)-cusq));
+      f_Neighbor[d000] += c8o27*  (drho1-(drho1+c1o1)*cusq);
+      f_Neighbor[dP00] += c2o27*  (drho1+(drho1+c1o1)*(c3o1*( vx1        )+c9o2*( vx1        )*( vx1        )-cusq));
+      f_Neighbor[dM00] += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(-vx1        )+c9o2*(-vx1        )*(-vx1        )-cusq));
+      f_Neighbor[d0P0] += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(    vx2     )+c9o2*(     vx2    )*(     vx2    )-cusq));
+      f_Neighbor[d0M0] += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(   -vx2     )+c9o2*(    -vx2    )*(    -vx2    )-cusq));
+      f_Neighbor[d00P] += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(         vx3)+c9o2*(         vx3)*(         vx3)-cusq));
+      f_Neighbor[d00M] += c2o27*  (drho1+(drho1+c1o1)*(c3o1*(        -vx3)+c9o2*(        -vx3)*(        -vx3)-cusq));
+      f_Neighbor[dPP0] += c1o54*  (drho1+(drho1+c1o1)*(c3o1*( vx1+vx2    )+c9o2*( vx1+vx2    )*( vx1+vx2    )-cusq));
+      f_Neighbor[dMM0] += c1o54*  (drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2    )+c9o2*(-vx1-vx2    )*(-vx1-vx2    )-cusq));
+      f_Neighbor[dPM0] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1-vx2    )+c9o2*( vx1-vx2    )*( vx1-vx2    )-cusq));
+      f_Neighbor[dMP0] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2    )+c9o2*(-vx1+vx2    )*(-vx1+vx2    )-cusq));
+      f_Neighbor[dP0P] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    +vx3)+c9o2*( vx1    +vx3)*( vx1    +vx3)-cusq));
+      f_Neighbor[dM0M] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    -vx3)+c9o2*(-vx1    -vx3)*(-vx1    -vx3)-cusq));
+      f_Neighbor[dP0M] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*( vx1    -vx3)+c9o2*( vx1    -vx3)*( vx1    -vx3)-cusq));
+      f_Neighbor[dM0P] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(-vx1    +vx3)+c9o2*(-vx1    +vx3)*(-vx1    +vx3)-cusq));
+      f_Neighbor[d0PP] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2+vx3)+c9o2*(     vx2+vx3)*(     vx2+vx3)-cusq));
+      f_Neighbor[d0MM] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2-vx3)+c9o2*(    -vx2-vx3)*(    -vx2-vx3)-cusq));
+      f_Neighbor[d0PM] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(     vx2-vx3)+c9o2*(     vx2-vx3)*(     vx2-vx3)-cusq));
+      f_Neighbor[d0MP] +=  c1o54* (drho1+(drho1+c1o1)*(c3o1*(    -vx2+vx3)+c9o2*(    -vx2+vx3)*(    -vx2+vx3)-cusq));
+      f_Neighbor[dPPP] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2+vx3)+c9o2*( vx1+vx2+vx3)*( vx1+vx2+vx3)-cusq));
+      f_Neighbor[dMMM] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2-vx3)+c9o2*(-vx1-vx2-vx3)*(-vx1-vx2-vx3)-cusq));
+      f_Neighbor[dPPM] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1+vx2-vx3)+c9o2*( vx1+vx2-vx3)*( vx1+vx2-vx3)-cusq));
+      f_Neighbor[dMMP] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1-vx2+vx3)+c9o2*(-vx1-vx2+vx3)*(-vx1-vx2+vx3)-cusq));
+      f_Neighbor[dPMP] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2+vx3)+c9o2*( vx1-vx2+vx3)*( vx1-vx2+vx3)-cusq));
+      f_Neighbor[dMPM] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2-vx3)+c9o2*(-vx1+vx2-vx3)*(-vx1+vx2-vx3)-cusq));
+      f_Neighbor[dPMM] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*( vx1-vx2-vx3)+c9o2*( vx1-vx2-vx3)*( vx1-vx2-vx3)-cusq));
+      f_Neighbor[dMPP] +=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2+vx3)+c9o2*(-vx1+vx2+vx3)*(-vx1+vx2+vx3)-cusq));
 
       //////////////////////////////////////////////////////////////////////////
 
@@ -209,34 +180,6 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       ////////////////////////////////////////////////////////////////////////////////
       //! write the new distributions to the bc nodes (only for the relevant directions)
       //!
-
-      f_Neighbor[d000] = f_Neighbor_d000;
-      f_Neighbor[dP00] = f_Neighbor_dP00;
-      f_Neighbor[dM00] = f_Neighbor_dM00;
-      f_Neighbor[d0P0] = f_Neighbor_d0P0;
-      f_Neighbor[d0M0] = f_Neighbor_d0M0;
-      f_Neighbor[d00P] = f_Neighbor_d00P;
-      f_Neighbor[d00M] = f_Neighbor_d00M;
-      f_Neighbor[dPP0] = f_Neighbor_dPP0;
-      f_Neighbor[dMM0] = f_Neighbor_dMM0;
-      f_Neighbor[dPM0] = f_Neighbor_dPM0;
-      f_Neighbor[dMP0] = f_Neighbor_dMP0;
-      f_Neighbor[dP0P] = f_Neighbor_dP0P;
-      f_Neighbor[dM0M] = f_Neighbor_dM0M;
-      f_Neighbor[dP0M] = f_Neighbor_dP0M;
-      f_Neighbor[dM0P] = f_Neighbor_dM0P;
-      f_Neighbor[d0PP] = f_Neighbor_d0PP;
-      f_Neighbor[d0MM] = f_Neighbor_d0MM;
-      f_Neighbor[d0PM] = f_Neighbor_d0PM;
-      f_Neighbor[d0MP] = f_Neighbor_d0MP;
-      f_Neighbor[dPPP] = f_Neighbor_dPPP;
-      f_Neighbor[dMMM] = f_Neighbor_dMMM;
-      f_Neighbor[dPPM] = f_Neighbor_dPPM;
-      f_Neighbor[dMMP] = f_Neighbor_dMMP;
-      f_Neighbor[dPMP] = f_Neighbor_dPMP;
-      f_Neighbor[dMPM] = f_Neighbor_dMPM;
-      f_Neighbor[dPMM] = f_Neighbor_dPMM;
-      f_Neighbor[dMPP] = f_Neighbor_dMPP;
 
       // write specific directions
       switch (direction)
