@@ -97,7 +97,7 @@ struct MetaData
         std::string mpi_library;
         std::string mpi_version;
 #endif
-#ifdef _OPENMP
+#ifdef VF_OPENMP
         std::string openmp_library;
         std::string openmp_version;
 #endif

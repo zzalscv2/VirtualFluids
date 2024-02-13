@@ -107,7 +107,7 @@ const char* mpi_version()
 }
 #endif
 
-#ifdef _OPENMP
+#ifdef VF_OPENMP
 const char* openmp_library()
 {
     return "@OpenMP_CXX_LIBRARIES@";

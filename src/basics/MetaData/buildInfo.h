@@ -53,7 +53,7 @@ const char* compiler_version();
 const char* mpi_library();
 const char* mpi_version();
 #endif
-#ifdef _OPENMP
+#ifdef VF_OPENMP
 const char* openmp_library();
 const char* openmp_version();
 #endif
