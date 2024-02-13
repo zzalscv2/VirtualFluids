@@ -15,7 +15,7 @@ APPLICATION="./build/bin/LaminarPipeFlowGPU ./apps/gpu/LaminarPipeFlowGPU/lamina
 # 4. set the path to the produced data
 RESULT_DATA_DIR=output/LaminarPipeFlow
 
-# 5. set the name of the meta data file (.yaml)
+# 5. set the name of the metadata file (.yaml)
 META_DATA_NAME=LaminarPipeFlow.yaml
 
 
