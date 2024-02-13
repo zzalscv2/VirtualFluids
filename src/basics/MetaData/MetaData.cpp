@@ -63,7 +63,7 @@ MetaData::MetaData()
     buildInfo.mpi_library = buildInfo::mpi_library();
     buildInfo.mpi_version = buildInfo::mpi_version();
 #endif
-#ifdef _OPENMP
+#ifdef VF_OPENMP
     buildInfo.openmp_library = buildInfo::openmp_library();
     buildInfo.openmp_version = buildInfo::openmp_version();
 #endif

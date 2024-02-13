@@ -78,6 +78,7 @@ endif()
 
 if(VF_ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
+    target_compile_definitions(project_options INTERFACE VF_OPENMP)
 endif()
 
 # TODO: https://git.rz.tu-bs.de/irmb/VirtualFluids_dev/-/issues/139 if(VF_ENABLE_MPI)
