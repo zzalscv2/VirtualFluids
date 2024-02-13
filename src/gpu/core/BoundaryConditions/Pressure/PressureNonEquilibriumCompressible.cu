@@ -90,6 +90,7 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       //! - Set neighbor indices (necessary for indirect addressing) for neighboring node
       //!
       vf::gpu::ListIndices neighborIndicesOfNeighbor(bcNeighborIndices[nodeIndex], neighborX, neighborY, neighborZ);
+
       ////////////////////////////////////////////////////////////////////////////////
       //! - Set local distributions for neighboring node
       //!
