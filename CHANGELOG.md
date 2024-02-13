@@ -6,7 +6,9 @@
 
 ### Added
 - [ALL] MetaData Writer class was added for writing the simulation parameters to a YAML file.
+- [ALL] Adds pipeline for performance tests with weekly schedule
 - [DOCS] Adds Coding Guidelines to the documentation. The guidelines can be found [here](https://irmb.gitlab-pages.rz.tu-bs.de/VirtualFluids/coding-guidelines.html).
+- [GPU] Adds laminar pipe flow app with regression test and performance test
 
 ### Fixes
 - [GPU] Pressure BoundaryCondition was not working correctly for all directions. This is now fixed.
