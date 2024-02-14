@@ -14,7 +14,7 @@ download_reference_data () {
 # 2. CMAKE_FLAGS - cmake flags for the build of VirtualFluids
 # 3. APPLICATION - the application to be executed
 # 4. RESULT_DATA_DIR - the path to the produced data to be compared
-# 5. META_DATA_NAME - the name of the meta data file (.yaml)
+# 5. META_DATA_NAME - the name of the metadata file (.yaml)
 run_performance_test () {
     download_reference_data $1
 

@@ -34,7 +34,7 @@
 
 include(MetaData/buildInfo.cmake)
 
-vf_add_library(PUBLIC_LINK logger yaml-cpp::yaml-cpp EXCLUDE buildInfo.in.cpp PRIVATE_LINK project_options project_warnings)
+vf_add_library(PUBLIC_LINK logger yaml-cpp::yaml-cpp OpenMP::OpenMP_CXX EXCLUDE buildInfo.in.cpp PRIVATE_LINK project_options project_warnings)
 
 
 vf_get_library_name (library_name)

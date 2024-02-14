@@ -61,7 +61,7 @@ struct convert<vf::basics::MetaData::BuildInfo>
         root["mpi_library"] = rhs.mpi_library;
         root["mpi_version"] = rhs.mpi_version;
 #endif
-#ifdef _OPENMP
+#ifdef VF_OPENMP
         root["openmp_library"] = rhs.openmp_library;
         root["openmp_version"] = rhs.openmp_version;
 #endif
