@@ -4,8 +4,9 @@
 # !/usr/bin/env bash
 set -e
 
+git config http.postBuffer 52428800
 cd /tmp
-git clone git@github.com:danmar/cppcheck.git
+git clone https://github.com/danmar/cppcheck.git
 cd cppcheck
 git checkout 2.10.3
 make MATCHCOMPILER=yes FILESDIR=/usr/share/cppcheck HAVE_RULES=yes CXXFLAGS="-O2 -DNDEBUG -Wall -Wno-sign-compare -Wno-unused-function" install
