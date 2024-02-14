@@ -47,7 +47,6 @@ __global__ void PressureNonEquilibriumCompressible_Device(
     int* bcNodeIndices,
     int* bcNeighborIndices,
     int numberOfBCnodes,
-    real omega1,
     unsigned int* neighborX,
     unsigned int* neighborY,
     unsigned int* neighborZ,
