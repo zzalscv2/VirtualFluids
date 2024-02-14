@@ -68,13 +68,6 @@ __global__ void PressureNonEquilibriumCompressible_Device(
    //!
    if(nodeIndex < numberOfBCnodes)
    {
-      //////////////////////////////////////////////////////////////////////////
-      //! - Read distributions: style of reading and writing the distributions from/to stored arrays dependent on timestep is based on the esoteric twist algorithm \ref
-      //! <a href="https://doi.org/10.3390/computation5020019"><b>[ M. Geier et al. (2017), DOI:10.3390/computation5020019 ]</b></a>
-      //!
-      Distributions27 dist;
-      getPointersToDistributions(dist, distributions, numberOfLBnodes, isEvenTimestep);
-
       ////////////////////////////////////////////////////////////////////////////////
       //! - Set neighbor indices (necessary for indirect addressing) for current node
       //!
@@ -84,6 +77,13 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       //! - Set neighbor indices (necessary for indirect addressing) for neighboring node
       //!
       vf::gpu::ListIndices neighborIndicesOfNeighbor(bcNeighborIndices[nodeIndex], neighborX, neighborY, neighborZ);
+
+      //////////////////////////////////////////////////////////////////////////
+      //! - Read distributions: style of reading and writing the distributions from/to stored arrays dependent on timestep is based on the esoteric twist algorithm \ref
+      //! <a href="https://doi.org/10.3390/computation5020019"><b>[ M. Geier et al. (2017), DOI:10.3390/computation5020019 ]</b></a>
+      //!
+      Distributions27 dist;
+      getPointersToDistributions(dist, distributions, numberOfLBnodes, isEvenTimestep);
 
       ////////////////////////////////////////////////////////////////////////////////
       //! - Set local distributions for neighboring node
