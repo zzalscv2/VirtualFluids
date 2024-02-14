@@ -77,11 +77,6 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       getPointersToDistributions(dist, distributions, numberOfLBnodes, isEvenTimestep);
 
       ////////////////////////////////////////////////////////////////////////////////
-      //! - Set local pressure
-      //!
-      real rhoBClocal = rhoBC[nodeIndex];
-
-      ////////////////////////////////////////////////////////////////////////////////
       //! - Set neighbor indices (necessary for indirect addressing) for current node
       //!
       vf::gpu::ListIndices neighborIndices(bcNodeIndices[nodeIndex], neighborX, neighborY, neighborZ);
@@ -139,9 +134,9 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       f_Neighbor[dMPP] -=  c1o216*(drho1+(drho1+c1o1)*(c3o1*(-vx1+vx2+vx3)+c9o2*(-vx1+vx2+vx3)*(-vx1+vx2+vx3)-cusq));
 
       ////////////////////////////////////////////////////////////////////////////////
-      //! redefine drho1 with rhoBClocal
+      //! redefine drho1 with local rho
       //!
-      drho1 = rhoBClocal;
+      drho1 = rhoBC[nodeIndex];
 
       ////////////////////////////////////////////////////////////////////////////////
       //! add the equilibrium (eq), which is calculated with rhoBClocal (for neighboring node)
@@ -181,8 +176,6 @@ __global__ void PressureNonEquilibriumCompressible_Device(
       ////////////////////////////////////////////////////////////////////////////////
       //! write the new distributions to the bc nodes (only for the relevant directions)
       //!
-
-      // write specific directions
       switch (direction)
       {
          case dM00:
@@ -312,7 +305,7 @@ __global__ void PressureNonEquilibriumCompressible_Device(
             (dist.f[dMMM])[neighborIndices.k_MMM] = f_Neighbor[dMMM];
             break;
          default:
-            break; 
+            break;
       }
    }
 }
