@@ -33,6 +33,7 @@ pythonbindings/pymuparser/*.cpython*
 output/
 logs/
 reference_data/
+reference_performance_tests/
 generated/
 coverage/
 
