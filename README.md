@@ -14,17 +14,17 @@ VirtualFluids (VF) is a research code developed at the Institute for Computation
 
 ### Documentation
 You can find more information about the code in the [Documentation pages](https://irmb.gitlab-pages.rz.tu-bs.de/VirtualFluids/).
-The pages contains information about the installation, usage and development of VirtualFluids.
+The pages contain information about the installation, usage and development of VirtualFluids.
 
 ### License
 VirtualFluids is licensed under the terms and conditions of the GNU General Public License (GPL) version 3 or - at your choice - any later.
 
 See the file [COPYING.txt](COPYING.txt) for copying permissions. 
-For a full list of contributors see <!-- DOXYGEN_MAKE_REF -->[AUTHORS](authors). If you notice that a contributor is missing on the list, please contact us or open a merge request adding the name.
+For a full list of contributors see <!-- DOXYGEN_MAKE_REF -->[AUTHORS](authors). If you notice that a contributor is missing on the list, please contact us or open a merge request to add the name.
 
 ### How to cite
-VirtualFluids is research software and developed at research institutions.
-You can cite specific releases via Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10283049.svg)](https://doi.org/10.5281/zenodo.10283049).
+VirtualFluids is research software developed at research institutions.
+You can cite specific releases via Zenodo: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10283048.svg)](https://doi.org/10.5281/zenodo.10283048).
 
 ### Get in touch
 You can find our main repository, where the development takes place [here](https://git.rz.tu-bs.de/irmb/VirtualFluids).
