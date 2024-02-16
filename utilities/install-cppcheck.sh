@@ -4,7 +4,7 @@
 # !/usr/bin/env bash
 set -e
 
-git config http.postBuffer 52428800
+git config https.postBuffer 157286400
 cd /tmp
 git clone https://github.com/danmar/cppcheck.git
 cd cppcheck
