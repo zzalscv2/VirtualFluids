@@ -13,6 +13,7 @@
 ### Fixes
 - [GPU] Pressure BoundaryCondition was not working correctly for all directions. This is now fixed.
 - [GPU] Density calculation in PressureNonEquilibriumCompressible was incorrect and not conditioned. This is now fixed. 
+- [GPU] Fix weekly schedule for multi-GPU testcases on high-performance compute cluster
 
 ## [0.1.1](https://git.rz.tu-bs.de/irmb/VirtualFluids/-/milestones/2) - 2024-01-12
 
