@@ -37,7 +37,8 @@ message(STATUS "Fetching spdlog: ${spdlog_version}")
 FetchContent_Declare(
     spdlog
     GIT_REPOSITORY ${spdlog_url}
-    GIT_TAG ${spdlog_version})
+    GIT_TAG ${spdlog_version}
+    GIT_SHALLOW 1)
 
 FetchContent_MakeAvailable(spdlog)
 if(NOT MSVC)
@@ -105,7 +106,8 @@ if(VF_ENABLE_PYTHON_BINDINGS)
     FetchContent_Declare(
         pybind11
         GIT_REPOSITORY ${pybind_url}
-        GIT_TAG ${pybind_version})
+        GIT_TAG ${pybind_version}
+        GIT_SHALLOW 1)
 
     FetchContent_MakeAvailable(pybind11)
 endif()
@@ -116,7 +118,8 @@ set(yaml_url "https://github.com/jbeder/yaml-cpp")
 message(STATUS "Fetching yaml-cpp: ${yaml_git_version}")
 FetchContent_Declare(yaml-cpp
   GIT_REPOSITORY ${yaml_url}
-  GIT_TAG ${yaml_git_version}) 
+  GIT_TAG ${yaml_git_version}
+  GIT_SHALLOW 1) 
 FetchContent_GetProperties(yaml-cpp)
 if(NOT yaml-cpp_POPULATED)
   FetchContent_Populate(yaml-cpp)
