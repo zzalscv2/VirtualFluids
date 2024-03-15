@@ -37,6 +37,7 @@
 #include <fstream>
 #include <map>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -56,13 +57,17 @@ void ConfigurationFile::clear()
     data.clear();
 }
 //////////////////////////////////////////////////////////////////////////
-bool ConfigurationFile::load(const std::string& file)
+void ConfigurationFile::load(const std::string& file)
 {
     std::ifstream inFile(file.c_str());
 
     if (!inFile.good()) {
-        UB_THROW(UbException(UB_EXARGS, "Cannot read configuration file " + file + "! Your current directory is " +
-                                            std::filesystem::current_path().string() + "."));
+        const std::string error = "Cannot read configuration file " + file + "! Your current directory is " +
+                            std::filesystem::current_path().string() + "\n" +
+                            "For further information on how to run VirtualFluids please visit: "
+                            "https://irmb.gitlab-pages.rz.tu-bs.de/VirtualFluids/build-and-run.html#run-the-examples";
+
+        throw std::invalid_argument(error);
     }
 
     while (inFile.good() && !inFile.eof()) {
@@ -92,8 +97,6 @@ bool ConfigurationFile::load(const std::string& file)
             }
         }
     }
-
-    return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,9 +152,9 @@ ConfigurationFile loadConfig(int argc, char* argv[], std::string configPath)
 
     if (argc > 1) {
         configPath = argv[1];
-        VF_LOG_INFO("Using command line argument for config path: {}", configPath);
+        VF_LOG_TRACE("Using command line argument for config path: {}", configPath);
     } else {
-        VF_LOG_INFO("Using default config path: {}", configPath);
+        VF_LOG_TRACE("Using default config path: {}", configPath);
     }
 
     vf::basics::ConfigurationFile config;

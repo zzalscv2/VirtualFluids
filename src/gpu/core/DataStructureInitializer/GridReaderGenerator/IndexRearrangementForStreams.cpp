@@ -30,7 +30,6 @@
 //! \ingroup gpu_core core
 //! \{
 //! \author Anna Wellmann
-//! \details See [master thesis of Anna Wellmann]
 //=======================================================================================
 #include "IndexRearrangementForStreams.h"
 
@@ -45,6 +44,7 @@
 #include <parallel/Communicator.h>
 
 #include "Parameter/Parameter.h"
+
 
 IndexRearrangementForStreams::IndexRearrangementForStreams(std::shared_ptr<Parameter> para,
                                                            std::shared_ptr<GridBuilder> builder,

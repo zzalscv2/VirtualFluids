@@ -31,14 +31,6 @@
 //! \{
 //! \author Anna Wellmann
 //=======================================================================================
-#define _USE_MATH_DEFINES
-#include <exception>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 
 //////////////////////////////////////////////////////////////////////////
@@ -67,18 +59,18 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "gpu/core/BoundaryConditions/BoundaryConditionFactory.h"
+#include "gpu/core/Calculation/Simulation.h"
+#include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/DataStructureInitializer/GridProvider.h"
 #include "gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h"
-#include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/GridScaling/GridScalingFactory.h"
 #include "gpu/core/Kernel/KernelFactory/KernelFactoryImp.h"
 #include "gpu/core/Kernel/KernelTypes.h"
-#include "gpu/core/Calculation/Simulation.h"
 #include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/PreProcessor/PreProcessorFactory/PreProcessorFactoryImp.h"
 
-void runVirtualFluids(const vf::basics::ConfigurationFile &config)
+void run(const vf::basics::ConfigurationFile& config)
 {
     vf::parallel::Communicator& communicator = *vf::parallel::MPICommunicator::getInstance();
     const auto numberOfProcesses = communicator.getNumberOfProcesses();
@@ -111,6 +103,7 @@ void runVirtualFluids(const vf::basics::ConfigurationFile &config)
     const real viscosityLB = numberOfNodesX * velocityLB / reynoldsNumber;
 
     // set parameters
+    para->worldLength = length;
 
     para->setVelocityLB(velocityLB);
     para->setViscosityLB(viscosityLB);
@@ -193,44 +186,23 @@ void runVirtualFluids(const vf::basics::ConfigurationFile &config)
 
     bcFactory.setVelocityBoundaryCondition(BoundaryConditionFactory::VelocityBC::VelocityInterpolatedCompressible);
 
-    // gridBuilder->writeGridsToVtk(outPath +  "/grid/part" + std::to_string(generatePart) + "_");
-    // SimulationFileWriter::write(gridPath + std::to_string(processID) + "/", gridBuilderFacade->getGridBuilder(), FILEFORMAT::BINARY);
-
-    // move grid from grid generator to simulation
-
-    auto cudaMemoryManager = std::make_shared<CudaMemoryManager>(para);
-    SPtr<GridProvider> gridGenerator = GridProvider::makeGridGenerator(gridBuilderFacade->getGridBuilder(), para, cudaMemoryManager, communicator);
-    Simulation sim(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, &scalingFactory);
-
-    // run simulation
-    sim.run();
+    Simulation simulation(para, gridBuilderFacade->getGridBuilder(), &bcFactory, &scalingFactory);
+    simulation.run();
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    MPI_Init(&argc, &argv);
-    std::string str, str2, configFile;
 
-    if (argv != NULL) {
-
-        try {
-            VF_LOG_TRACE("For the default config path to work, execute the app from the project root.");
-            vf::basics::ConfigurationFile config = vf::basics::loadConfig(argc, argv, "./apps/gpu/DrivenCavityMultiGPU/drivencavity_1gpu.cfg");
-            runVirtualFluids(config);
-
-            //////////////////////////////////////////////////////////////////////////
-        } catch (const spdlog::spdlog_ex &ex) {
-            std::cout << "Log initialization failed: " << ex.what() << std::endl;
-        } catch (const std::bad_alloc &e) {
-            VF_LOG_CRITICAL("Bad Alloc: {}", e.what());
-        } catch (const std::exception &e) {
-            VF_LOG_CRITICAL("exception: {}", e.what());
-        } catch (...) {
-            VF_LOG_CRITICAL("Unknown exception!");
-        }
+    try {
+        vf::logging::Logger::initializeLogger();
+        vf::basics::ConfigurationFile config =
+            vf::basics::loadConfig(argc, argv, "./apps/gpu/DrivenCavityMultiGPU/drivencavity_1gpu.cfg");
+        run(config);
+    } catch (const std::exception& e) {
+        VF_LOG_WARNING("{}", e.what());
+        return 1;
     }
 
-    MPI_Finalize();
     return 0;
 }
 

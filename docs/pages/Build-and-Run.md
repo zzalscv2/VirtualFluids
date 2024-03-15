@@ -3,7 +3,7 @@
 
 # Build and Run
 
-This guide describes how to start using and developing VirtualFluids in the terminal. Alternativly you can use Visual Studio to build an run it.
+This guide describes how to start using and developing VirtualFluids in the terminal. Alternatively you can use Visual Studio to build an run it.
 
 ## Build
 
@@ -52,15 +52,25 @@ Additionaly, the following options can be passed to cmake:
 
 VirtualFluids project comes with a list of examples. The source code of the examples are located in the folder `./apps/`. Most of the apps requires a configuration file, which lays next to source code example.
 
+### Using the terminal
 For instance a simulation on the GPU containing a flow around a sphere can be started with the following command:
+```shell
+   ./build/bin/DrivenCavity ./apps/gpu/DrivenCavity/drivencavity_1level.cfg
 ```
-   ./build/bin/SphereInChannel ./apps/gpu/SphereInChannel/sphere_1level.cfg
 
+## Using VisualStudio
+In VisualStudio right click the App you want to run and select "Set as StartUp Project". When you want to pass a configuration file, you have to right click the app again and select "Properties". Then add the path to the configuration file in the "Command Arguments" field. For instance:
 ```
+   ./apps/gpu/DrivenCavity/drivencavity_1level.cfg
+```
+Afterwards you can run the app by pressing <kbd>CTRL</kbd> + <kbd>F5</kbd>.
+
+
+### Result files
 
 The result files of this simulation are usually stored in: `./output/`
-The result files of VirtualFluids are mostly in [VTK](https://kitware.github.io/vtk-examples/site/VTKFileFormats/) format. These files can be visualised with the free software [Paraview](https://www.paraview.org/).
+The result files of VirtualFluids are mostly in [VTK](https://kitware.github.io/vtk-examples/site/VTKFileFormats/) format. These files can be visualized with the free software [Paraview](https://www.paraview.org/).
 
-The CPU part generates a set of multiple output directories in the prescribed output path. The flow fields can be found in the _mq_ directory. To view the flow fields, it is most conveniant to open the _mq_collection.pvd_ file in Paraview. The _bc_ directory contains the boundary condition information, the _geo_ directory contains information on the geometry of the flow domain and the _blocks_ directory contains the block grid.
+The CPU part generates a set of multiple output directories in the prescribed output path. The flow fields can be found in the _mq_ directory. To view the flow fields, it is most convenient to open the _mq_collection.pvd_ file in Paraview. The _bc_ directory contains the boundary condition information, the _geo_ directory contains information on the geometry of the flow domain and the _blocks_ directory contains the block grid.
 
 A GPU computation generates a the time series of output files directly in the output path. In Paraview these time series can be read directly.

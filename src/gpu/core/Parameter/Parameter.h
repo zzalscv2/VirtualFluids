@@ -134,6 +134,9 @@ struct LBMSimulationParameter {
     //! \brief stores the precursor boundary condition data
     QforPrecursorBoundaryConditions precursorBC;
     //////////////////////////////////////////////////////////////////////////
+    //! \brief stores the data for a directional pressure boundary condition
+    std::vector<QforDirectionalBoundaryCondition> pressureBCDirectional;
+    //////////////////////////////////////////////////////////////////////////
     //! \brief stores the advection diffusion noSlip boundary condition data
     AdvectionDiffusionNoSlipBoundaryConditions AdvectionDiffusionNoSlipBC;
     //////////////////////////////////////////////////////////////////////////
@@ -344,7 +347,7 @@ public:
     void initLBMSimulationParameter();
 
     //! \brief Pointer to instance of LBMSimulationParameter - stored on Host System
-    std::shared_ptr<LBMSimulationParameter> getParH(int level);
+    std::shared_ptr<LBMSimulationParameter> getParH(int level) const;
     //! \brief Pointer to instance of LBMSimulationParameter - stored on Device (GPU)
     std::shared_ptr<LBMSimulationParameter> getParD(int level);
 
@@ -518,7 +521,7 @@ public:
     real *getForcesHost();
     real *getForcesDev();
     double *getQuadricLimitersDouble();
-    real *getQuadricLimitersHost();
+    real *getQuadricLimitersHost() const;
     real *getQuadricLimitersDev();
     unsigned int getStepEnsight();
     bool getEvenOrOdd(int level);
@@ -544,7 +547,7 @@ public:
     int getMyProcessID() const;
     int getNumprocs() const;
     std::string getOutputPath();
-    std::string getOutputPrefix();
+    std::string getOutputPrefix() const;
     std::string getFName() const;
     std::string getGridPath();
     std::string getgeoVec();
@@ -599,9 +602,9 @@ public:
     std::string getcpBottom();
     std::string getcpBottom2();
     std::string getConcentration();
-    unsigned int getTimestepStart();
+    unsigned int getTimestepStart() const;
     unsigned int getTimestepInit();
-    unsigned int getTimestepEnd();
+    unsigned int getTimestepEnd() const;
     unsigned int getTimestepOut();
     unsigned int getTimestepStartOut();
     unsigned int getTimestepForMeasurePoints();
@@ -609,12 +612,12 @@ public:
     real getDiffusivity();
     real getConcentrationInit();
     real getConcentrationBC();
-    real getViscosity();
-    real getVelocity();
+    real getViscosity() const;
+    real getVelocity() const;
     //! \returns the viscosity ratio in SI/LB units
     real getViscosityRatio();
     //! \returns the velocity ratio in SI/LB units
-    real getVelocityRatio();
+    real getVelocityRatio() const;
     //! \returns the density ratio in SI/LB units
     real getDensityRatio();
     //! \returns the pressure ratio in SI/LB units
@@ -643,10 +646,10 @@ public:
     real getScaledForceRatio(int level);
     real getRealX();
     real getRealY();
-    real getRe();
+    real getRe() const;
     real getFactorPressBC();
     real getclockCycleForMeasurePoints();
-    std::vector<uint> getDevices();
+    std::vector<uint> getDevices() const;
     std::vector<int> getGridX();
     std::vector<int> getGridY();
     std::vector<int> getGridZ();
@@ -666,10 +669,10 @@ public:
     //! \returns the probes, e.g. point or plane probe
     std::vector<SPtr<PreCollisionInteractor>> getProbes();
     unsigned int getTimeDoCheckPoint();
-    unsigned int getTimeDoRestart();
+    unsigned int getTimeDoRestart() const;
     unsigned int getTimeStep(int level, unsigned int t, bool isPostCollision);
     bool getDoCheckPoint();
-    bool getDoRestart();
+    bool getDoRestart() const;
     bool overWritingRestart(unsigned int t);
     bool getIsGeo();
     bool getIsCp();
@@ -697,7 +700,7 @@ public:
     bool getIsNeighborZ();
     real getOutflowPressureCorrectionFactor();
     // Kernel
-    std::string getMainKernel();
+    std::string getMainKernel() const;
     bool getMultiKernelOn();
     std::vector<int> getMultiKernelLevel();
     std::vector<std::string> getMultiKernel();
@@ -885,7 +888,9 @@ public:
     void initProcessNeighborsAfterFtoCY(int level);
     void initProcessNeighborsAfterFtoCZ(int level);
 
-    bool useReducedCommunicationAfterFtoC{ true };
+    bool useReducedCommunicationAfterFtoC { true };
+
+    real worldLength { 0 }; // needed for meta data output
 };
 
 #endif

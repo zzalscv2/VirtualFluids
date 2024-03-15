@@ -52,12 +52,13 @@ if(VF_ENABLE_ALL_APPS)
     "apps/gpu/AtmosphericBoundaryLayer"
     "apps/gpu/ActuatorLine"
     "apps/gpu/SphereMultiGPU" 
-    "apps/gpu/TGV_3D"
+    "apps/gpu/TaylorGreenVortex"
     )
 endif()
 
 add_subdirectory(apps/gpu/DrivenCavity)
 add_subdirectory(apps/gpu/SphereInChannel)
+add_subdirectory(apps/gpu/LaminarPipeFlowGPU)
 
 #############################################################
 ###                   Numeric Tests                       ###
@@ -68,6 +69,5 @@ if(VF_GPU_ENABLE_NUMERIC_TESTS)
         add_subdirectory(${VF_THIRD_DIR}/googletest)
     endif()
 
-    add_subdirectory(apps/gpu/numerical_tests/NumericalTests)
-    add_subdirectory(apps/gpu/numerical_tests/NumericalTestPostProcessing)
+    add_subdirectory(tests/numerical-tests/gpu/)
 endif()

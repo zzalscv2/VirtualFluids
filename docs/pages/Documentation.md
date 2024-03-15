@@ -23,6 +23,7 @@ If Docker cannot be used, the dependecies for VirtualFluids can also be installe
 - <!-- DOXYGEN_MAKE_REF -->[Debugging in VS Code](Debugging-with-Vscode.md)
 - <!-- DOXYGEN_MAKE_REF -->[Unit Tests in VirtualFluids](Unit-Tests.md)
 - <!-- DOXYGEN_MAKE_REF -->[Regression Tests](Regression-Tests.md)
+- <!-- DOXYGEN_MAKE_REF -->[Performance Tests](Performance-Tests.md)
 - <!-- DOXYGEN_MAKE_REF -->[Release](Release.md)
 
 ## Guidelines
