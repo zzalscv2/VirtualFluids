@@ -35,7 +35,6 @@
 #ifndef LBMKERNEL_H
 #define LBMKERNEL_H
 
-#include "ILBMKernel.h"
 #include "LBMSystem.h"
 #include <PointerDefinitions.h>
 #include <array>
@@ -47,27 +46,28 @@ class DataSet3D;
 class Block3D;
 
 //! \brief A base class provides basic functionality for LBM kernel
-class LBMKernel : public ILBMKernel, public enableSharedFromThis<LBMKernel>
+class LBMKernel
 {
 public:
     LBMKernel();
+    virtual ~LBMKernel() = default;
 
     virtual SPtr<LBMKernel> clone() = 0;
 
-    void calculate(int step) override    = 0;
-    real getCalculationTime() override = 0;
+    virtual void calculate(int step) = 0;
+    virtual real getCalculationTime() = 0;
 
-    void setBCSet(SPtr<BCSet> bcp) override;
-    SPtr<BCSet> getBCSet() const override;
+    virtual void setBCSet(SPtr<BCSet> bcp);
+    virtual SPtr<BCSet> getBCSet() const;
 
-    void setCollisionFactor(real collFactor) override;
-    real getCollisionFactor() const override;
+    virtual void setCollisionFactor(real collFactor);
+    virtual real getCollisionFactor() const;
 
-    void setGhostLayerWidth(int witdh);
-    int getGhostLayerWidth() const override;
+    virtual void setGhostLayerWidth(int witdh);
+    virtual int getGhostLayerWidth() const;
 
-    void setDataSet(SPtr<DataSet3D> dataSet);
-    SPtr<DataSet3D> getDataSet() const override;
+    virtual void setDataSet(SPtr<DataSet3D> dataSet);
+    virtual SPtr<DataSet3D> getDataSet() const;
 
     void setForcingX1(real forcingX1);
     void setForcingX2(real forcingX2);
@@ -83,13 +83,13 @@ public:
 
     void setIndex(int x1, int x2, int x3);
 
-    real getDeltaT() const override;
+    real getDeltaT() const;
     void setDeltaT(real dt);
 
-    bool getCompressible() const override;
+    bool getCompressible() const;
     void setCompressible(bool val);
 
-    bool getWithForcing() const override;
+    bool getWithForcing() const;
     void setWithForcing(bool val);
 
     bool getWithSpongeLayer() const;
@@ -101,9 +101,9 @@ public:
     void setBlock(SPtr<Block3D> block);
     SPtr<Block3D> getBlock() const;
 
-    bool isInsideOfDomain(const int &x1, const int &x2, const int &x3) const override;
+    bool isInsideOfDomain(const int &x1, const int &x2, const int &x3) const;
 
-    void swapDistributions() override;
+    void swapDistributions();
 
     void setNX(std::array<int, 3> nx);
     std::array<int, 3> getNX();
