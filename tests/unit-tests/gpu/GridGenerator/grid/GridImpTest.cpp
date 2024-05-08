@@ -209,6 +209,7 @@ protected:
 
     void SetUp() override
     {
+        spdlog::set_level(spdlog::level::warn);
         gridBuilder = std::make_shared<MultipleGridBuilder>();
     }
 };
@@ -298,6 +299,7 @@ protected:
 
     void SetUp() override
     {
+        spdlog::set_level(spdlog::level::warn);
         gridBuilder = std::make_shared<MultipleGridBuilder>();
         gridBuilder->addCoarseGrid(0.0, 0.0, 0.0, nx*dx, ny*dx, nz*dx, dx);
     }
@@ -838,6 +840,7 @@ protected:
 
     void SetUp() override
     {
+        spdlog::set_level(spdlog::level::warn);
         gridBuilder = std::make_shared<MultipleGridBuilder>();
         gridBuilder->addCoarseGrid(0.0, 0.0, 0.0, (nx+2)*dx, (ny+2)*dx, (nz+2)*dx, dx);
         gridBuilder->setPeriodicBoundaryCondition(true, true, true);
