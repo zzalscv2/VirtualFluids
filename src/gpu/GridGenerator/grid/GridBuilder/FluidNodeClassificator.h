@@ -47,6 +47,7 @@ class FluidNodeClassificator
 {
 public:
     FluidNodeClassificator(uint numberOfLevels);
+    virtual ~FluidNodeClassificator() = default;
 
     // findFluidNodes is needed for CUDA Streams MultiGPU (Communication Hiding)
     void findFluidNodes(bool splitDomain, std::vector<std::shared_ptr<Grid>>& grids,
@@ -71,7 +72,7 @@ public:
     uint getNumberOfFluidNodesAllFeatures(unsigned int level) const;
     void getFluidNodeIndicesAllFeatures(uint* fluidNodeIndicesAllFeatures, int level) const;
 
-    bool isSparseIndexInFluidNodeIndicesBorder(uint sparseIndex, uint level) const;
+    virtual bool isSparseIndexInFluidNodeIndicesBorder(uint sparseIndex, uint level) const;
 
 private:
     // one FluidNodeTagger per grid level

@@ -56,6 +56,7 @@ class CommunicationNodeFinder
 {
 public:
     CommunicationNodeFinder(uint numberOfLevels);
+    virtual ~CommunicationNodeFinder() = default;
 
     void findCommunicationIndices(int direction, SPtr<BoundingBox> subDomainBox, bool doShift, const Grid* grid);
 
@@ -63,19 +64,10 @@ public:
     uint getNumberOfReceiveNodes(uint level, int direction) const;
     uint getSendIndex(uint level, int direction, uint index) const;
     uint getReceiveIndex(uint level, int direction, uint index) const;
-    void getSendIndices(int* sendIndices, int direction, int level, const Grid* grid) const;
-    void getReceiveIndices(int* receiveIndices, int direction, int level, const Grid* grid) const;
-
-    uint getNumberOfSendIndices(uint level, int direction) const;
-    uint getNumberOfReceiveIndices(uint level, int direction) const;
-
-    // // needed for CUDA Streams
-    // virtual void findFluidNodeIndices(bool onlyBulk);
-    // virtual uint getNumberOfFluidNodes() const;
-    // virtual void getFluidNodeIndices(uint* fluidNodeIndices) const;
-    // virtual void findFluidNodeIndicesBorder();
-    // virtual uint getNumberOfFluidNodesBorder() const;
-    // virtual void getFluidNodeIndicesBorder(uint* fluidNodeIndicesBorder) const;
+    virtual void getSendIndices(int* sendIndices, int direction, int level, const Grid* grid) const;
+    virtual void getReceiveIndices(int* receiveIndices, int direction, int level, const Grid* grid) const;
+    virtual uint getNumberOfSendIndices(uint level, int direction) const;
+    virtual uint getNumberOfReceiveIndices(uint level, int direction) const;
 
     const std::vector<CommunicationIndicesForLevel>& getCommunicationIndices() const;
 

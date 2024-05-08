@@ -33,18 +33,18 @@
 //=======================================================================================
 #include <gmock/gmock.h>
 
+#include <basics/DataTypes.h>
+
+#include <gpu/GridGenerator/grid/GridBuilder/CommunicationNodeFinder.h>
+#include <gpu/GridGenerator/grid/GridBuilder/LevelGridBuilder.h>
+#include <gpu/GridGenerator/grid/GridImp.h>
+#include <gpu/GridGenerator/utilities/communication.h>
+#include <gpu/core/Cuda/CudaMemoryManager.h>
 #include <gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h>
 #include <gpu/core/DataStructureInitializer/GridReaderGenerator/IndexRearrangementForStreams.h>
+#include <gpu/core/Parameter/Parameter.h>
 
-#include <basics/DataTypes.h>
-#include "Cuda/CudaMemoryManager.h"
-
-#include "Parameter/Parameter.h"
-#include "gpu/GridGenerator/grid/GridBuilder/LevelGridBuilder.h"
-#include "gpu/GridGenerator/grid/GridImp.h"
-#include "gpu/GridGenerator/utilities/communication.h"
-#include "parallel/Communicator.h"
-
+#include <parallel/Communicator.h>
 #include <parallel/NullCommunicator.h>
 
 namespace GridGeneratorTest
@@ -53,13 +53,13 @@ namespace GridGeneratorTest
 class LevelGridBuilderStub : public LevelGridBuilder
 {
 private:
-    const SPtr<Grid> grid;
     LevelGridBuilderStub() = default;
 
 public:
-    uint numberOfSendIndices = 0;
-
-    explicit LevelGridBuilderStub(SPtr<Grid> grid) : grid(std::move(grid)){};
+    explicit LevelGridBuilderStub(std::vector<std::shared_ptr<Grid>> grids)
+    {
+        this->grids = std::move(grids);
+    };
 
     uint getCommunicationProcess(int direction) override
     {
@@ -69,26 +69,35 @@ public:
         return process;
     }
 
-    uint getNumberOfGridLevels() const override
+    void setCommunicationNodeFinder(UPtr<CommunicationNodeFinder> communicationNodeFinder)
     {
-        return 2;
+        this->communicationNodeFinder = std::move(communicationNodeFinder);
+    }
+};
+
+class CommunicationNodeFinderDouble : public CommunicationNodeFinder
+{
+public:
+    uint numberOfSendIndices = 0;
+    CommunicationNodeFinderDouble(uint numberOfLevels) : CommunicationNodeFinder(numberOfLevels)
+    {
     }
 
-    uint getNumberOfSendIndices(int direction, uint level) override
+    uint getNumberOfSendIndices(uint level, int direction) const override
     {
         return numberOfSendIndices;
     }
 
-    uint getNumberOfReceiveIndices(int direction, uint level) override
+    uint getNumberOfReceiveIndices(uint level, int direction) const override
     {
         return 0;
     }
 
-    void getSendIndices(int *sendIndices, int direction, int level) override
+    void getSendIndices(int* sendIndices, int direction, int level, const Grid* grid) const override
     {
     }
 
-    void getReceiveIndices(int *sendIndices, int direction, int level) override
+    void getReceiveIndices(int* receiveIndices, int direction, int level, const Grid* grid) const override
     {
     }
 };
@@ -96,25 +105,25 @@ public:
 class CudaMemoryManagerDouble : public CudaMemoryManager
 {
 public:
-    explicit CudaMemoryManagerDouble(std::shared_ptr<Parameter> parameter) : CudaMemoryManager(parameter){};
+    explicit CudaMemoryManagerDouble(std::shared_ptr<Parameter> parameter) : CudaMemoryManager(parameter) {};
 
-    void cudaAllocProcessNeighborX(int lev, unsigned int processNeighbor) override{};
-    void cudaCopyProcessNeighborXIndex(int lev, unsigned int processNeighbor) override{};
+    void cudaAllocProcessNeighborX(int lev, unsigned int processNeighbor) override {};
+    void cudaCopyProcessNeighborXIndex(int lev, unsigned int processNeighbor) override {};
 };
 
 class IndexRearrangementForStreamsDouble : public IndexRearrangementForStreams
 {
 public:
     IndexRearrangementForStreamsDouble(std::shared_ptr<Parameter> para, std::shared_ptr<GridBuilder> builder,
-                                       vf::parallel::Communicator &communicator)
-        : IndexRearrangementForStreams(para, builder, communicator){};
+                                       vf::parallel::Communicator& communicator)
+        : IndexRearrangementForStreams(para, builder, communicator) {};
 
     void initCommunicationArraysForCommAfterFinetoCoarseX(uint level, int indexOfProcessNeighbor,
-                                                          int direction) const override{};
+                                                          int direction) const override {};
     void initCommunicationArraysForCommAfterFinetoCoarseY(uint level, int indexOfProcessNeighbor,
-                                                          int direction) const override{};
+                                                          int direction) const override {};
     void initCommunicationArraysForCommAfterFinetoCoarseZ(uint level, int indexOfProcessNeighbor,
-                                                          int direction) const override{};
+                                                          int direction) const override {};
 };
 
 } // namespace GridGeneratorTest
@@ -129,6 +138,11 @@ public:
         gridGenerator->initalValuesDomainDecompostion();
     }
 
+    void moveCommunicationNodeFinder()
+    {
+        builder->setCommunicationNodeFinder(std::move(communicationNodeFinder));
+    }
+
 protected:
     SPtr<Parameter> para;
     std::shared_ptr<LevelGridBuilderStub> builder;
@@ -137,6 +151,9 @@ protected:
     const uint direction = CommunicationDirections::MX;
 
     SPtr<GridGenerator> gridGenerator;
+    UPtr<CommunicationNodeFinderDouble> communicationNodeFinder = std::make_unique<CommunicationNodeFinderDouble>(level + 1);
+    SPtr<GridImp> dummyGrid = GridImp::makeShared(nullptr, 0, 0, 0, 0, 0, 0, 0, "D3Q27", 0);
+    std::vector<std::shared_ptr<Grid>> grids = { dummyGrid, dummyGrid };
 
 private:
     void SetUp() override
@@ -149,10 +166,11 @@ private:
         }
         para->setNumprocs(2);
 
-        builder = std::make_shared<LevelGridBuilderStub>(nullptr);
+        builder = std::make_shared<LevelGridBuilderStub>(grids);
         auto communicator = vf::parallel::NullCommunicator::getInstance();
 
-        gridGenerator = std::make_shared<GridGenerator>(builder, para, std::make_shared<CudaMemoryManagerDouble>(para), *communicator);
+        gridGenerator =
+            std::make_shared<GridGenerator>(builder, para, std::make_shared<CudaMemoryManagerDouble>(para), *communicator);
         gridGenerator->setIndexRearrangementForStreams(
             std::make_unique<IndexRearrangementForStreamsDouble>(para, builder, *communicator));
     }
@@ -160,7 +178,10 @@ private:
 
 TEST_F(GridGeneratorTests_initalValuesDomainDecompostion, whenNoCommunication_sendProcessNeighborShouldNotExist)
 {
+    moveCommunicationNodeFinder();
+
     act();
+
     EXPECT_THAT(para->getParH(level)->sendProcessNeighborX.size(), testing::Eq(0));
     EXPECT_THAT(para->getParH(level)->sendProcessNeighborY.size(), testing::Eq(0));
     EXPECT_THAT(para->getParH(level)->sendProcessNeighborZ.size(), testing::Eq(0));
@@ -168,8 +189,11 @@ TEST_F(GridGeneratorTests_initalValuesDomainDecompostion, whenNoCommunication_se
 
 TEST_F(GridGeneratorTests_initalValuesDomainDecompostion, whenCommunicationInX_sendProcessNeighborShouldExistInX)
 {
-    builder->numberOfSendIndices = 1;
+    communicationNodeFinder->numberOfSendIndices = 1;
+    moveCommunicationNodeFinder();
+
     act();
+
     EXPECT_THAT(para->getParH(level)->sendProcessNeighborX.size(),
                 testing::Eq(1)); // one entry for CommunicationDirections::MX
     EXPECT_THAT(para->getParH(level)->sendProcessNeighborY.size(), testing::Eq(0));

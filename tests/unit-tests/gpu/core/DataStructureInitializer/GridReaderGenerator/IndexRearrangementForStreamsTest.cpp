@@ -45,13 +45,14 @@
 #include "gpu/GridGenerator/grid/GridBuilder/LevelGridBuilder.h"
 #include "gpu/GridGenerator/grid/GridImp.h"
 #include "gpu/GridGenerator/utilities/communication.h"
+#include "grid/GridBuilder/CommunicationNodeFinder.h"
 
 #include <parallel/NullCommunicator.h>
 
 namespace indexRearrangementTests
 {
 template <typename T>
-bool vectorsAreEqual(const T *vector1, const std::vector<T>& vectorExpected)
+bool vectorsAreEqual(const T* vector1, const std::vector<T>& vectorExpected)
 {
     for (uint i = 0; i < vectorExpected.size(); i++) {
         if (vector1[i] != vectorExpected[i])
@@ -66,31 +67,38 @@ private:
     SPtr<Grid> grid;
     LevelGridBuilderDouble() = default;
 
-    uint numberOfSendIndices;
-    uint numberOfRecvIndices;
-
 public:
     LevelGridBuilderDouble(SPtr<Grid> grid) : LevelGridBuilder(), grid(grid){};
     SPtr<Grid> getGrid(uint level) override
     {
         return grid;
-    };
-    void setNumberOfSendIndices(uint numberOfSendIndices)
+    }
+
+    void setCommunicationNodeFinder(UPtr<CommunicationNodeFinder> communicationNodeFinder)
     {
-        this->numberOfSendIndices = numberOfSendIndices;
-    };
-    uint getNumberOfSendIndices(int direction, uint level) override
+        this->communicationNodeFinder = std::move(communicationNodeFinder);
+    }
+};
+
+class CommunicationNodeFinderStub : public CommunicationNodeFinder
+{
+public:
+    uint numberOfSendIndices;
+    uint numberOfRecvIndices;
+
+    CommunicationNodeFinderStub(uint numberOfLevels) : CommunicationNodeFinder(numberOfLevels)
+    {
+    }
+
+    uint getNumberOfSendIndices(uint level, int direction) const override
     {
         return numberOfSendIndices;
-    };
-    uint getNumberOfReceiveIndices(int direction, uint level) override
+    }
+
+    uint getNumberOfReceiveIndices(uint level, int direction) const override
     {
         return numberOfRecvIndices;
-    };
-    void setNumberOfRecvIndices(uint numberOfRecvIndices)
-    {
-        this->numberOfRecvIndices = numberOfRecvIndices;
-    };
+    }
 };
 
 class GridImpDouble : public GridImp
@@ -101,18 +109,18 @@ private:
 public:
     GridImpDouble(SPtr<Object> object, real startX, real startY, real startZ, real endX, real endY, real endZ, real delta,
                   Distribution d, uint level)
-        : GridImp(object, startX, startY, startZ, endX, endY, endZ, delta, d, level)
+        : GridImp(std::move(object), startX, startY, startZ, endX, endY, endZ, delta, std::move(d), level)
     {
     }
 
     static SPtr<GridImpDouble> makeShared(SPtr<Object> object, real startX, real startY, real startZ, real endX, real endY,
                                           real endZ, real delta, Distribution d, uint level)
     {
-        SPtr<GridImpDouble> grid(std::make_shared<GridImpDouble>(object, startX, startY, startZ, endX, endY, endZ, delta, d, level));
+        SPtr<GridImpDouble> grid(
+            std::make_shared<GridImpDouble>(object, startX, startY, startZ, endX, endY, endZ, delta, d, level));
         return grid;
     }
 };
-
 } // namespace indexRearrangementTests
 
 //////////////////////////////////////////////////////////////////////////
@@ -154,34 +162,40 @@ protected:
 
     void act()
     {
-        testSubject->reorderSendIndicesForCommAfterFtoCX(sendIndices.direction, sendIndices.level, sendIndices.indexOfProcessNeighbor,
+        testSubject->reorderSendIndicesForCommAfterFtoCX(sendIndices.direction, sendIndices.level,
+                                                         sendIndices.indexOfProcessNeighbor,
                                                          sendIndices.sendIndicesForCommAfterFtoCPositions);
     };
 
 private:
     void SetUp() override
     {
-        SPtr<GridImpDouble> grid =
-            GridImpDouble::makeShared(nullptr, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, Distribution(), 1);
+        SPtr<GridImpDouble> grid = GridImpDouble::makeShared(nullptr, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, Distribution(), 1);
         std::shared_ptr<LevelGridBuilderDouble> builder = std::make_shared<LevelGridBuilderDouble>(grid);
-        builder->setNumberOfSendIndices((uint)sendIndices.sendIndices.size());
+        std::unique_ptr<CommunicationNodeFinderStub> communicationNodeFinder =
+            std::make_unique<CommunicationNodeFinderStub>(1);
+        communicationNodeFinder->numberOfSendIndices = (uint)sendIndices.sendIndices.size();
+        builder->setCommunicationNodeFinder(std::move(communicationNodeFinder));
 
         para = testingVF::createParameterForLevel(sendIndices.level);
 
         para->getParH(sendIndices.level)->fineToCoarse.numberOfCells = sendIndices.numNodesFtoC;
-        para->getParH(sendIndices.level)->fineToCoarse.coarseCellIndices = &(sendIndices.interpolationCellFineToCoarseCoarse.front());
-        para->getParH(sendIndices.level)->coarseToFine.coarseCellIndices = &(sendIndices.interpolationCellCoarseToFineCoarse.front());
+        para->getParH(sendIndices.level)->fineToCoarse.coarseCellIndices =
+            &(sendIndices.interpolationCellFineToCoarseCoarse.front());
+        para->getParH(sendIndices.level)->coarseToFine.coarseCellIndices =
+            &(sendIndices.interpolationCellCoarseToFineCoarse.front());
         para->getParH(sendIndices.level)->coarseToFine.numberOfCells = sendIndices.numNodesCtoF;
         para->getParH(sendIndices.level)->neighborX = sendIndices.neighborX;
         para->getParH(sendIndices.level)->neighborY = sendIndices.neighborY;
         para->getParH(sendIndices.level)->neighborZ = sendIndices.neighborZ;
 
         para->setNumberOfProcessNeighborsX(sendIndices.numberOfProcessNeighbors, sendIndices.level, "send");
-        para->getParH(sendIndices.level)->sendProcessNeighborX[sendIndices.indexOfProcessNeighbor].index = sendIndices.sendIndices.data();
+        para->getParH(sendIndices.level)->sendProcessNeighborX[sendIndices.indexOfProcessNeighbor].index =
+            sendIndices.sendIndices.data();
         para->initProcessNeighborsAfterFtoCX(sendIndices.level);
 
-        testSubject = std::make_unique<IndexRearrangementForStreams>(
-            IndexRearrangementForStreams(para, builder, communicator));
+        testSubject =
+            std::make_unique<IndexRearrangementForStreams>(IndexRearrangementForStreams(para, builder, communicator));
     };
 
     vf::parallel::NullCommunicator communicator;
@@ -621,9 +635,8 @@ protected:
 
     void act()
     {
-        testSubject->reorderRecvIndicesForCommAfterFtoC(ri.recvIndices.data(), ri.numberOfRecvNodesAfterFtoC,
-                                                        ri.direction, ri.level,
-                                                        ri.sendIndicesForCommAfterFtoCPositions);
+        testSubject->reorderRecvIndicesForCommAfterFtoC(ri.recvIndices.data(), ri.numberOfRecvNodesAfterFtoC, ri.direction,
+                                                        ri.level, ri.sendIndicesForCommAfterFtoCPositions);
     };
 
     void actWithX()
@@ -638,7 +651,10 @@ private:
         SPtr<GridImpDouble> grid =
             GridImpDouble::makeShared(nullptr, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, Distribution(), 1);
         std::shared_ptr<LevelGridBuilderDouble> builder = std::make_shared<LevelGridBuilderDouble>(grid);
-        builder->setNumberOfRecvIndices((uint)ri.recvIndices.size());
+        std::unique_ptr<CommunicationNodeFinderStub> communicationNodeFinder =
+            std::make_unique<CommunicationNodeFinderStub>(1);
+        communicationNodeFinder->numberOfRecvIndices = (uint)ri.recvIndices.size();
+        builder->setCommunicationNodeFinder(std::move(communicationNodeFinder));
 
         para = testingVF::createParameterForLevel(ri.level);
 

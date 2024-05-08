@@ -33,15 +33,20 @@
 //=======================================================================================
 #include <gmock/gmock.h>
 
+#include <utility>
+
 #include "../../Utilities/testUtilitiesGPU.h"
 
 #include "DataStructureInitializer/GridReaderGenerator/InterpolationCellGrouper.h"
 #include "Parameter/Parameter.h"
 #include "gpu/GridGenerator/grid/GridBuilder/LevelGridBuilder.h"
 #include "gpu/GridGenerator/grid/GridImp.h"
+#include "grid/GridBuilder/FluidNodeClassificator.h"
+#include "grid/FluidNodeTagger.h"
+
 
 template <typename T>
-bool vectorsAreEqual(const T * vector1, const std::vector<T>& vectorExpected)
+bool vectorsAreEqual(const T* vector1, const std::vector<T>& vectorExpected)
 {
     for (uint i = 0; i < vectorExpected.size(); i++) {
         if (vector1[i] != vectorExpected[i])
@@ -57,7 +62,11 @@ private:
     LevelGridBuilderDouble() = default;
 
 public:
-    explicit LevelGridBuilderDouble(SPtr<Grid> grid) : LevelGridBuilder(), grid(grid){};
+    explicit LevelGridBuilderDouble(SPtr<Grid> grid, SPtr<FluidNodeClassificator> fluidNodeClassificator) : grid(std::move(grid))
+    {
+        this->fluidNodeClassificator = std::move(fluidNodeClassificator);
+    };
+
     SPtr<Grid> getGrid(uint) override
     {
         return grid;
@@ -67,12 +76,11 @@ public:
 class GridImpDouble : public GridImp
 {
 private:
-    std::vector<uint> fluidNodeIndicesBorder;
 
 public:
     GridImpDouble(SPtr<Object> object, real startX, real startY, real startZ, real endX, real endY, real endZ, real delta,
                   Distribution d, uint level)
-        : GridImp(object, startX, startY, startZ, endX, endY, endZ, delta, d, level)
+        : GridImp(std::move(object), startX, startY, startZ, endX, endY, endZ, delta, d, level)
     {
     }
 
@@ -81,17 +89,20 @@ public:
         SPtr<GridImpDouble> grid(new GridImpDouble(nullptr, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, Distribution(), 1));
         return grid;
     }
+};
 
-    void setFluidNodeIndicesBorder(const std::vector<uint>& fluidNodeIndicesBorder)
-    {
-        this->fluidNodeIndicesBorder = fluidNodeIndicesBorder;
-    }
+class FluidNodeClassificatorDouble : public FluidNodeClassificator
+{
+public:
+    FluidNodeClassificatorDouble(uint numberOfLevels) : FluidNodeClassificator(numberOfLevels) {};
 
-    bool isSparseIndexInFluidNodeIndicesBorder(uint &sparseIndex) const override
+    bool isSparseIndexInFluidNodeIndicesBorder(uint sparseIndex, uint level) const override
     {
         return std::find(this->fluidNodeIndicesBorder.begin(), this->fluidNodeIndicesBorder.end(), sparseIndex) !=
                this->fluidNodeIndicesBorder.end();
     }
+
+    std::vector<uint> fluidNodeIndicesBorder;
 };
 
 struct CoarseToFineBorderBulk {
@@ -131,10 +142,11 @@ protected:
 private:
     std::unique_ptr<InterpolationCellGrouper> createTestSubjectCFBorderBulk()
     {
-        SPtr<GridImpDouble> grid =
-            GridImpDouble::makeShared();
-        grid->setFluidNodeIndicesBorder(cf.fluidNodeIndicesBorder);
-        std::shared_ptr<LevelGridBuilderDouble> builder = std::make_shared<LevelGridBuilderDouble>(grid);
+        SPtr<GridImpDouble> grid = GridImpDouble::makeShared();
+        SPtr<FluidNodeClassificatorDouble> fluidNodeClassificator =
+            std::make_shared<FluidNodeClassificatorDouble>(cf.level + 1);
+        fluidNodeClassificator->fluidNodeIndicesBorder = cf.fluidNodeIndicesBorder;
+        std::shared_ptr<LevelGridBuilderDouble> builder = std::make_shared<LevelGridBuilderDouble>(grid, fluidNodeClassificator);
 
         para = testingVF::createParameterForLevel(cf.level);
         para->getParH(cf.level)->coarseToFine.coarseCellIndices = &(cf.intCtoFcoarse.front());
@@ -227,8 +239,10 @@ private:
     {
         SPtr<GridImpDouble> grid =
             GridImpDouble::makeShared();
-        grid->setFluidNodeIndicesBorder(fc.fluidNodeIndicesBorder);
-        std::shared_ptr<LevelGridBuilderDouble> builder = std::make_shared<LevelGridBuilderDouble>(grid);
+        SPtr<FluidNodeClassificatorDouble> fluidNodeClassificator =
+            std::make_shared<FluidNodeClassificatorDouble>(fc.level + 1);
+        fluidNodeClassificator->fluidNodeIndicesBorder = fc.fluidNodeIndicesBorder;
+        std::shared_ptr<LevelGridBuilderDouble> builder = std::make_shared<LevelGridBuilderDouble>(grid, fluidNodeClassificator);
 
         para = testingVF::createParameterForLevel(fc.level);
         para->getParH(fc.level)->fineToCoarse.coarseCellIndices = &(fc.coarseCellIndices.front());
