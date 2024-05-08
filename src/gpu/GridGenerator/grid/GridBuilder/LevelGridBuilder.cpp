@@ -845,7 +845,7 @@ SPtr<FluidNodeClassificator> LevelGridBuilder::getFluidNodeClassificator()
 
 void LevelGridBuilder::createFluidNodeClassificator()
 {
-    std::make_shared<FluidNodeClassificator>(getNumberOfGridLevels());
+    fluidNodeClassificator = std::make_shared<FluidNodeClassificator>(getNumberOfGridLevels());
 }
 
 void LevelGridBuilder::findFluidNodes(bool splitDomain)

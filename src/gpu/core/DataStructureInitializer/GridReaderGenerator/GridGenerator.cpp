@@ -219,8 +219,6 @@ void GridGenerator::tagFluidNodeIndices(const std::vector<uint>& taggedFluidNode
         case CollisionTemplate::AllFeatures:
             fluidNodeClassificator->addFluidNodeIndicesAllFeatures(taggedFluidNodeIndices, level);
             break;
-            fluidNodeClassificator->addFluidNodeIndicesAllFeatures(taggedFluidNodeIndices, level);
-            break;
         case CollisionTemplate::Default:
         case CollisionTemplate::SubDomainBorder:
             throw std::runtime_error("Cannot tag fluid nodes as Default or SubDomainBorder!");
