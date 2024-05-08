@@ -29,56 +29,55 @@
 //! \addtogroup gpu_grid grid
 //! \ingroup gpu_GridGenerator GridGenerator
 //! \{
-//! \author Soeren Peters, Stephan Lenz, Martin Schoenherr
+//! \author Soeren Peters, Stephan Lenz, Martin Schoenherr, Anna Wellmann
 //=======================================================================================
-#ifndef FIELD_H
-#define FIELD_H
+#ifndef FLUID_NODE_TAG_BUILDER_H
+#define FLUID_NODE_TAG_BUILDER_H
 
-#include "gpu/GridGenerator/global.h"
+#include <vector>
+#include <basics/DataTypes.h>
+#include <basics/PointerDefinitions.h>
 
-struct Vertex;
+#include "grid/GridBuilder/CommunicationNodeFinder.h"
 
-class Field : public enableSharedFromThis<Field>
+class Grid;
+class FluidNodeTagger;
+
+class FluidNodeClassificator
 {
 public:
-    Field(uint size);
-    Field() = default;
-    void allocateMemory();
-    void freeMemory();
+    FluidNodeClassificator(uint numberOfLevels);
 
-    uint getSize() const;
-    char getFieldEntry(uint index) const;
+    // findFluidNodes is needed for CUDA Streams MultiGPU (Communication Hiding)
+    void findFluidNodes(bool splitDomain, std::vector<std::shared_ptr<Grid>>& grids,
+                        const std::vector<CommunicationIndicesForLevel>& communicationIndices);
+    void getFluidNodeIndices(uint* fluidNodeIndices, int level) const;
+    void getFluidNodeIndicesBorder(uint* fluidNodeIndices, int level) const;
+    uint getNumberOfFluidNodes(unsigned int level) const;
+    uint getNumberOfFluidNodesBorder(unsigned int level) const;
 
-    bool is(uint index, char type) const;
-    bool isCoarseToFineNode(uint index) const;
-    bool isFineToCoarseNode(uint index) const;
-    bool isFluid(uint index) const;
-    static bool isFluidType(const char& type);
-    bool isInvalidSolid(uint index) const;
-    bool isQ(uint index) const;
-    bool isBoundaryConditionNode(uint index) const;
-    static bool isBoundaryConditionType(const char& type);
-    bool isInvalidCoarseUnderFine(uint index) const;
-    bool isStopperOutOfGrid(uint index) const;
-    bool isStopperCoarseUnderFine(uint index) const;
-    bool isStopperSolid(uint index) const;
-    bool isStopper(uint index) const;
-    bool isInvalidOutOfGrid(uint index) const;
+    void addFluidNodeIndicesMacroVars(const std::vector<uint>& fluidNodeIndicesMacroVars, uint level);
+    void addFluidNodeIndicesApplyBodyForce(const std::vector<uint>& fluidNodeIndicesApplyBodyForce, uint level);
+    void addFluidNodeIndicesAllFeatures(const std::vector<uint>& fluidNodeIndicesAllFeatures, uint level);
 
-    void setFieldEntry(uint index, char val);
-    void setFieldEntryToFluid(uint index);
-    void setFieldEntryToInvalidSolid(uint index);
-    void setFieldEntryToStopperOutOfGrid(uint index);
-    void setFieldEntryToStopperOutOfGridBoundary(uint index);
-    void setFieldEntryToStopperCoarseUnderFine(uint index);
-    void setFieldEntryToInvalidCoarseUnderFine(uint index);
-    void setFieldEntryToInvalidOutOfGrid(uint index);
+    void sortFluidNodeIndicesMacroVars(uint level);
+    void sortFluidNodeIndicesApplyBodyForce(uint level);
+    void sortFluidNodeIndicesAllFeatures(uint level);
 
-protected:
-    char *field = nullptr;
-    uint size;
+    uint getNumberOfFluidNodesMacroVars(unsigned int level) const;
+    void getFluidNodeIndicesMacroVars(uint* fluidNodeIndicesMacroVars, int level) const;
+    uint getNumberOfFluidNodesApplyBodyForce(unsigned int level) const;
+    void getFluidNodeIndicesApplyBodyForce(uint* fluidNodeIndicesApplyBodyForce, int level) const;
+    uint getNumberOfFluidNodesAllFeatures(unsigned int level) const;
+    void getFluidNodeIndicesAllFeatures(uint* fluidNodeIndicesAllFeatures, int level) const;
+
+    bool isSparseIndexInFluidNodeIndicesBorder(uint sparseIndex, uint level) const;
+
+private:
+    // one FluidNodeTagger per grid level
+    std::vector<UPtr<FluidNodeTagger>> fluidNodeTaggers;
 };
 
 #endif
 
-//! \}
+//! }

@@ -83,8 +83,12 @@ bool Field::isFineToCoarseNode(uint index) const
 
 bool Field::isFluid(uint index) const
 {
-    const char type = field[index];
-    return type == FLUID || type == FLUID_CFC || type == FLUID_CFF || type == FLUID_FCC || type == FLUID_FCF || isBoundaryConditionNode(index);
+    return isFluidType(field[index]);
+}
+
+bool Field::isFluidType(const char& type) 
+{
+    return type == FLUID || type == FLUID_CFC || type == FLUID_CFF || type == FLUID_FCC || type == FLUID_FCF || isBoundaryConditionType(type);
 }
 
 bool Field::isInvalidSolid(uint index) const
@@ -129,9 +133,14 @@ bool Field::isQ(uint index) const
 
 bool Field::isBoundaryConditionNode(uint index) const
 {
-    return field[index] == BC_SOLID || field[index] == BC_OUTFLOW || field[index] == BC_VELOCITY ||
-           field[index] == BC_PRESSURE || field[index] == BC_SLIP || field[index] == BC_NOSLIP || field[index] == BC_STRESS;
+    return  isBoundaryConditionType(field[index]);
 }
+
+bool Field::isBoundaryConditionType(const char& type)
+{
+    return  type == BC_SOLID || type == BC_OUTFLOW || type == BC_VELOCITY || type == BC_PRESSURE || type == BC_SLIP || type == BC_NOSLIP || type == BC_STRESS;
+}
+
 
 // --------------------------------------------------------- //
 //                        Setter                             //

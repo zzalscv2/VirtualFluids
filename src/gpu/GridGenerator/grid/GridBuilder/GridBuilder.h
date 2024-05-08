@@ -56,6 +56,8 @@ class Transformator;
 class ArrowTransformator;
 class PolyDataWriterWrapper;
 class TransientBCInputFileReader;
+class CommunicationNodeFinder;
+class FluidNodeClassificator;
 
 class BoundingBox;
 class Grid;
@@ -143,32 +145,11 @@ public:
 
     virtual uint getCommunicationProcess(int direction) = 0;
 
-    virtual uint getNumberOfFluidNodes(unsigned int level) const = 0;
-    virtual void getFluidNodeIndices(uint *fluidNodeIndices, const int level) const = 0;
-    virtual uint getNumberOfFluidNodesBorder(unsigned int level) const = 0;
-    virtual void getFluidNodeIndicesBorder(uint *fluidNodeIndices, const int level) const = 0;
-
-    virtual uint getNumberOfSendIndices(int direction, uint level)             = 0;
-    virtual uint getNumberOfReceiveIndices(int direction, uint level)          = 0;
-    virtual void getSendIndices(int *sendIndices, int direction, int level)    = 0;
-    virtual void getReceiveIndices(int *sendIndices, int direction, int level) = 0;
+    virtual const CommunicationNodeFinder& getCommunicationNodeFinder() const = 0;
+    virtual void createFluidNodeClassificator() = 0;
+    virtual SPtr<FluidNodeClassificator> getFluidNodeClassificator() = 0;
 
     virtual void findFluidNodes(bool splitDomain) = 0;
-
-    virtual void addFluidNodeIndicesMacroVars(const std::vector<uint>& fluidNodeIndicesMacroVars, uint level)           = 0;
-    virtual void addFluidNodeIndicesApplyBodyForce(const std::vector<uint>& fluidNodeIndicesApplyBodyForce, uint level) = 0;
-    virtual void addFluidNodeIndicesAllFeatures(const std::vector<uint>& fluidNodeIndicesAllFeatures, uint level)       = 0;
-    virtual void sortFluidNodeIndicesMacroVars(uint level) = 0;
-    virtual void sortFluidNodeIndicesApplyBodyForce(uint level) = 0;
-    virtual void sortFluidNodeIndicesAllFeatures(uint level) = 0;
-    virtual uint getNumberOfFluidNodesMacroVars(uint level) const = 0;
-    virtual void getFluidNodeIndicesMacroVars(uint *fluidNodeIndicesMacroVars, int level) const = 0;
-    virtual uint getNumberOfFluidNodesApplyBodyForce(uint level) const = 0;
-    virtual void getFluidNodeIndicesApplyBodyForce(uint *fluidNodeIndicesApplyBodyForce, int level) const = 0;
-    virtual uint getNumberOfFluidNodesAllFeatures(uint level) const = 0;
-    virtual void getFluidNodeIndicesAllFeatures(uint *fluidNodeIndicesAllFeatures, int level) const = 0;
-
-
 };
 
 #endif

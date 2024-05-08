@@ -103,12 +103,6 @@ private:
 
     int *sparseIndices;
 
-    std::vector<uint> fluidNodeIndices;                 // run on CollisionTemplate::Default
-    std::vector<uint> fluidNodeIndicesBorder;           // run on subdomain border nodes (CollisionTemplate::SubDomainBorder)
-    std::vector<uint> fluidNodeIndicesMacroVars;        // run on CollisionTemplate::MacroVars
-    std::vector<uint> fluidNodeIndicesApplyBodyForce;   // run on CollisionTemplate::ApplyBodyForce
-    std::vector<uint> fluidNodeIndicesAllFeatures;      // run on CollisionTemplate::AllFeatures
-
     uint *qIndices;     //maps from matrix index to qIndex
     real *qValues;
     uint *qPatches;
@@ -149,6 +143,7 @@ public:
     void setPeriodicBoundaryShiftsOnYinZ(real shift) override;
     void setPeriodicBoundaryShiftsOnZinX(real shift) override;
     void setPeriodicBoundaryShiftsOnZinY(real shift) override;
+    int getShiftedCommunicationIndex(uint index, int direction) const override;
 
     void setEnableFixRefinementIntoTheWall(bool enableFixRefinementIntoTheWall) override;
 
@@ -229,7 +224,6 @@ public:
     char getFieldEntry(uint index) const override;
     void setFieldEntry(uint matrixIndex, char type) override;
 
-
     real getDelta() const override;
     uint getSize() const override;
     uint getSparseSize() const override;
@@ -259,7 +253,6 @@ public:
 
     static void getGridInterface(uint *gridInterfaceList, const uint *oldGridInterfaceList, uint size);
 
-    bool isSparseIndexInFluidNodeIndicesBorder(uint &sparseIndex) const override;
     
     bool isStopperForBC(uint index) const override;
 
@@ -344,54 +337,6 @@ private:
     bool checkIfAtLeastOneValidQ(const uint index, const Vertex &point, Object *object) const;
 
     void allocateQs();
-
-public:
-    int getShiftedCommunicationIndex(uint index, int direction);
-    void findCommunicationIndices(int direction, SPtr<BoundingBox> subDomainBox, bool doShift) override;
-    void findCommunicationIndex(uint index, real coordinate, real limit, int direction);
-
-    uint getNumberOfSendNodes(int direction) override;
-    uint getNumberOfReceiveNodes(int direction) override;
-
-    uint getSendIndex(int direction, uint index) override;
-    uint getReceiveIndex(int direction, uint index) override;
-
-    bool isSendNode(int index) const override;
-    bool isReceiveNode(int index) const override;
-
-    void repairCommunicationIndices(int direction) override;
-
-    void findFluidNodeIndices(bool splitDomain) override;
-    void findFluidNodeIndicesBorder() override;
-
-    uint getNumberOfFluidNodes() const override;
-    void getFluidNodeIndices(uint *fluidNodeIndices) const override;
-
-    uint getNumberOfFluidNodesBorder() const override;
-    void getFluidNodeIndicesBorder(uint *fluidNodeIndicesBorder) const override;
-
-    void addFluidNodeIndicesMacroVars(std::vector<uint> _fluidNodeIndicesMacroVars) override;
-    void addFluidNodeIndicesApplyBodyForce(std::vector<uint> _fluidNodeIndicesApplyBodyForce) override;
-    void addFluidNodeIndicesAllFeatures(std::vector<uint> _fluidNodeIndicesAllFeatures) override;
-    void sortFluidNodeIndicesMacroVars() override;
-    void sortFluidNodeIndicesApplyBodyForce() override;
-    void sortFluidNodeIndicesAllFeatures() override;
-
-    uint getNumberOfFluidNodeIndicesMacroVars() const override;
-    uint getNumberOfFluidNodeIndicesApplyBodyForce() const override;
-    uint getNumberOfFluidNodeIndicesAllFeatures() const override; 
-    void getFluidNodeIndicesMacroVars(uint *fluidNodeIndicesMacroVars) const override;
-    void getFluidNodeIndicesApplyBodyForce(uint *fluidNodeIndicesApplyBodyForce) const override;
-    void getFluidNodeIndicesAllFeatures(uint *fluidNodeIndicesAllFeatures) const override;
-
-public:
-    struct CommunicationIndices {
-        std::vector<uint> sendIndices;
-        std::vector<uint> receiveIndices;
-    };
-
-    std::array<CommunicationIndices, 6> communicationIndices;
-
 };
 
 #endif

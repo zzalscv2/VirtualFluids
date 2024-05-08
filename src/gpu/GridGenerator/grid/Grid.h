@@ -82,7 +82,6 @@ public:
     virtual void setFieldEntry(uint matrixIndex, char type) = 0;
 
     virtual void getGridInterfaceIndices(uint* iCellCfc, uint* iCellCff, uint* iCellFcc, uint* iCellFcf) const = 0;
-    virtual bool isSparseIndexInFluidNodeIndicesBorder(uint &sparseIndex) const = 0;
 
     virtual bool isStopperForBC(uint index) const = 0;
 
@@ -145,6 +144,8 @@ public:
     virtual void setPeriodicBoundaryShiftsOnYinZ(real shift) = 0;
     virtual void setPeriodicBoundaryShiftsOnZinX(real shift) = 0;
     virtual void setPeriodicBoundaryShiftsOnZinY(real shift) = 0;
+    virtual int getShiftedCommunicationIndex(uint index, int direction)const = 0;
+
 
     virtual void setEnableFixRefinementIntoTheWall(bool enableFixRefinementIntoTheWall) = 0;
 
@@ -167,45 +168,11 @@ public:
 
     virtual void setNumberOfLayers(uint numberOfLayers) = 0;
 
-    virtual void findCommunicationIndices(int direction, SPtr<BoundingBox> subDomainBox, bool doShift) = 0;
-
-    virtual uint getNumberOfSendNodes(int direction)    = 0;
-    virtual uint getNumberOfReceiveNodes(int direction) = 0;
-
-    virtual bool isSendNode(int index) const                = 0;
-    virtual bool isReceiveNode(int index) const             = 0;
-    virtual uint getSendIndex(int direction, uint index)    = 0;
-    virtual uint getReceiveIndex(int direction, uint index) = 0;
-
-    virtual void repairCommunicationIndices(int direction) = 0;
-
     virtual bool nodeHasBC(uint index) const = 0;
 
     virtual std::vector<SideType> getBCAlreadySet() = 0;
     virtual void addBCalreadySet(SideType side) = 0;
 
-    // needed for CUDA Streams 
-    virtual void findFluidNodeIndices(bool onlyBulk) = 0;
-    virtual uint getNumberOfFluidNodes() const = 0;
-    virtual void getFluidNodeIndices(uint *fluidNodeIndices) const = 0;
-
-    virtual void findFluidNodeIndicesBorder() = 0;
-    virtual uint getNumberOfFluidNodesBorder() const = 0;
-    virtual void getFluidNodeIndicesBorder(uint *fluidNodeIndicesBorder) const = 0;
-
-    virtual void addFluidNodeIndicesMacroVars(std::vector<uint> _fluidNodeIndicesMacroVars) = 0;
-    virtual void addFluidNodeIndicesApplyBodyForce(std::vector<uint> _fluidNodeIndicesApplyBodyForce) = 0;
-    virtual void addFluidNodeIndicesAllFeatures(std::vector<uint> _fluidNodeIndicesAllFeatures) = 0;
-    virtual void sortFluidNodeIndicesMacroVars() = 0;
-    virtual void sortFluidNodeIndicesApplyBodyForce() = 0;
-    virtual void sortFluidNodeIndicesAllFeatures() = 0;
-
-    virtual uint getNumberOfFluidNodeIndicesMacroVars() const = 0;
-    virtual uint getNumberOfFluidNodeIndicesApplyBodyForce() const = 0;
-    virtual uint getNumberOfFluidNodeIndicesAllFeatures() const = 0; 
-    virtual void getFluidNodeIndicesMacroVars(uint *fluidNodeIndicesMacroVars) const = 0;
-    virtual void getFluidNodeIndicesApplyBodyForce(uint *fluidNodeIndicesApplyBodyForce) const = 0;
-    virtual void getFluidNodeIndicesAllFeatures(uint *fluidNodeIndicesAllFeatures) const = 0;
 };
 
 #endif

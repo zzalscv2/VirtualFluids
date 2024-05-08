@@ -39,6 +39,8 @@
 #include <GridGenerator/grid/Grid.h>
 #include <GridGenerator/grid/GridBuilder/GridBuilder.h>
 #include <GridGenerator/utilities/math/Math.h>
+#include <GridGenerator/geometries/Object.h>
+#include <GridGenerator/grid/GridBuilder/FluidNodeClassificator.h>
 
 #include <parallel/Communicator.h>
 
@@ -76,8 +78,10 @@ void GridGenerator::setIndexRearrangementForStreams(std::unique_ptr<IndexRearran
 
 void GridGenerator::initalGridInformations()
 {
+    builder->createFluidNodeClassificator();
     if (para->getKernelNeedsFluidNodeIndicesToRun())
         builder->findFluidNodes(para->getUseStreams());
+    fluidNodeClassificator = builder->getFluidNodeClassificator();
     std::vector<int> gridX, gridY, gridZ;
     std::vector<int> distX, distY, distZ;
     const int numberOfGridLevels = builder->getNumberOfGridLevels();
@@ -148,43 +152,43 @@ void GridGenerator::allocArrays_taggedFluidNodes() {
     for (uint level = 0; level < builder->getNumberOfGridLevels(); level++)
     {
         for ( CollisionTemplate tag: all_CollisionTemplate )
-        {   //TODO: Need to add CollisionTemplate to GridBuilder to allow as argument and get rid of indivual get funtions for fluid node indices... and clean up this mess
+        {   //TODO: Need to add CollisionTemplate to GridBuilder to allow as argument and get rid of indivual get funtions for fluid node indices.. and clean up this mess
             switch(tag)
             {
                 case CollisionTemplate::Default:
-                    this->setNumberOfTaggedFluidNodes(builder->getNumberOfFluidNodes(level), CollisionTemplate::Default, level);
+                    this->setNumberOfTaggedFluidNodes(fluidNodeClassificator->getNumberOfFluidNodes(level), CollisionTemplate::Default, level);
                     cudaMemoryManager->cudaAllocTaggedFluidNodeIndices(CollisionTemplate::Default, level);
-                    builder->getFluidNodeIndices(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::Default], level);
+                    fluidNodeClassificator->getFluidNodeIndices(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::Default], level);
                     cudaMemoryManager->cudaCopyTaggedFluidNodeIndices(CollisionTemplate::Default, level);
                     if(para->getParH(level)->numberOfTaggedFluidNodes[tag]>0)
                         para->getParH(level)->allocatedBulkFluidNodeTags.push_back(tag);
                     break;
                 case CollisionTemplate::SubDomainBorder:
-                    this->setNumberOfTaggedFluidNodes(builder->getNumberOfFluidNodesBorder(level), CollisionTemplate::SubDomainBorder, level);
+                    this->setNumberOfTaggedFluidNodes(fluidNodeClassificator->getNumberOfFluidNodesBorder(level), CollisionTemplate::SubDomainBorder, level);
                     cudaMemoryManager->cudaAllocTaggedFluidNodeIndices(CollisionTemplate::SubDomainBorder, level);
-                    builder->getFluidNodeIndicesBorder(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::SubDomainBorder], level);
+                    fluidNodeClassificator->getFluidNodeIndicesBorder(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::SubDomainBorder], level);
                     cudaMemoryManager->cudaCopyTaggedFluidNodeIndices(CollisionTemplate::SubDomainBorder, level);
                     break;
                 case CollisionTemplate::WriteMacroVars:
-                    this->setNumberOfTaggedFluidNodes(builder->getNumberOfFluidNodesMacroVars(level), CollisionTemplate::WriteMacroVars, level);
+                    this->setNumberOfTaggedFluidNodes(fluidNodeClassificator->getNumberOfFluidNodesMacroVars(level), CollisionTemplate::WriteMacroVars, level);
                     cudaMemoryManager->cudaAllocTaggedFluidNodeIndices(CollisionTemplate::WriteMacroVars, level);
-                    builder->getFluidNodeIndicesMacroVars(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::WriteMacroVars], level);
+                    fluidNodeClassificator->getFluidNodeIndicesMacroVars(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::WriteMacroVars], level);
                     cudaMemoryManager->cudaCopyTaggedFluidNodeIndices(CollisionTemplate::WriteMacroVars, level);
                     if(para->getParH(level)->numberOfTaggedFluidNodes[tag]>0)
                         para->getParH(level)->allocatedBulkFluidNodeTags.push_back(tag);
                     break;
                 case CollisionTemplate::ApplyBodyForce:
-                    this->setNumberOfTaggedFluidNodes(builder->getNumberOfFluidNodesApplyBodyForce(level), CollisionTemplate::ApplyBodyForce, level);
+                    this->setNumberOfTaggedFluidNodes(fluidNodeClassificator->getNumberOfFluidNodesApplyBodyForce(level), CollisionTemplate::ApplyBodyForce, level);
                     cudaMemoryManager->cudaAllocTaggedFluidNodeIndices(CollisionTemplate::ApplyBodyForce, level);
-                    builder->getFluidNodeIndicesApplyBodyForce(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::ApplyBodyForce], level);
+                    fluidNodeClassificator->getFluidNodeIndicesApplyBodyForce(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::ApplyBodyForce], level);
                     cudaMemoryManager->cudaCopyTaggedFluidNodeIndices(CollisionTemplate::ApplyBodyForce, level);
                     if(para->getParH(level)->numberOfTaggedFluidNodes[tag]>0)
                         para->getParH(level)->allocatedBulkFluidNodeTags.push_back(tag);
                     break;
                 case CollisionTemplate::AllFeatures:
-                    this->setNumberOfTaggedFluidNodes(builder->getNumberOfFluidNodesAllFeatures(level), CollisionTemplate::AllFeatures, level);
+                    this->setNumberOfTaggedFluidNodes(fluidNodeClassificator->getNumberOfFluidNodesAllFeatures(level), CollisionTemplate::AllFeatures, level);
                     cudaMemoryManager->cudaAllocTaggedFluidNodeIndices(CollisionTemplate::AllFeatures, level);
-                    builder->getFluidNodeIndicesAllFeatures(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::AllFeatures], level);
+                    fluidNodeClassificator->getFluidNodeIndicesAllFeatures(para->getParH(level)->taggedFluidNodeIndices[CollisionTemplate::AllFeatures], level);
                     cudaMemoryManager->cudaCopyTaggedFluidNodeIndices(CollisionTemplate::AllFeatures, level);
                     if(para->getParH(level)->numberOfTaggedFluidNodes[tag]>0)
                         para->getParH(level)->allocatedBulkFluidNodeTags.push_back(tag);
@@ -203,17 +207,19 @@ void GridGenerator::allocArrays_taggedFluidNodes() {
     }
 }
 
-void GridGenerator::tagFluidNodeIndices(const std::vector<uint>& taggedFluidNodeIndices, CollisionTemplate tag, uint level) {
-    switch(tag)
-    {
+void GridGenerator::tagFluidNodeIndices(const std::vector<uint>& taggedFluidNodeIndices, CollisionTemplate tag, uint level)
+{
+    switch (tag) {
         case CollisionTemplate::WriteMacroVars:
-            builder->addFluidNodeIndicesMacroVars( taggedFluidNodeIndices, level );
+            fluidNodeClassificator->addFluidNodeIndicesMacroVars(taggedFluidNodeIndices, level);
             break;
         case CollisionTemplate::ApplyBodyForce:
-            builder->addFluidNodeIndicesApplyBodyForce( taggedFluidNodeIndices, level );
+            fluidNodeClassificator->addFluidNodeIndicesApplyBodyForce(taggedFluidNodeIndices, level);
             break;
         case CollisionTemplate::AllFeatures:
-            builder->addFluidNodeIndicesAllFeatures( taggedFluidNodeIndices, level );
+            fluidNodeClassificator->addFluidNodeIndicesAllFeatures(taggedFluidNodeIndices, level);
+            break;
+            fluidNodeClassificator->addFluidNodeIndicesAllFeatures(taggedFluidNodeIndices, level);
             break;
         case CollisionTemplate::Default:
         case CollisionTemplate::SubDomainBorder:
@@ -221,18 +227,16 @@ void GridGenerator::tagFluidNodeIndices(const std::vector<uint>& taggedFluidNode
         default:
             throw std::runtime_error("Tagging fluid nodes with invald tag!");
             break;
-
     }
-
 }
 
 void GridGenerator::sortFluidNodeTags() {
-    VF_LOG_INFO("Start sorting tagged fluid nodes...");
+    VF_LOG_INFO("Start sorting tagged fluid nodes..");
     for (uint level = 0; level < builder->getNumberOfGridLevels(); level++)
     {
-        builder->sortFluidNodeIndicesAllFeatures(level); //has to be called first!
-        builder->sortFluidNodeIndicesMacroVars(level);
-        builder->sortFluidNodeIndicesApplyBodyForce(level);
+        fluidNodeClassificator->sortFluidNodeIndicesAllFeatures(level); //has to be called first!
+        fluidNodeClassificator->sortFluidNodeIndicesMacroVars(level);
+        fluidNodeClassificator->sortFluidNodeIndicesApplyBodyForce(level);
     }
     VF_LOG_INFO("done.");
 }
@@ -558,14 +562,16 @@ void GridGenerator::initalValuesDomainDecompostion()
             }
         }
 
+        const CommunicationNodeFinder& communicationNodeFinder = builder->getCommunicationNodeFinder();
+
         for (int direction : fillOrder) {
             if (builder->getCommunicationProcess(direction) == INVALID_INDEX)
                 continue;
 
             for (uint level = 0; level < builder->getNumberOfGridLevels(); level++) {
                 if (direction == CommunicationDirections::MX || direction == CommunicationDirections::PX) {
-                    int tempSend = builder->getNumberOfSendIndices(direction, level);
-                    int tempRecv = builder->getNumberOfReceiveIndices(direction, level);
+                    int tempSend = communicationNodeFinder.getNumberOfSendIndices(level, direction);
+                    int tempRecv = communicationNodeFinder.getNumberOfReceiveIndices(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborX.size();
@@ -619,9 +625,12 @@ void GridGenerator::initalValuesDomainDecompostion()
                         cudaMemoryManager->cudaAllocProcessNeighborX(level, indexProcessNeighbor);
                         ////////////////////////////////////////////////////////////////////////////////////////
                         // init index arrays
-                        builder->getSendIndices(para->getParH(level)->sendProcessNeighborX[indexProcessNeighbor].index, direction, level);
-                        builder->getReceiveIndices(para->getParH(level)->recvProcessNeighborX[indexProcessNeighbor].index, direction,
-                                                   level);
+                        communicationNodeFinder.getSendIndices(
+                            para->getParH(level)->sendProcessNeighborX[indexProcessNeighbor].index, direction, level,
+                            builder->getGrid(level).get());
+                        communicationNodeFinder.getReceiveIndices(
+                            para->getParH(level)->recvProcessNeighborX[indexProcessNeighbor].index, direction, level,
+                            builder->getGrid(level).get());
                         if (level != builder->getNumberOfGridLevels() - 1 && para->useReducedCommunicationAfterFtoC)
                             indexRearrangement->initCommunicationArraysForCommAfterFinetoCoarseX(level, indexProcessNeighbor, direction);
                         ////////////////////////////////////////////////////////////////////////////////////////
@@ -631,8 +640,8 @@ void GridGenerator::initalValuesDomainDecompostion()
                 }
 
                 if (direction == CommunicationDirections::MY || direction == CommunicationDirections::PY) {
-                    int tempSend = builder->getNumberOfSendIndices(direction, level);
-                    int tempRecv = builder->getNumberOfReceiveIndices(direction, level);
+                    int tempSend = communicationNodeFinder.getNumberOfSendIndices(level, direction);
+                    int tempRecv = communicationNodeFinder.getNumberOfReceiveIndices(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborY.size();
@@ -686,9 +695,12 @@ void GridGenerator::initalValuesDomainDecompostion()
                         cudaMemoryManager->cudaAllocProcessNeighborY(level, indexProcessNeighbor);
                         ////////////////////////////////////////////////////////////////////////////////////////
                         // init index arrays
-                        builder->getSendIndices(para->getParH(level)->sendProcessNeighborY[indexProcessNeighbor].index, direction, level);
-                        builder->getReceiveIndices(para->getParH(level)->recvProcessNeighborY[indexProcessNeighbor].index, direction,
-                                                   level);
+                        communicationNodeFinder.getSendIndices(
+                            para->getParH(level)->sendProcessNeighborX[indexProcessNeighbor].index, direction, level,
+                            builder->getGrid(level).get());
+                        communicationNodeFinder.getReceiveIndices(
+                            para->getParH(level)->recvProcessNeighborX[indexProcessNeighbor].index, direction, level,
+                            builder->getGrid(level).get());
                         if (level != builder->getNumberOfGridLevels() - 1 && para->useReducedCommunicationAfterFtoC)
                             indexRearrangement->initCommunicationArraysForCommAfterFinetoCoarseY(level, indexProcessNeighbor, direction);
                         ////////////////////////////////////////////////////////////////////////////////////////
@@ -698,8 +710,8 @@ void GridGenerator::initalValuesDomainDecompostion()
                 }
 
                 if (direction == CommunicationDirections::MZ || direction == CommunicationDirections::PZ) {
-                    int tempSend = builder->getNumberOfSendIndices(direction, level);
-                    int tempRecv = builder->getNumberOfReceiveIndices(direction, level);
+                    int tempSend = communicationNodeFinder.getNumberOfSendIndices(level, direction);
+                    int tempRecv = communicationNodeFinder.getNumberOfReceiveIndices(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborZ.size();
@@ -753,9 +765,12 @@ void GridGenerator::initalValuesDomainDecompostion()
                         cudaMemoryManager->cudaAllocProcessNeighborZ(level, indexProcessNeighbor);
                         ////////////////////////////////////////////////////////////////////////////////////////
                         // init index arrays
-                        builder->getSendIndices(para->getParH(level)->sendProcessNeighborZ[indexProcessNeighbor].index, direction, level);
-                        builder->getReceiveIndices(para->getParH(level)->recvProcessNeighborZ[indexProcessNeighbor].index, direction,
-                                                   level);
+                        communicationNodeFinder.getSendIndices(
+                            para->getParH(level)->sendProcessNeighborX[indexProcessNeighbor].index, direction, level,
+                            builder->getGrid(level).get());
+                        communicationNodeFinder.getReceiveIndices(
+                            para->getParH(level)->recvProcessNeighborX[indexProcessNeighbor].index, direction, level,
+                            builder->getGrid(level).get());
                         if (level != builder->getNumberOfGridLevels() - 1 && para->useReducedCommunicationAfterFtoC)
                             indexRearrangement->initCommunicationArraysForCommAfterFinetoCoarseZ(level, indexProcessNeighbor, direction);
                         ////////////////////////////////////////////////////////////////////////////////////////
@@ -1146,7 +1161,7 @@ std::string GridGenerator::checkNeighbor(int level, real x, real y, real z, int 
     std::ostringstream oss("");
     //if (neighborIndex == -1 || neighborIndex >= size)
     //{
-    //    oss << "index broken... \n";
+    //    oss << "index broken.. \n";
     //    oss << "NeighborX invalid from: (" << x << ", " << y << ", " << z << "), new index: " << newIndex << ", "
     //        << direction << " neighborIndex: " << neighborIndex << "\n";
     //    numberOfWrongNeihgbors++;

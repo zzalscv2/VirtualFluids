@@ -40,6 +40,7 @@
 
 #include <GridGenerator/grid/Grid.h>
 #include <GridGenerator/grid/GridBuilder/GridBuilder.h>
+#include <GridGenerator/grid/GridBuilder/CommunicationNodeFinder.h>
 
 #include <parallel/Communicator.h>
 
@@ -377,7 +378,7 @@ void IndexRearrangementForStreams::reorderSendIndicesForCommAfterFtoC(
     int sparseIndexSend;
     std::vector<int> sendIndicesAfterFtoC;
     std::vector<int> sendIndicesOther;
-    uint numberOfSendIndices = builder->getNumberOfSendIndices(direction, level);
+    uint numberOfSendIndices = builder->getCommunicationNodeFinder().getNumberOfSendIndices(level, direction);
 
     // coarse cells of interpolation fine to coarse (iCellFCC)
     for (uint posInSendIndices = 0; posInSendIndices < numberOfSendIndices; posInSendIndices++) {
@@ -533,7 +534,7 @@ void IndexRearrangementForStreams::reorderRecvIndicesForCommAfterFtoC(
     if (sendIndicesForCommAfterFtoCPositions.size() == 0)
         VF_LOG_WARNING("ReorderRecvIndicesForCommAfterFtoC(): sendIndicesForCommAfterFtoCPositions is empty.");
 
-    uint numberOfRecvIndices = builder->getNumberOfReceiveIndices(direction, level);
+    uint numberOfRecvIndices = builder->getCommunicationNodeFinder().getNumberOfReceiveIndices(level, direction);
     std::vector<int> recvIndicesAfterFtoC;
     std::vector<int> recvIndicesOther;
 

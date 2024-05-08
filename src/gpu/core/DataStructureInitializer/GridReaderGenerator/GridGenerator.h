@@ -46,6 +46,7 @@ class GridBuilder;
 class IndexRearrangementForStreams;
 class InterpolationCellGrouper;
 class BoundaryConditionFactory;
+class FluidNodeClassificator;
 
 namespace vf::parallel
 {
@@ -66,6 +67,7 @@ private:
     std::shared_ptr<GridBuilder> builder;
     std::unique_ptr<const IndexRearrangementForStreams> indexRearrangement;
     std::unique_ptr<const InterpolationCellGrouper> interpolationGrouper;
+    std::shared_ptr<FluidNodeClassificator> fluidNodeClassificator;
     const uint mpiProcessID;
 
 public:
