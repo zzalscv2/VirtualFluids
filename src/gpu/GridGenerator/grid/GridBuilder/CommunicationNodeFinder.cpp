@@ -42,7 +42,8 @@ using namespace vf::gpu;
 
 CommunicationNodeFinder::CommunicationNodeFinder(uint numberOfLevels)
 {
-    communicationIndices.resize(numberOfLevels);
+    for (uint i = 0; i < numberOfLevels; i++)
+        communicationIndices.emplace_back();
 }
 
 void CommunicationNodeFinder::findCommunicationIndices(int direction, SPtr<BoundingBox> subDomainBox, bool doShift, const Grid* grid)

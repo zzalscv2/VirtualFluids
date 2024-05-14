@@ -853,6 +853,7 @@ void LevelGridBuilder::findFluidNodes(bool splitDomain)
     if (!fluidNodeClassificator) {
         throw std::runtime_error("No FluidNodeClassificator was not initialized befor calling findFluidNodes");
     }
+
     fluidNodeClassificator->findFluidNodes(splitDomain, grids, communicationNodeFinder->getCommunicationIndices());
 }
 

@@ -36,103 +36,105 @@
 
 FluidNodeClassificator::FluidNodeClassificator(uint numberOfLevels)
 {
-    fluidNodeTaggers.resize(numberOfLevels);
+    for (uint i = 0; i < numberOfLevels; i++)
+        fluidNodeTaggers.emplace_back();
 }
 
 void FluidNodeClassificator::findFluidNodes(bool splitDomain, std::vector<std::shared_ptr<Grid>>& grids,
                                             const std::vector<CommunicationIndicesForLevel>& communicationIndices)
 {
     VF_LOG_TRACE("Start findFluidNodes()");
-    for (uint level = 0; level < grids.size(); level++)
-        fluidNodeTaggers[level]->findFluidNodeIndices(splitDomain, grids[level].get(), communicationIndices[level]);
+    for (uint level = 0; level < grids.size(); level++) {
+        fluidNodeTaggers[level].findFluidNodeIndices(splitDomain, grids[level].get(), communicationIndices[level]);
+    }
     VF_LOG_TRACE("Done findFluidNodes()");
 }
 
 void FluidNodeClassificator::getFluidNodeIndices(uint* fluidNodeIndices, const int level) const
 {
-    fluidNodeTaggers[level]->getFluidNodeIndices(fluidNodeIndices);
+    fluidNodeTaggers[level].getFluidNodeIndices(fluidNodeIndices);
 }
 
 void FluidNodeClassificator::getFluidNodeIndicesBorder(uint* fluidNodeIndices, const int level) const
 {
-    fluidNodeTaggers[level]->getFluidNodeIndicesBorder(fluidNodeIndices);
+    fluidNodeTaggers[level].getFluidNodeIndicesBorder(fluidNodeIndices);
 }
 
 uint FluidNodeClassificator::getNumberOfFluidNodes(unsigned int level) const
 {
-    return fluidNodeTaggers[level]->getNumberOfFluidNodes();
+    return fluidNodeTaggers[level].getNumberOfFluidNodes();
 }
 
 uint FluidNodeClassificator::getNumberOfFluidNodesBorder(unsigned int level) const
 {
-    return fluidNodeTaggers[level]->getNumberOfFluidNodesBorder();
+    return fluidNodeTaggers[level].getNumberOfFluidNodesBorder();
 }
 
 void FluidNodeClassificator::addFluidNodeIndicesMacroVars(const std::vector<uint>& fluidNodeIndicesMacroVars, uint level)
 {
-    fluidNodeTaggers[level]->addFluidNodeIndicesMacroVars(fluidNodeIndicesMacroVars);
+    fluidNodeTaggers[level].addFluidNodeIndicesMacroVars(fluidNodeIndicesMacroVars);
 }
 
 void FluidNodeClassificator::addFluidNodeIndicesApplyBodyForce(const std::vector<uint>& fluidNodeIndicesApplyBodyForce,
                                                                uint level)
 {
 
-    fluidNodeTaggers[level]->addFluidNodeIndicesApplyBodyForce(fluidNodeIndicesApplyBodyForce);
+    fluidNodeTaggers[level].addFluidNodeIndicesApplyBodyForce(fluidNodeIndicesApplyBodyForce);
 }
 
 void FluidNodeClassificator::addFluidNodeIndicesAllFeatures(const std::vector<uint>& fluidNodeIndicesAllFeatures, uint level)
 {
-    fluidNodeTaggers[level]->addFluidNodeIndicesAllFeatures(fluidNodeIndicesAllFeatures);
+    fluidNodeTaggers[level].addFluidNodeIndicesAllFeatures(fluidNodeIndicesAllFeatures);
 }
 
 void FluidNodeClassificator::sortFluidNodeIndicesMacroVars(uint level)
 {
-    fluidNodeTaggers[level]->sortFluidNodeIndicesMacroVars();
+    fluidNodeTaggers[level].sortFluidNodeIndicesMacroVars();
 }
 
 void FluidNodeClassificator::sortFluidNodeIndicesApplyBodyForce(uint level)
 {
-    fluidNodeTaggers[level]->sortFluidNodeIndicesApplyBodyForce();
+    fluidNodeTaggers[level].sortFluidNodeIndicesApplyBodyForce();
 }
 
 void FluidNodeClassificator::sortFluidNodeIndicesAllFeatures(uint level)
 {
-    fluidNodeTaggers[level]->sortFluidNodeIndicesAllFeatures();
+    fluidNodeTaggers[level].sortFluidNodeIndicesAllFeatures();
 }
 
 uint FluidNodeClassificator::getNumberOfFluidNodesMacroVars(unsigned int level) const
 {
-    return fluidNodeTaggers[level]->getNumberOfFluidNodeIndicesMacroVars();
+    return fluidNodeTaggers[level].getNumberOfFluidNodeIndicesMacroVars();
 }
 
 void FluidNodeClassificator::getFluidNodeIndicesMacroVars(uint* fluidNodeIndicesMacroVars, const int level) const
 {
-    fluidNodeTaggers[level]->getFluidNodeIndicesMacroVars(fluidNodeIndicesMacroVars);
+    fluidNodeTaggers[level].getFluidNodeIndicesMacroVars(fluidNodeIndicesMacroVars);
 }
 
 uint FluidNodeClassificator::getNumberOfFluidNodesApplyBodyForce(unsigned int level) const
 {
-    return fluidNodeTaggers[level]->getNumberOfFluidNodeIndicesApplyBodyForce();
+    return fluidNodeTaggers[level].getNumberOfFluidNodeIndicesApplyBodyForce();
 }
 
 void FluidNodeClassificator::getFluidNodeIndicesApplyBodyForce(uint* fluidNodeIndicesApplyBodyForce, const int level) const
 {
-    fluidNodeTaggers[level]->getFluidNodeIndicesApplyBodyForce(fluidNodeIndicesApplyBodyForce);
+    fluidNodeTaggers[level].getFluidNodeIndicesApplyBodyForce(fluidNodeIndicesApplyBodyForce);
 }
 
 uint FluidNodeClassificator::getNumberOfFluidNodesAllFeatures(unsigned int level) const
 {
-    return fluidNodeTaggers[level]->getNumberOfFluidNodeIndicesAllFeatures();
+    return fluidNodeTaggers[level].getNumberOfFluidNodeIndicesAllFeatures();
 }
 
 void FluidNodeClassificator::getFluidNodeIndicesAllFeatures(uint* fluidNodeIndicesAllFeatures, const int level) const
 {
-    fluidNodeTaggers[level]->getFluidNodeIndicesAllFeatures(fluidNodeIndicesAllFeatures);
+    fluidNodeTaggers[level].getFluidNodeIndicesAllFeatures(fluidNodeIndicesAllFeatures);
 }
 
 bool FluidNodeClassificator::isSparseIndexInFluidNodeIndicesBorder(uint sparseIndex, uint level) const
 {
-    return fluidNodeTaggers[level]->isSparseIndexInFluidNodeIndicesBorder(sparseIndex);
+    return fluidNodeTaggers[level].isSparseIndexInFluidNodeIndicesBorder(sparseIndex);
 }
 
 //! }

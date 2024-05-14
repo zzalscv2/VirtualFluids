@@ -39,9 +39,9 @@
 #include <basics/PointerDefinitions.h>
 
 #include "grid/GridBuilder/CommunicationNodeFinder.h"
+#include "grid/FluidNodeTagger.h"
 
 class Grid;
-class FluidNodeTagger;
 
 class FluidNodeClassificator
 {
@@ -76,7 +76,7 @@ public:
 
 private:
     // one FluidNodeTagger per grid level
-    std::vector<UPtr<FluidNodeTagger>> fluidNodeTaggers;
+    std::vector<FluidNodeTagger> fluidNodeTaggers;
 };
 
 #endif

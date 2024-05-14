@@ -598,6 +598,8 @@ void MultipleGridBuilder::buildGrids(bool enableThinWalls )
     grids[grids.size() - 1]->findSparseIndices(nullptr);
 
     //////////////////////////////////////////////////////////////////////////
+
+    communicationNodeFinder = std::make_unique<CommunicationNodeFinder>(this->getNumberOfGridLevels());
 }
 
 void MultipleGridBuilder::setNumberOfLayers(uint numberOfLayersFine, uint numberOfLayersBetweenLevels)
@@ -620,7 +622,6 @@ void MultipleGridBuilder::emitGridIsNotInCoarseGridWarning()
 void MultipleGridBuilder::findCommunicationIndices(int direction, bool doShift)
 {
     VF_LOG_TRACE("Start findCommunicationIndices()");
-    communicationNodeFinder = std::make_unique<CommunicationNodeFinder>(this->getNumberOfLevels());
 
     if (this->subDomainBox)
         for (size_t i = 0; i < grids.size(); i++)
