@@ -135,13 +135,11 @@ void CommunicationNodeFinder::getReceiveIndices(int * receiveIndices, int direct
 
 uint CommunicationNodeFinder::getNumberOfSendIndices(uint level, int direction) const
 {
-    VF_LOG_CRITICAL("getNumberOfSendIndices");
     return getNumberOfSendNodes(level, direction);
 }
 
 uint CommunicationNodeFinder::getNumberOfReceiveIndices(uint level, int direction) const
 {
-    VF_LOG_CRITICAL("getNumberOfReceiveIndices");
     return getNumberOfReceiveNodes(level, direction);
 }
 
