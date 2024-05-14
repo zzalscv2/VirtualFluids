@@ -677,7 +677,7 @@ void LevelGridBuilder::getPressureQs(real* qs[27], uint level, uint indexInBound
 size_t LevelGridBuilder::getPressureBoundaryConditionDirection(uint level, uint indexInBoundaryConditionVector) const
 {
     return boundaryConditions[level]->pressureBoundaryConditions[indexInBoundaryConditionVector]->side->getD3Q27Direction();
-};
+}
 
 uint LevelGridBuilder::getPrecursorSize(int level) const
 {
