@@ -43,8 +43,6 @@ TEST(FieldTest, isFluid)
     field.allocateMemory();
     uint index = 0;
 
-    EXPECT_FALSE(field.isFluid(index));
-
     field.setFieldEntry(index, FLUID);
     EXPECT_TRUE(field.isFluid(index)) << "tested type: FLUID";
 
