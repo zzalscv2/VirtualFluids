@@ -66,9 +66,7 @@
 #include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/PreCollisionInteractor/Actuator/ActuatorFarmStandalone.h"
-#include "gpu/core/Samplers/Probes/PlaneProbe.h"
-#include "gpu/core/Samplers/Probes/PointProbe.h"
-#include "gpu/core/Samplers/Probes/Probe.h"
+#include "gpu/core/Samplers/Probe.h"
 #include "gpu/core/TurbulenceModels/TurbulenceModelFactory.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -222,10 +220,10 @@ void run(vf::basics::ConfigurationFile& config)
 
     for (size_t i = 0; i < planePositions.size(); i++) {
         const std::string name = "planeProbe_" + std::to_string(i);
-        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, para->getOutputPath(), name,
-                                                                   timeStepStartTemporalAveraging, numberOfAvergingTimeSteps,
-                                                                   timeStepStartOutProbe, timeStepOutProbe);
-        planeProbe->setProbePlane(turbinePositionsX[0] + planePositions[i], -0.5 * lengthY, -0.5 * lengthZ, deltaX, lengthY,
+        auto planeProbe =
+            std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), name, timeStepStartTemporalAveraging,
+                                    numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false);
+        planeProbe->addProbePlane(turbinePositionsX[0] + planePositions[i], -0.5 * lengthY, -0.5 * lengthZ, deltaX, lengthY,
                                   lengthZ);
         planeProbe->addStatistic(Statistic::Means);
         planeProbe->addStatistic(Statistic::Variances);
@@ -233,28 +231,28 @@ void run(vf::basics::ConfigurationFile& config)
         para->addSampler(planeProbe);
     }
 
-    SPtr<PlaneProbe> planeProbeVertical = std::make_shared<PlaneProbe>(
-        para, cudaMemoryManager, para->getOutputPath(), "planeProbeVertical", timeStepStartTemporalAveraging,
-        numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe);
-    planeProbeVertical->setProbePlane(0, turbinePositionsY[0], -0.5 * lengthZ, lengthX, deltaX, lengthZ);
+    auto planeProbeVertical = std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), "planeProbeVertical",
+                                                      timeStepStartTemporalAveraging, numberOfAvergingTimeSteps,
+                                                      timeStepStartOutProbe, timeStepOutProbe, false);
+    planeProbeVertical->addProbePlane(0, turbinePositionsY[0], -0.5 * lengthZ, lengthX, deltaX, lengthZ);
     planeProbeVertical->addStatistic(Statistic::Means);
     planeProbeVertical->addStatistic(Statistic::Variances);
     planeProbeVertical->addStatistic(Statistic::Instantaneous);
     para->addSampler(planeProbeVertical);
 
-    SPtr<PlaneProbe> planeProbeHorizontal = std::make_shared<PlaneProbe>(
+    auto planeProbeHorizontal = std::make_shared<Probe>(
         para, cudaMemoryManager, para->getOutputPath(), "planeProbeHorizontal", timeStepStartTemporalAveraging,
-        numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe);
-    planeProbeHorizontal->setProbePlane(0, -0.5 * lengthY, turbinePositionsZ[0], lengthX, lengthY, deltaX);
+        numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false);
+    planeProbeHorizontal->addProbePlane(0, -0.5 * lengthY, turbinePositionsZ[0], lengthX, lengthY, deltaX);
     planeProbeHorizontal->addStatistic(Statistic::Means);
     planeProbeHorizontal->addStatistic(Statistic::Variances);
     planeProbeHorizontal->addStatistic(Statistic::Instantaneous);
     para->addSampler(planeProbeHorizontal);
 
     if (probePositionsX.size() > 0) {
-        SPtr<PointProbe> timeseriesProbe = std::make_shared<PointProbe>(
-            para, cudaMemoryManager, para->getOutputPath(), "timeProbe", timeStepStartTemporalAveraging,
-            timeStepAverageTimeSeriesProbe, timeStepStartOutProbe, timeStepOutProbe, true);
+        auto timeseriesProbe = std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), "timeProbe",
+                                                       timeStepStartTemporalAveraging, timeStepAverageTimeSeriesProbe,
+                                                       timeStepStartOutProbe, timeStepOutProbe, true);
         timeseriesProbe->addProbePointsFromList(probePositionsX, probePositionsY, probePositionsZ);
         timeseriesProbe->addStatistic(Statistic::Instantaneous);
         timeseriesProbe->addStatistic(Statistic::Means);
