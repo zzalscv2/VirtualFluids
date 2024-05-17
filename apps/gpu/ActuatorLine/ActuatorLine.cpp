@@ -31,21 +31,12 @@
 //! \{
 //! \author Henry Korb, Henrik Asmuth, Anna Wellmann
 //=======================================================================================
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <iostream>
-#include <string>
-#include <vector>
-//////////////////////////////////////////////////////////////////////////
 
 #include <basics/DataTypes.h>
-#include <basics/PointerDefinitions.h>
 #include <basics/config/ConfigurationFile.h>
 #include <basics/constants/NumericConstants.h>
 
 #include <logger/Logger.h>
-
-#include <parallel/MPICommunicator.h>
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -72,10 +63,8 @@
 //////////////////////////////////////////////////////////////////////////
 const std::string defaultConfigFile = "actuatorline.cfg";
 
-void run(vf::basics::ConfigurationFile& config)
+void run(const vf::basics::ConfigurationFile& config)
 {
-    vf::logging::Logger::initializeLogger();
-
     //////////////////////////////////////////////////////////////////////////
     // Simulation parameters
     //////////////////////////////////////////////////////////////////////////
@@ -148,6 +137,8 @@ void run(vf::basics::ConfigurationFile& config)
     //////////////////////////////////////////////////////////////////////////
 
     auto para = std::make_shared<Parameter>(&config);
+
+    para->worldLength = rotorDiameter;
 
     para->setOutputPrefix(simulationName);
 
@@ -260,39 +251,10 @@ void run(vf::basics::ConfigurationFile& config)
     }
 
     //////////////////////////////////////////////////////////////////////////
-    // set copy mesh to simulation
-    //////////////////////////////////////////////////////////////////////////
-
-    vf::parallel::Communicator& communicator = *vf::parallel::MPICommunicator::getInstance();
-
-    auto gridGenerator = GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
-
-    //////////////////////////////////////////////////////////////////////////
     // run simulation
     //////////////////////////////////////////////////////////////////////////
 
     VF_LOG_INFO("Start Running ActuatorLine Showcase...\n");
-
-    VF_LOG_INFO("world parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("dt [s]                 = {}", deltaT);
-    VF_LOG_INFO("world_domain   [m]     = {},{},{}", lengthX, lengthY, lengthZ);
-    VF_LOG_INFO("world_velocity [m/s]   = {}", velocity);
-    VF_LOG_INFO("dx [m]                 = {}", deltaX);
-    VF_LOG_INFO("");
-
-    VF_LOG_INFO("LB parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("lb_velocity [dx/dt]    = {}", velocityLB);
-    VF_LOG_INFO("lb_viscosity [dx^2/dt] = {}", viscosityLB);
-    VF_LOG_INFO("");
-
-    VF_LOG_INFO("simulation parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("n timesteps            = {}", timeStepOut);
-    VF_LOG_INFO("write_nth_timestep     = {}", timeStepEnd);
-    VF_LOG_INFO("output_path            = {}", para->getOutputPath());
-    VF_LOG_INFO("");
 
     VF_LOG_INFO("turbine parameters:");
     VF_LOG_INFO("--------------");
@@ -302,26 +264,19 @@ void run(vf::basics::ConfigurationFile& config)
     VF_LOG_INFO("smearingWidth [m]      = {}", smearingWidth);
     VF_LOG_INFO("tipSpeedRatio          = {}", tipSpeedRatio);
 
-    Simulation sim(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory);
-    sim.run();
+    Simulation simulation(para, cudaMemoryManager, gridBuilder, &bcFactory, tmFactory);
+    simulation.run();
 }
 
 int main(int argc, char* argv[])
 {
-    if (argv == NULL)
-        return 0;
-
     try {
+        vf::logging::Logger::initializeLogger();
         auto config = vf::basics::loadConfig(argc, argv, defaultConfigFile);
         run(config);
-    } catch (const spdlog::spdlog_ex& ex) {
-        std::cout << "Log initialization failed: " << ex.what() << std::endl;
-    } catch (const std::bad_alloc& e) {
-        VF_LOG_CRITICAL("Bad Alloc: {}", e.what());
     } catch (const std::exception& e) {
-        VF_LOG_CRITICAL("exception: {}", e.what());
-    } catch (...) {
-        VF_LOG_CRITICAL("Unknown exception!");
+        VF_LOG_WARNING("{}", e.what());
+        return 1;
     }
     return 0;
 }

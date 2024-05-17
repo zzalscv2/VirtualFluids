@@ -58,6 +58,7 @@
 #include "gpu/core/Samplers/Utilities.h"
 #include "gpu/core/Utilities/KernelUtilities.h"
 #include "gpu/cuda_helper/CudaGrid.h"
+#include "gpu/cuda_helper/CudaIndexCalculation.h"
 
 using namespace vf::basics::constant;
 
@@ -146,7 +147,7 @@ struct Flatnesses
 
 __global__ void moveIndicesInPosNormalDir(unsigned long long* pointIndices, uint nPoints, const uint* neighborNormal)
 {
-    const uint nodeIndex = vf::gpu::getNodeIndex();
+    const uint nodeIndex = vf::cuda::get1DIndexFrom2DBlock();
 
     if (nodeIndex >= nPoints)
         return;

@@ -53,6 +53,7 @@
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/Utilities/GeometryUtils.h"
 #include "gpu/core/Utilities/KernelUtilities.h"
+#include "cuda_helper/CudaIndexCalculation.h"
 
 using namespace vf::basics::constant;
 
@@ -110,7 +111,7 @@ __host__ __device__ real computeAndSaveVariance(real* quantityArray, real oldVar
 __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::GridParams gridParams,
                                           Probe::ProbeData probeData, uint currentTimestep, uint lastTimestep)
 {
-    const uint nodeIndex = vf::gpu::getNodeIndex();
+    const uint nodeIndex = vf::cuda::get1DIndexFrom2DBlock();
 
     if (nodeIndex >= probeData.numberOfPoints)
         return;

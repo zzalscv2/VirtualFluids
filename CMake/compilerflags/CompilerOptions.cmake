@@ -60,10 +60,11 @@ function(set_project_options project_name)
         set(PROJECT_OPTIONS_DEBUG ${PROJECT_OPTIONS_CLANG_DEBUG})
         set(PROJECT_OPTIONS_RELEASE ${PROJECT_OPTIONS_CLANG_RELEASE})
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        # gcov: According to https://gcovr.com/en/stable/cookbook.html#out-of-source-builds-with-cmake
-        # These flags are used if cmake is called with -DCMAKE_BUILD_TYPE=PROFILE
-        set(CMAKE_C_FLAGS_PROFILE --coverage)
-        set(CMAKE_CXX_FLAGS_PROFILE --coverage)
+
+        if(VF_ENABLE_COVERAGE)
+            target_compile_options(${project_name} INTERFACE $<$<COMPILE_LANGUAGE:CXX>:--coverage>)
+            target_link_options(${project_name} INTERFACE $<$<COMPILE_LANGUAGE:CXX>:--coverage>)
+        endif()
 
         set(PROJECT_OPTIONS ${PROJECT_OPTIONS_GCC})
         set(PROJECT_OPTIONS_DEBUG ${PROJECT_OPTIONS_GCC_DEBUG})
@@ -110,12 +111,35 @@ function(set_project_options project_name)
         endif()
     ENDIF()
 
+    # precision
     if(VF_ENABLE_DOUBLE_ACCURACY)
         target_compile_definitions(${project_name} INTERFACE VF_DOUBLE_ACCURACY)
         message(STATUS "Configure VirtualFluids with double precision")
     else()
         message(STATUS "Configure VirtualFluids with single precision")
     endif()
+
+
+    # rangecheck
+    if(VF_NO_RANGECHECK)
+        target_compile_definitions(${project_name} INTERFACE VF_NO_RANGECHECK)
+        message(STATUS "Rangecheck will NOT be enabled in Debug and Release Build.")
+    else()
+        if(VF_RANGECHECK) 
+            target_compile_definitions(${project_name} INTERFACE VF_RANGECHECK)
+            message(STATUS "Rangecheck will be enabled in Debug and Release Builds.")
+        else()
+            message(STATUS "Rangecheck will be enabled in Debug Builds.")
+        endif()
+    endif()
+
+    # debug / release
+    if (CMAKE_BUILD_TYPE EQUAL "DEBUG")
+        target_compile_definitions(${project_name} INTERFACE VF_DEBUG)
+    else()
+        target_compile_definitions(${project_name} INTERFACE VF_RELEASE)
+    endif()
+    
 
 
 endfunction()

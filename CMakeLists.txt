@@ -32,9 +32,9 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 project(
     VirtualFluids
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "CFD code based on the Lattice Boltzmann Method"
-    HOMEPAGE_URL "https://www.tu-braunschweig.de/irmb/forschung/virtualfluids"
+    HOMEPAGE_URL "https://git.rz.tu-bs.de/irmb/VirtualFluids"
     LANGUAGES CXX)
 
 #############################################################
@@ -60,12 +60,17 @@ option(VF_ENABLE_CLANG_TIDY "Add the clang tidy checks to the targets" OFF)
 option(VF_ENABLE_INCLUDE_WHAT_YOU_USE "Add IWYU to the targets" OFF)
 option(VF_ENABLE_CPPCHECK "Add cppcheck to the targets" OFF)
 option(VF_ENABLE_CACHE "Enable ccache" ON)
+option(VF_ENABLE_COVERAGE "Enable gcov code coverage" OFF)
 
 option(VF_ENABLE_SANITIZER_ADDRESS "Enable address sanitizer" OFF)
 option(VF_ENABLE_SANITIZER_UNDEFINED_BEHAVIOR "Enable undefined behavior sanitizer" OFF)
 option(VF_ENABLE_SANITIZER_LEAK "Enable leak sanitizer" OFF)
 option(VF_ENABLE_SANITIZER_THREAD "Enable thread sanitizer" OFF)
 option(VF_ENABLE_SANITIZER_MEMORY "Enable memory sanitizer" OFF)
+
+# rangecheck
+option(VF_NO_RANGECHECK "Disable rangecheck in Debug" OFF)
+option(VF_RANGECHECK "Enable rangecheck in Release, if VF_NO_RANGECHECK is OFF" OFF)
 
 #############################################################
 ###                  Libraries                            ###

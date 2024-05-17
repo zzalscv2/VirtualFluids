@@ -30,7 +30,6 @@
 //! \ingroup gpu_core core
 //! \{
 //! \author Henry Korb
-//! \date 09.01.2024
 //! \brief Base class for all samplers
 //=======================================================================================
 

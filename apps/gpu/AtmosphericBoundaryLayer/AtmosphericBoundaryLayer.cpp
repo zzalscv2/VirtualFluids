@@ -31,19 +31,9 @@
 //! \{
 //! \author Henry Korb, Henrik Asmuth
 //=======================================================================================
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <exception>
-#include <iostream>
-#include <memory>
 #include <numeric>
-#include <string>
-#include <vector>
-
-//////////////////////////////////////////////////////////////////////////
 
 #include <basics/DataTypes.h>
-#include <basics/PointerDefinitions.h>
 #include <basics/config/ConfigurationFile.h>
 #include <basics/constants/NumericConstants.h>
 
@@ -67,19 +57,14 @@
 #include "gpu/core/BoundaryConditions/BoundaryConditionFactory.h"
 #include "gpu/core/Calculation/Simulation.h"
 #include "gpu/core/Cuda/CudaMemoryManager.h"
-#include "gpu/core/DataStructureInitializer/GridProvider.h"
-#include "gpu/core/DataStructureInitializer/GridReaderGenerator/GridGenerator.h"
 #include "gpu/core/GridScaling/GridScalingFactory.h"
 #include "gpu/core/Kernel/KernelTypes.h"
-#include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/Samplers/PrecursorWriter.h"
 #include "gpu/core/Samplers/PlanarAverageProbe.h"
 #include "gpu/core/Samplers/Probe.h"
 #include "gpu/core/Samplers/WallModelProbe.h"
 #include "gpu/core/TurbulenceModels/TurbulenceModelFactory.h"
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using namespace vf::basics::constant;
 
@@ -153,10 +138,6 @@ void run(const vf::basics::ConfigurationFile& config)
 
     const real pressureGradient = frictionVelocity * frictionVelocity / boundaryLayerHeight;
     const real pressureGradientLB = pressureGradient * (deltaT * deltaT) / deltaX;
-
-    // const uint timeStepStartOut = uint(timeStartOut / deltaT);
-    const uint timeStepOut = uint(timeOut / deltaT);
-    const uint timeStepEnd = uint(timeEnd / deltaT);
 
     const uint timeStepStartAveraging = uint(timeStartAveraging / deltaT);
     const uint timeStepStartTemporalAveraging = uint(timeStartTemporalAveraging / deltaT);
@@ -406,32 +387,8 @@ void run(const vf::basics::ConfigurationFile& config)
         para->addSampler(precursorWriter);
     }
 
-    auto gridGenerator = GridProvider::makeGridGenerator(gridBuilder, para, cudaMemoryManager, communicator);
     auto tmFactory = std::make_shared<TurbulenceModelFactory>(para);
     tmFactory->readConfigFile(config);
-
-    VF_LOG_INFO("Start Running ActuatorLine Showcase...\n");
-
-    VF_LOG_INFO("world parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("dt [s]                 = {}", deltaT);
-    VF_LOG_INFO("world_domain   [m]     = {},{},{}", lengthX, lengthY, lengthZ);
-    VF_LOG_INFO("geostrophic wind [m/s] = {}", velocityProfile(boundaryLayerHeight));
-    VF_LOG_INFO("dx [m]                 = {}", deltaX);
-    VF_LOG_INFO("");
-
-    VF_LOG_INFO("LB parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("lb_velocity [dx/dt]    = {}", velocityLB);
-    VF_LOG_INFO("lb_viscosity [dx^2/dt] = {}", viscosityLB);
-    VF_LOG_INFO("");
-
-    VF_LOG_INFO("simulation parameter:");
-    VF_LOG_INFO("--------------");
-    VF_LOG_INFO("n timesteps            = {}", timeStepOut);
-    VF_LOG_INFO("write_nth_timestep     = {}", timeStepEnd);
-    VF_LOG_INFO("output_path            = {}", para->getOutputPath());
-    VF_LOG_INFO("");
 
     VF_LOG_INFO("process parameter:");
     VF_LOG_INFO("Number of Processes {} process ID {}", numberOfProcesses, processID);
@@ -443,8 +400,8 @@ void run(const vf::basics::ConfigurationFile& config)
         VF_LOG_INFO("Process ID {} is a mid subdomain");
     printf("\n");
 
-    Simulation sim(para, cudaMemoryManager, communicator, *gridGenerator, &bcFactory, tmFactory, &scalingFactory);
-    sim.run();
+    Simulation simulation(para, cudaMemoryManager, gridBuilder, &bcFactory, tmFactory, &scalingFactory);
+    simulation.run();
 }
 
 int main(int argc, char* argv[])
@@ -453,16 +410,10 @@ int main(int argc, char* argv[])
         vf::logging::Logger::initializeLogger();
         auto config = vf::basics::loadConfig(argc, argv, defaultConfigFile);
         run(config);
-    } catch (const spdlog::spdlog_ex& ex) {
-        std::cout << "Log initialization failed: " << ex.what() << '\n';
-    } catch (const std::bad_alloc& e) {
-        VF_LOG_CRITICAL("Bad Alloc: {}", e.what());
     } catch (const std::exception& e) {
-        VF_LOG_CRITICAL("exception: {}", e.what());
-    } catch (...) {
-        VF_LOG_CRITICAL("Unknown exception!");
+        VF_LOG_WARNING("{}", e.what());
+        return 1;
     }
-
     return 0;
 }
 

@@ -64,7 +64,7 @@ class UpdateGrid27
 {
 public:
     UpdateGrid27(SPtr<Parameter> para, vf::parallel::Communicator& comm, SPtr<CudaMemoryManager> cudaMemoryManager, std::vector<SPtr<Kernel>>& kernels,
-                 std::vector<SPtr<AdvectionDiffusionKernel>>& adkernels, BoundaryConditionFactory* bcFactory,
+                 std::vector<SPtr<AdvectionDiffusionKernel>>& adkernels, const BoundaryConditionFactory* bcFactory,
                  SPtr<TurbulenceModelFactory> tmFactory, GridScalingFactory* scalingFactory);
     void updateGrid(int level, unsigned int t);
     void exchangeData(int level);

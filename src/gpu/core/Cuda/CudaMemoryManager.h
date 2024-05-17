@@ -97,6 +97,10 @@ public:
     void cudaCopyPress(int lev);
     void cudaFreePress(int lev);
 
+    void cudaAllocDirectionalBoundaryCondition(QforDirectionalBoundaryCondition& boundaryConditionHost, QforDirectionalBoundaryCondition& boundaryConditionDevice);
+    void cudaCopyDirectionalBoundaryCondition(QforDirectionalBoundaryCondition& boundaryConditionHost, QforDirectionalBoundaryCondition& boundaryConditionDevice);
+    void cudaFreeDirectionalBoundaryCondition(QforDirectionalBoundaryCondition& boundaryConditionHost, QforDirectionalBoundaryCondition& boundaryConditionDevice);
+
     void cudaAllocForcing();
     void cudaCopyForcingToDevice();
     void cudaCopyForcingToHost();
