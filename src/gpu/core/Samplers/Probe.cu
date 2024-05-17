@@ -372,8 +372,8 @@ void Probe::addLevelData(int level)
 
 void Probe::makeProbeData(std::vector<uint>& indices, ProbeData& probeDataH, ProbeData& probeDataD, int level)
 {
-    probeDataH.numberOfPoints = indices.size();
-    probeDataD.numberOfPoints = indices.size();
+    probeDataH.numberOfPoints = static_cast<uint>(indices.size());
+    probeDataD.numberOfPoints = static_cast<uint>(indices.size());
     probeDataH.numberOfTimesteps = getNumberOfTimestepsInTimeseries(level);
     probeDataD.numberOfTimesteps = getNumberOfTimestepsInTimeseries(level);
     probeDataH.computeInstantaneoues = enableComputationInstantaneous;
