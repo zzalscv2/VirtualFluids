@@ -69,8 +69,7 @@
 #include "gpu/core/Calculation/Simulation.h"
 #include "gpu/core/Output/FileWriter.h"
 #include "gpu/core/Parameter/Parameter.h"
-#include "gpu/core/Samplers/Probes/PlaneProbe.h"
-#include "gpu/core/Samplers/Probes/PointProbe.h"
+#include "gpu/core/Samplers/Probe.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -194,22 +193,22 @@ int main(int argc, char* argv[])
         const uint tAveraging = 100;
         const uint tStartOutProbe = 0;
         const uint tOutProbe = para->getTimestepOut();
-        SPtr<PointProbe> pointProbe = std::make_shared<PointProbe>(para, cudaMemoryManager, para->getOutputPath(), "pointProbe", tStartAveraging,
-                                                                   tAveraging, tStartOutProbe, tOutProbe);
+        auto pointProbe = std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), "pointProbe", tStartAveraging,
+                                                                   tAveraging, tStartOutProbe, tOutProbe, false);
         std::vector<real> probeCoordsX = { 0.3, 0.5 };
         std::vector<real> probeCoordsY = { 0.0, 0.0 };
         std::vector<real> probeCoordsZ = { 0.0, 0.0 };
         pointProbe->addProbePointsFromList(probeCoordsX, probeCoordsY, probeCoordsZ);
 
-        pointProbe->addStatistic(Statistic::Instantaneous);
-        pointProbe->addStatistic(Statistic::Means);
-        pointProbe->addStatistic(Statistic::Variances);
+        pointProbe->addStatistic(Probe::Statistic::Instantaneous);
+        pointProbe->addStatistic(Probe::Statistic::Means);
+        pointProbe->addStatistic(Probe::Statistic::Variances);
         para->addSampler(pointProbe);
 
-        SPtr<PlaneProbe> planeProbe = std::make_shared<PlaneProbe>(para, cudaMemoryManager, para->getOutputPath(), "planeProbe", tStartAveraging,
-                                                                   tAveraging, tStartOutProbe, tOutProbe);
-        planeProbe->setProbePlane(dSphere, 0, 0, 0.3, 0.01, 0.1);
-        planeProbe->addStatistic(Statistic::Instantaneous);
+        auto planeProbe = std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), "planeProbe", tStartAveraging,
+                                                                   tAveraging, tStartOutProbe, tOutProbe, false);
+        planeProbe->addProbePlane(dSphere, 0, 0, 0.3, 0.01, 0.1);
+        planeProbe->addStatistic(Probe::Statistic::Instantaneous);
         para->addSampler(planeProbe);
 
         //////////////////////////////////////////////////////////////////////////
