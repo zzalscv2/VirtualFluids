@@ -214,19 +214,16 @@ std::vector<Probe::PostProcessingVariable> Probe::getAllPostProcessingVariables(
 {
     std::vector<PostProcessingVariable> postProcessingVariables;
     if (enableComputationInstantaneous) {
-        auto instantPostProcessingVariables = getPostProcessingVariables(Statistic::Instantaneous, level);
-        postProcessingVariables.insert(postProcessingVariables.end(), instantPostProcessingVariables.begin(),
-                                       instantPostProcessingVariables.end());
+        for(auto p :  getPostProcessingVariables(Statistic::Instantaneous, level))
+            postProcessingVariables.push_back(p);
     }
     if (enableComputationMeans) {
-        auto meanPostProcessingVariables = getPostProcessingVariables(Statistic::Means, level);
-        postProcessingVariables.insert(postProcessingVariables.end(), meanPostProcessingVariables.begin(),
-                                       meanPostProcessingVariables.end());
+        for(auto p : getPostProcessingVariables(Statistic::Means, level))
+            postProcessingVariables.push_back(p);
     }
     if (enableComputationVariances) {
-        auto varPostProcessingVariables = getPostProcessingVariables(Statistic::Variances, level);
-        postProcessingVariables.insert(postProcessingVariables.end(), varPostProcessingVariables.begin(),
-                                       varPostProcessingVariables.end());
+        for(auto p: getPostProcessingVariables(Statistic::Variances, level))
+            postProcessingVariables.push_back(p);
     }
     return postProcessingVariables;
 }
