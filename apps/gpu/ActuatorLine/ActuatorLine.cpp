@@ -225,9 +225,9 @@ void run(vf::basics::ConfigurationFile& config)
                                     numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false);
         planeProbe->addProbePlane(turbinePositionsX[0] + planePositions[i], -0.5 * lengthY, -0.5 * lengthZ, deltaX, lengthY,
                                   lengthZ);
-        planeProbe->addStatistic(Statistic::Means);
-        planeProbe->addStatistic(Statistic::Variances);
-        planeProbe->addStatistic(Statistic::Instantaneous);
+        planeProbe->addStatistic(Probe::Statistic::Means);
+        planeProbe->addStatistic(Probe::Statistic::Variances);
+        planeProbe->addStatistic(Probe::Statistic::Instantaneous);
         para->addSampler(planeProbe);
     }
 
@@ -235,18 +235,18 @@ void run(vf::basics::ConfigurationFile& config)
                                                       timeStepStartTemporalAveraging, numberOfAvergingTimeSteps,
                                                       timeStepStartOutProbe, timeStepOutProbe, false);
     planeProbeVertical->addProbePlane(0, turbinePositionsY[0], -0.5 * lengthZ, lengthX, deltaX, lengthZ);
-    planeProbeVertical->addStatistic(Statistic::Means);
-    planeProbeVertical->addStatistic(Statistic::Variances);
-    planeProbeVertical->addStatistic(Statistic::Instantaneous);
+    planeProbeVertical->addStatistic(Probe::Statistic::Means);
+    planeProbeVertical->addStatistic(Probe::Statistic::Variances);
+    planeProbeVertical->addStatistic(Probe::Statistic::Instantaneous);
     para->addSampler(planeProbeVertical);
 
     auto planeProbeHorizontal = std::make_shared<Probe>(
         para, cudaMemoryManager, para->getOutputPath(), "planeProbeHorizontal", timeStepStartTemporalAveraging,
         numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false);
     planeProbeHorizontal->addProbePlane(0, -0.5 * lengthY, turbinePositionsZ[0], lengthX, lengthY, deltaX);
-    planeProbeHorizontal->addStatistic(Statistic::Means);
-    planeProbeHorizontal->addStatistic(Statistic::Variances);
-    planeProbeHorizontal->addStatistic(Statistic::Instantaneous);
+    planeProbeHorizontal->addStatistic(Probe::Statistic::Means);
+    planeProbeHorizontal->addStatistic(Probe::Statistic::Variances);
+    planeProbeHorizontal->addStatistic(Probe::Statistic::Instantaneous);
     para->addSampler(planeProbeHorizontal);
 
     if (probePositionsX.size() > 0) {
@@ -254,8 +254,8 @@ void run(vf::basics::ConfigurationFile& config)
                                                        timeStepStartTemporalAveraging, timeStepAverageTimeSeriesProbe,
                                                        timeStepStartOutProbe, timeStepOutProbe, true);
         timeseriesProbe->addProbePointsFromList(probePositionsX, probePositionsY, probePositionsZ);
-        timeseriesProbe->addStatistic(Statistic::Instantaneous);
-        timeseriesProbe->addStatistic(Statistic::Means);
+        timeseriesProbe->addStatistic(Probe::Statistic::Instantaneous);
+        timeseriesProbe->addStatistic(Probe::Statistic::Means);
         para->addSampler(timeseriesProbe);
     }
 
