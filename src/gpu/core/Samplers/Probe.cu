@@ -154,8 +154,8 @@ __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::Gr
         const real vzMeanNew = computeAndSaveMean(probeData.means, vzMeanOld, indexVzCurrent, vz, invCount);
         const real rhoMeanNew = computeAndSaveMean(probeData.means, rhoMeanOld, indexRhoCurrent, rho, invCount);
 
-        if(numberOfAveragedValues == 0)
-        return;
+        if (numberOfAveragedValues == 0)
+            return;
 
         if (probeData.computeVariances) {
 
@@ -338,7 +338,7 @@ void Probe::sample(int level, uint t)
     if ((t > this->tStartAveraging) && averageThisTimestep) {
         if (outputTimeSeries) {
             const uint lastTimestep = calcOldTimestep(levelData->timeseriesParams.currentTimestep,
-                                                       levelData->timeseriesParams.lastTimestepInOldTimeseries);
+                                                      levelData->timeseriesParams.lastTimestepInOldTimeseries);
             const uint currentTimestep = levelData->timeseriesParams.currentTimestep + 1;
             calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(levelData->numberOfAveragedValues, gridParams,
                                                                    levelData->probeDataD, currentTimestep, lastTimestep);
@@ -510,7 +510,6 @@ void Probe::appendTimeseriesFile(int level, int t)
     auto levelData = levelDatas[level];
 
     const real tStart = (t - this->tBetweenWriting) * para->getTimeRatio();
-
 
     std::vector<std::vector<real>> timestepData;
 
