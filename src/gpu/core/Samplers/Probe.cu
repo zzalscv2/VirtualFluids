@@ -154,6 +154,9 @@ __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::Gr
         const real vzMeanNew = computeAndSaveMean(probeData.means, vzMeanOld, indexVzCurrent, vz, invCount);
         const real rhoMeanNew = computeAndSaveMean(probeData.means, rhoMeanOld, indexRhoCurrent, rho, invCount);
 
+        if(numberOfAveragedValues == 0)
+        return;
+
         if (probeData.computeVariances) {
 
             const real vxVarianceOld = probeData.variances[indexVxLast];
