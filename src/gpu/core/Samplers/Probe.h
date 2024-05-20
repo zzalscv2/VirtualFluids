@@ -26,12 +26,11 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_PreCollisionInteractor PreCollisionInteractor
+//! \addtogroup gpu_Sampler Sampler
 //! \ingroup gpu_core core
 //! \{
 //! \author Henry Korb, Henrik Asmuth
 //! \date 13/05/2022
-//! \brief Base class for probes called in UpdateGrid27
 
 //=======================================================================================
 
@@ -45,38 +44,17 @@
 #include <stdexcept>
 #include <string>
 
-#include "basics/writer/WbWriterVtkXmlBinary.h"
+#include <basics/writer/WbWriterVtkXmlBinary.h>
 #include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
+#include <logger/Logger.h>
 
 struct LBMSimulationParameter;
 class Parameter;
 class CudaMemoryManager;
 
-//=======================================================================================
-//! \note How to add new Statistics
-//! Generally, the Statistic enum refers to the type of statistic to be calculated.
-//! It then depends on the derived probe class, which of these statistics are available.
-//! Some type of statistics are only suitable for a certain probe class, others might
-//! simply not have been implemented, yet.
-//! For the same reasons it is also probe-specific, for which quantities (e.g. velocities, rho, etc.) these statistics are
-//! computed. The specific quantity (e.g., mean of vx, or variance of rho) is defined as PostProcessingVariable in
-//! getPostProcessingVariables of each respective probe. PostProcessingVariable also holds the name and conversionFactor of
-//! the quantity that is required when writing the data to file
-//!
-//! To add new Statistics:
-//!     1. Add enum here, LAST has to stay last
-//!     2. For PointProbe and PlaneProbe: add the computation of the statistic in switch statement in
-//!     calculatePointwiseQuantities.
-//!     3. For PlanarAverageProbe and WallModelProbe: add the computation directly in calculateQuantities.
-//!     4. In getPostProcessingVariables add the static in the switch statement and add the corresponding
-//!     PostProcessingVariables
-//!     5. Add Statistic to isAvailableStatistic of the respective probe
-//!
-//!  When adding new quantities to existing statistics (e.g., add rho to PlanarAverageProbe which currently only computes
-//!  stats of velocity) only do steps 2 to 4
-//!
-
+//! \brief Computes statistics of pointwise data. Data can be written to vtk-file or timeseries file.
+//! All points and planes are written to the same file. Use different probes to write to separate files. 
 class Probe : public Sampler
 {
 public:
@@ -84,13 +62,15 @@ public:
     enum class Statistic { Instantaneous, Means, Variances };
 
     Probe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, std::string outputPath, std::string probeName,
-          uint tStartAveraging, uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting, bool outputTimeSeries)
+          uint tStartAveraging, uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting, bool outputTimeSeries, bool averageEveryTimestep)
         : para(para), cudaMemoryManager(cudaMemoryManager), tStartAveraging(tStartAveraging),
           tBetweenAverages(tBetweenAverages), tStartWritingOutput(tStartWritingOutput), tBetweenWriting(tBetweenWriting),
-          outputTimeSeries(outputTimeSeries), Sampler(outputPath, probeName)
+          outputTimeSeries(outputTimeSeries), averageEveryTimestep(averageEveryTimestep), Sampler(outputPath, probeName)
     {
         if (tStartWritingOutput < tStartAveraging)
             throw std::runtime_error("Probe: tStartWritingOutput must be larger than tStartAveraging!");
+        if(averageEveryTimestep)
+            VF_LOG_INFO("Probe: averageEveryTimestep is true, ignoring tBetweenAverages");
     }
 
     ~Probe();
@@ -228,14 +208,14 @@ protected:
     std::vector<LevelData> levelDatas;
     bool enableComputationInstantaneous {}, enableComputationMeans {}, enableComputationVariances {};
     //! flag initiating time series output.
-    const bool outputTimeSeries;
+    const bool outputTimeSeries, averageEveryTimestep;
     std::vector<std::string> fileNamesForCollectionFile;
     std::vector<std::string> timeseriesFileNames;
 
     //! if true, written file name contains time step in LU, else is the number of the written probe files
     bool fileNameLU = true;
-    const uint tStartAveraging;
 
+    const uint tStartAveraging;
     const uint tBetweenAverages;
     const uint tStartWritingOutput;
     const uint tBetweenWriting;

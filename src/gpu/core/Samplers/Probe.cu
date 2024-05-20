@@ -311,12 +311,12 @@ void Probe::sample(int level, uint t)
 {
     const uint tLevel = para->getTimeStep(level, t, false);
 
-    //! if tBetweenAverages==1 the probe will be evaluated in every sub-timestep of each respective level
+    //! if averageEveryTimestep the probe will be evaluated in every sub-timestep of each respective level
     //! else, the probe will only be evaluated in each synchronous time step tBetweenAverages
 
     const uint levelFactor = exp2(level);
 
-    const uint tAvgLevel = this->tBetweenAverages == 1 ? this->tBetweenAverages : this->tBetweenAverages * levelFactor;
+    const uint tAvgLevel = this->tBetweenAverages * levelFactor;
     const uint tOutLevel = this->tBetweenWriting * levelFactor;
     const uint tStartOutLevel = this->tStartWritingOutput * levelFactor;
     const uint tStartAvgLevel = this->tStartAveraging * levelFactor;
@@ -324,13 +324,15 @@ void Probe::sample(int level, uint t)
     const uint tAfterStartAvg = tLevel - tStartAvgLevel;
     const uint tAfterStartOut = tLevel - tStartOutLevel;
 
+    const bool averageThisTimestep = this->averageEveryTimestep || (tAfterStartAvg % tAvgLevel == 0);
+
     auto levelData = &levelDatas[level];
 
     auto gridParams = getGridParams(para->getParD(level).get());
 
     const vf::cuda::CudaGrid grid(para->getParD(level)->numberofthreads, levelData->probeDataD.numberOfPoints);
 
-    if ((t > this->tStartAveraging) && (tAfterStartAvg % tAvgLevel == 0)) {
+    if ((t > this->tStartAveraging) && averageThisTimestep) {
         if (outputTimeSeries) {
             const uint lastTimestep = calcOldTimestep(levelData->timeseriesParams.currentTimestep,
                                                        levelData->timeseriesParams.lastTimestepInOldTimeseries);
