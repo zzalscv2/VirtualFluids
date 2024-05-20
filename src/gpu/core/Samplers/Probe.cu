@@ -47,13 +47,13 @@
 #include "TimeseriesFileWriter.h"
 #include "Utilities.h"
 #include "cuda_helper/CudaGrid.h"
+#include "cuda_helper/CudaIndexCalculation.h"
 #include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/DataStructureInitializer/GridProvider.h"
 #include "gpu/core/Output/FilePartCalculator.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/Utilities/GeometryUtils.h"
 #include "gpu/core/Utilities/KernelUtilities.h"
-#include "cuda_helper/CudaIndexCalculation.h"
 
 using namespace vf::basics::constant;
 
@@ -215,15 +215,15 @@ std::vector<Probe::PostProcessingVariable> Probe::getAllPostProcessingVariables(
 {
     std::vector<PostProcessingVariable> postProcessingVariables;
     if (enableComputationInstantaneous) {
-        for(auto p :  getPostProcessingVariables(Statistic::Instantaneous, level))
+        for (auto p : getPostProcessingVariables(Statistic::Instantaneous, level))
             postProcessingVariables.push_back(p);
     }
     if (enableComputationMeans) {
-        for(auto p : getPostProcessingVariables(Statistic::Means, level))
+        for (auto p : getPostProcessingVariables(Statistic::Means, level))
             postProcessingVariables.push_back(p);
     }
     if (enableComputationVariances) {
-        for(auto p: getPostProcessingVariables(Statistic::Variances, level))
+        for (auto p : getPostProcessingVariables(Statistic::Variances, level))
             postProcessingVariables.push_back(p);
     }
     return postProcessingVariables;
@@ -249,15 +249,16 @@ void Probe::init()
 void Probe::addLevelData(int level)
 {
     std::vector<uint> indices;
-    auto levelData = levelDatas.emplace_back();
-    const real* coordinateX = para->getParH(level)->coordinateX;
-    const real* coordinateY = para->getParH(level)->coordinateY;
-    const real* coordinateZ = para->getParH(level)->coordinateZ;
-    const real deltaX = coordinateX[para->getParH(level)->neighborX[1]] - coordinateX[1];
+    std::vector<real> coordinatesX, coordinatesY, coordinatesZ;
+
+    const real* nodeCoordinatesX = para->getParH(level)->coordinateX;
+    const real* nodeCoordinatesY = para->getParH(level)->coordinateY;
+    const real* nodeCoordinatesZ = para->getParH(level)->coordinateZ;
+    const real deltaX = nodeCoordinatesX[para->getParH(level)->neighborX[1]] - nodeCoordinatesX[1];
     for (unsigned long long pos = 1; pos < para->getParH(level)->numberOfNodes; pos++) {
-        const real pointCoordX = coordinateX[pos];
-        const real pointCoordY = coordinateY[pos];
-        const real pointCoordZ = coordinateZ[pos];
+        const real pointCoordX = nodeCoordinatesX[pos];
+        const real pointCoordY = nodeCoordinatesY[pos];
+        const real pointCoordZ = nodeCoordinatesZ[pos];
         for (auto point : points) {
             const real distX = point.x - pointCoordX;
             const real distY = point.y - pointCoordY;
@@ -265,9 +266,9 @@ void Probe::addLevelData(int level)
             if (distX <= deltaX && distY <= deltaX && distZ <= deltaX && distX > c0o1 && distY > c0o1 && distZ > c0o1 &&
                 isValidProbePoint(pos, para.get(), level)) {
                 indices.push_back(static_cast<uint>(pos));
-                levelData.coordinatesX.push_back(pointCoordX);
-                levelData.coordinatesY.push_back(pointCoordX);
-                levelData.coordinatesZ.push_back(pointCoordX);
+                coordinatesX.push_back(pointCoordX);
+                coordinatesY.push_back(pointCoordY);
+                coordinatesZ.push_back(pointCoordZ);
                 continue;
             }
         }
@@ -279,32 +280,25 @@ void Probe::addLevelData(int level)
             if (distanceX <= plane.length && distanceY <= plane.width && distanceZ <= plane.height && distanceX >= c0o1 &&
                 distanceY >= c0o1 && distanceZ >= c0o1 && isValidProbePoint(pos, para.get(), level)) {
                 indices.push_back(static_cast<uint>(pos));
-                levelData.coordinatesX.push_back(pointCoordX);
-                levelData.coordinatesY.push_back(pointCoordY);
-                levelData.coordinatesZ.push_back(pointCoordZ);
+                coordinatesX.push_back(pointCoordX);
+                coordinatesY.push_back(pointCoordY);
+                coordinatesZ.push_back(pointCoordZ);
                 continue;
             }
         }
     }
-    makeProbeData(indices, levelData.probeDataH, levelData.probeDataD, level);
-}
 
-void Probe::makeProbeData(std::vector<uint>& indices, ProbeData& probeDataH, ProbeData& probeDataD, int level)
-{
-    probeDataH.numberOfPoints = static_cast<uint>(indices.size());
-    probeDataD.numberOfPoints = static_cast<uint>(indices.size());
-    probeDataH.numberOfTimesteps = getNumberOfTimestepsInTimeseries(level);
-    probeDataD.numberOfTimesteps = getNumberOfTimestepsInTimeseries(level);
-    probeDataH.computeInstantaneoues = enableComputationInstantaneous;
-    probeDataH.computeMean = enableComputationMeans;
-    probeDataH.computeVariance = enableComputationVariances;
-    probeDataD.computeInstantaneoues = enableComputationInstantaneous;
-    probeDataD.computeMean = enableComputationMeans;
-    probeDataD.computeVariance = enableComputationVariances;
+    uint numberOfQuantities = 4;
+
+    ProbeData probeDataH(enableComputationInstantaneous, enableComputationMeans, enableComputationVariances,
+                         static_cast<uint>(indices.size()), numberOfQuantities, getNumberOfTimestepsInTimeseries(level));
+
+    ProbeData probeDataD = probeDataH;
+
+
+    levelDatas.emplace_back(probeDataH, probeDataD, coordinatesX, coordinatesY, coordinatesZ);
 
     cudaMemoryManager->cudaAllocProbeData(this, level);
-
-    std::copy(indices.begin(), indices.end(), probeDataH.indices);
 
     if (probeDataH.computeInstantaneoues)
         std::fill_n(probeDataH.instantaneous, probeDataH.numberOfPoints * probeDataH.numberOfPoints, c0o1);

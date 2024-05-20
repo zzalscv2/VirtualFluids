@@ -119,8 +119,13 @@ public:
     {
         real *instantaneous, *means, *variances;
         bool computeInstantaneoues {}, computeMean {}, computeVariance {};
-        uint numberOfPoints, numberOfQuantities, numberOfTimesteps { 1 };
+        uint numberOfPoints, numberOfQuantities, numberOfTimesteps;
         uint* indices;
+        __device__ __host__ ProbeData(bool computeInstantaneous, bool computeMean, bool computeVariance, uint numberOfPoints, uint numberOfQuantities, uint numberOfTimesteps)
+            : computeInstantaneoues(computeInstantaneous), computeMean(computeMean), computeVariance(computeVariance),
+              numberOfPoints(numberOfPoints), numberOfQuantities(numberOfQuantities), numberOfTimesteps(numberOfTimesteps)
+        {
+        }
     };
 
     struct TimeseriesParams
@@ -132,8 +137,12 @@ public:
     {
         ProbeData probeDataH, probeDataD;
         TimeseriesParams timeseriesParams;
-        std::vector<real> coordinatesX {}, coordinatesY {}, coordinatesZ {};
+        std::vector<real> coordinatesX , coordinatesY , coordinatesZ ;
         uint numberOfAveragedValues {};
+        LevelData(ProbeData probeDataH, ProbeData probeDataD, std::vector<real> coordinatesX, std::vector<real> coordinatesY, std::vector<real> coordinatesZ)
+            : probeDataH(probeDataH), probeDataD(probeDataD), coordinatesX(coordinatesX), coordinatesY(coordinatesY), coordinatesZ(coordinatesZ)
+        {
+        }
     };
 
     struct GridParams
@@ -194,8 +203,6 @@ private:
     std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable, int level);
     std::vector<PostProcessingVariable> getAllPostProcessingVariables(int level);
 
-    void makeProbeData(std::vector<uint>& indices, ProbeData& probeDataH, ProbeData& probeDataD, int level);
-
     void writeParallelFile(int t);
     void writeGridFiles(int level, int t);
     void writeGridFile(int level, int t, uint part);
@@ -210,7 +217,9 @@ private:
 
     uint getNumberOfTimestepsInTimeseries(int level)
     {
-        return outputTimeSeries ? tBetweenWriting * exp2(level) : 1;
+        if(outputTimeSeries)
+            return tBetweenWriting * exp2(level);
+        return 1;
     }
 
 protected:

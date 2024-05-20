@@ -2325,7 +2325,7 @@ void CudaMemoryManager::cudaAllocProbeData(Probe* probe, int level)
 {
     auto probeDataH = &probe->getLevelData(level)->probeDataH;
     auto probeDataD = &probe->getLevelData(level)->probeDataD;
-    const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps;
+    const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps*probeDataH->numberOfQuantities;
     const size_t sizeIndices = sizeof(real)*probeDataH->numberOfPoints;
     size_t totalSize = sizeIndices;
 
