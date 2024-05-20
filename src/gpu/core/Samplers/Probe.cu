@@ -57,9 +57,9 @@
 
 using namespace vf::basics::constant;
 
-__host__ __device__ int calcArrayIndex(int node, int nNodes, int timestep, int nTimesteps, int array)
+__host__ __device__ int calcArrayIndex(int node, int nNodes, int timestep, int nTimesteps, int quantity)
 {
-    return node + nNodes * (timestep + nTimesteps * array);
+    return node + nNodes * (timestep + nTimesteps * quantity);
 }
 
 uint calcOldTimestep(uint currentTimestep, uint lastTimestepInOldSeries)
@@ -126,15 +126,15 @@ __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::Gr
     const uint nTimesteps = probeData.numberOfTimesteps;
     const real invCount = c1o1 / real(numberOfAveragedValues + 1);
     const real nPoints = probeData.numberOfPoints;
-    const uint indexVxCurrent = calcArrayIndex(gridNodeIndex, nPoints, currentTimestep, nTimesteps, 0);
-    const uint indexVyCurrent = calcArrayIndex(gridNodeIndex, nPoints, currentTimestep, nTimesteps, 1);
-    const uint indexVzCurrent = calcArrayIndex(gridNodeIndex, nPoints, currentTimestep, nTimesteps, 2);
-    const uint indexRhoCurrent = calcArrayIndex(gridNodeIndex, nPoints, currentTimestep, nTimesteps, 3);
+    const uint indexVxCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 0);
+    const uint indexVyCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 1);
+    const uint indexVzCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 2);
+    const uint indexRhoCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 3);
 
-    const uint indexVxLast = calcArrayIndex(gridNodeIndex, nPoints, lastTimestep, nTimesteps, 0);
-    const uint indexVyLast = calcArrayIndex(gridNodeIndex, nPoints, lastTimestep, nTimesteps, 1);
-    const uint indexVzLast = calcArrayIndex(gridNodeIndex, nPoints, lastTimestep, nTimesteps, 2);
-    const uint indexRhoLast = calcArrayIndex(gridNodeIndex, nPoints, lastTimestep, nTimesteps, 3);
+    const uint indexVxLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 0);
+    const uint indexVyLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 1);
+    const uint indexVzLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 2);
+    const uint indexRhoLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 3);
 
     if (probeData.computeInstantaneous) {
         probeData.instantaneous[indexVxCurrent] = vx;
@@ -144,20 +144,15 @@ __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::Gr
     }
 
     if (probeData.computeMeans) {
+        const real vxMeanOld = probeData.means[indexVxLast];
+        const real vyMeanOld = probeData.means[indexVyLast];
+        const real vzMeanOld = probeData.means[indexVzLast];
+        const real rhoMeanOld = probeData.means[indexRhoLast];
 
-        real vxMeanOld, vxMeanNew, vyMeanOld, vyMeanNew, vzMeanOld, vzMeanNew, rhoMeanOld, rhoMeanNew;
-        {
-
-            vxMeanOld = probeData.means[indexVxLast];
-            vyMeanOld = probeData.means[indexVyLast];
-            vzMeanOld = probeData.means[indexVzLast];
-            rhoMeanOld = probeData.means[indexRhoLast];
-
-            vxMeanNew = computeAndSaveMean(probeData.means, vxMeanOld, indexVxCurrent, vx, invCount);
-            vyMeanNew = computeAndSaveMean(probeData.means, vyMeanOld, indexVyCurrent, vy, invCount);
-            vzMeanNew = computeAndSaveMean(probeData.means, vzMeanOld, indexVzCurrent, vz, invCount);
-            rhoMeanNew = computeAndSaveMean(probeData.means, rhoMeanOld, indexRhoCurrent, rho, invCount);
-        }
+        const real vxMeanNew = computeAndSaveMean(probeData.means, vxMeanOld, indexVxCurrent, vx, invCount);
+        const real vyMeanNew = computeAndSaveMean(probeData.means, vyMeanOld, indexVyCurrent, vy, invCount);
+        const real vzMeanNew = computeAndSaveMean(probeData.means, vzMeanOld, indexVzCurrent, vz, invCount);
+        const real rhoMeanNew = computeAndSaveMean(probeData.means, rhoMeanOld, indexRhoCurrent, rho, invCount);
 
         if (probeData.computeVariances) {
 
@@ -288,7 +283,6 @@ void Probe::addLevelData(int level)
         }
     }
 
-    printf("here\n");
     const uint numberOfQuantities = 4;
 
     ProbeData probeDataH(enableComputationInstantaneous, enableComputationMeans, enableComputationVariances,
@@ -338,17 +332,19 @@ void Probe::sample(int level, uint t)
 
     if ((t > this->tStartAveraging) && (tAfterStartAvg % tAvgLevel == 0)) {
         if (outputTimeSeries) {
-            const uint lastTimestep = levelData->timeseriesParams.lastTimestep;
-            const uint currentTimestep = levelData->timeseriesParams.lastTimestep + 1;
+            const uint lastTimestep = calcOldTimestep(levelData->timeseriesParams.currentTimestep,
+                                                       levelData->timeseriesParams.lastTimestepInOldTimeseries);
+            const uint currentTimestep = levelData->timeseriesParams.currentTimestep + 1;
             calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(levelData->numberOfAveragedValues, gridParams,
                                                                    levelData->probeDataD, currentTimestep, lastTimestep);
             if (tLevel >= tStartOutLevel)
-                levelData->timeseriesParams.lastTimestep = calcOldTimestep(
-                    levelData->timeseriesParams.lastTimestep, levelData->timeseriesParams.lastTimestepInOldTimeseries);
+                levelData->timeseriesParams.currentTimestep++;
         } else {
             calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(levelData->numberOfAveragedValues, gridParams,
                                                                    levelData->probeDataD, 0, 0);
         }
+
+        levelData->numberOfAveragedValues++;
 
         //! output only in synchronous timesteps
         if ((t > this->tStartWritingOutput) && (tAfterStartOut % tOutLevel == 0)) {
@@ -357,8 +353,8 @@ void Probe::sample(int level, uint t)
             if (outputTimeSeries) {
                 this->appendTimeseriesFile(level, t);
                 levelData->timeseriesParams.lastTimestepInOldTimeseries =
-                    levelData->timeseriesParams.lastTimestep > 0 ? levelData->timeseriesParams.lastTimestep - 1 : 0;
-                levelData->timeseriesParams.lastTimestep = 0;
+                    levelData->timeseriesParams.currentTimestep > 0 ? levelData->timeseriesParams.currentTimestep - 1 : 0;
+                levelData->timeseriesParams.currentTimestep = 0;
             } else {
                 this->writeGridFiles(level, t);
                 if (level == 0)
@@ -504,20 +500,22 @@ std::vector<real> Probe::getTimestepData(real time, int timestep, int level)
 
 void Probe::appendTimeseriesFile(int level, int t)
 {
-    std::ofstream out(this->timeseriesFileNames[level], std::ios::app | std::ios::binary);
-
     const uint tAvg_level = this->tBetweenAverages == 1 ? this->tBetweenAverages : this->tBetweenAverages * exp2(-level);
     const real deltaT = para->getTimeRatio() * tAvg_level;
     auto levelData = levelDatas[level];
 
     const real tStart = (t - this->tBetweenWriting) * para->getTimeRatio();
 
-    for (uint timestep = 0; timestep < levelData.timeseriesParams.lastTimestep; timestep++) {
+
+    std::vector<std::vector<real>> timestepData;
+
+    for (uint timestep = 0; timestep < levelData.timeseriesParams.currentTimestep; timestep++) {
         const real time = tStart + timestep * deltaT;
-        std::vector<real> timestepData = this->getTimestepData(time, timestep, level);
-        out.write((char*)timestepData.data(), sizeof(real) * timestepData.size());
+        timestepData.push_back(this->getTimestepData(time, timestep, level));
     }
-    out.close();
+    TimeseriesFileWriter::appendData(this->timeseriesFileNames[level], timestepData);
+    levelData.timeseriesParams.lastTimestepInOldTimeseries = levelData.timeseriesParams.currentTimestep;
+    levelData.timeseriesParams.currentTimestep = 0;
 }
 
 std::vector<std::string> Probe::getVarNames()

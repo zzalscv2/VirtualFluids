@@ -2326,7 +2326,7 @@ void CudaMemoryManager::cudaAllocProbeData(Probe* probe, int level)
     auto probeDataH = &probe->getLevelData(level)->probeDataH;
     auto probeDataD = &probe->getLevelData(level)->probeDataD;
     const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps*probeDataH->numberOfQuantities;
-    const size_t sizeIndices = sizeof(real)*probeDataH->numberOfPoints;
+    const size_t sizeIndices = sizeof(uint)*probeDataH->numberOfPoints;
     size_t totalSize = sizeIndices;
 
     checkCudaErrors( cudaMallocHost((void**) &probeDataH->indices, sizeIndices) );
@@ -2358,8 +2358,8 @@ void CudaMemoryManager::cudaCopyProbeDataHtoD(Probe* probe, int level)
 {
     auto probeDataH = &probe->getLevelData(level)->probeDataH;
     auto probeDataD = &probe->getLevelData(level)->probeDataD;
-    const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps;
-    const size_t sizeIndices = sizeof(real)*probeDataH->numberOfPoints;
+    const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps*probeDataH->numberOfQuantities;
+    const size_t sizeIndices = sizeof(uint)*probeDataH->numberOfPoints;
 
     checkCudaErrors( cudaMemcpy(probeDataD->indices, probeDataH->indices, sizeIndices, cudaMemcpyHostToDevice) );
 
@@ -2381,7 +2381,7 @@ void CudaMemoryManager::cudaCopyProbeDataDtoH(Probe* probe, int level)
 {
     auto probeDataH = &probe->getLevelData(level)->probeDataH;
     auto probeDataD = &probe->getLevelData(level)->probeDataD;
-    const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps;
+    const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps*probeDataH->numberOfQuantities;
     if(probeDataH->computeInstantaneous)
     {
         checkCudaErrors( cudaMemcpy(probeDataH->instantaneous, probeDataD->instantaneous, sizeData, cudaMemcpyDeviceToHost) );

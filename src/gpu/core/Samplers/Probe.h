@@ -130,7 +130,7 @@ public:
 
     struct TimeseriesParams
     {
-        uint lastTimestep {}, numberOfTimesteps {}, lastTimestepInOldTimeseries {};
+        uint currentTimestep {}, numberOfTimesteps {}, lastTimestepInOldTimeseries {};
     };
 
     struct LevelData
