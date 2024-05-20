@@ -55,6 +55,7 @@ class CudaMemoryManager;
 
 //! \brief Computes statistics of pointwise data. Data can be written to vtk-file or timeseries file.
 //! All points and planes are written to the same file. Use different probes to write to separate files. 
+//! Data is sampled in synchronous timestep, unless averageEveryTimestep is set to true.
 class Probe : public Sampler
 {
 public:
