@@ -118,11 +118,11 @@ public:
     struct ProbeData
     {
         real *instantaneous, *means, *variances;
-        bool computeInstantaneoues {}, computeMean {}, computeVariance {};
+        bool computeInstantaneous, computeMeans, computeVariances;
         uint numberOfPoints, numberOfQuantities, numberOfTimesteps;
         uint* indices;
-        __device__ __host__ ProbeData(bool computeInstantaneous, bool computeMean, bool computeVariance, uint numberOfPoints, uint numberOfQuantities, uint numberOfTimesteps)
-            : computeInstantaneoues(computeInstantaneous), computeMean(computeMean), computeVariance(computeVariance),
+        __device__ __host__ ProbeData(bool computeInstantaneous, bool computeMeans, bool computeVariance, uint numberOfPoints, uint numberOfQuantities, uint numberOfTimesteps)
+            : computeInstantaneous(computeInstantaneous), computeMeans(computeMeans), computeVariances(computeVariance),
               numberOfPoints(numberOfPoints), numberOfQuantities(numberOfQuantities), numberOfTimesteps(numberOfTimesteps)
         {
         }

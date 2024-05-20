@@ -136,14 +136,14 @@ __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::Gr
     const uint indexVzLast = calcArrayIndex(gridNodeIndex, nPoints, lastTimestep, nTimesteps, 2);
     const uint indexRhoLast = calcArrayIndex(gridNodeIndex, nPoints, lastTimestep, nTimesteps, 3);
 
-    if (probeData.computeInstantaneoues) {
+    if (probeData.computeInstantaneous) {
         probeData.instantaneous[indexVxCurrent] = vx;
         probeData.instantaneous[indexVyCurrent] = vy;
         probeData.instantaneous[indexVzCurrent] = vz;
         probeData.instantaneous[indexRhoCurrent] = rho;
     }
 
-    if (probeData.computeMean) {
+    if (probeData.computeMeans) {
 
         real vxMeanOld, vxMeanNew, vyMeanOld, vyMeanNew, vzMeanOld, vzMeanNew, rhoMeanOld, rhoMeanNew;
         {
@@ -159,7 +159,7 @@ __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::Gr
             rhoMeanNew = computeAndSaveMean(probeData.means, rhoMeanOld, indexRhoCurrent, rho, invCount);
         }
 
-        if (probeData.computeVariance) {
+        if (probeData.computeVariances) {
 
             const real vxVarianceOld = probeData.variances[indexVxLast];
             const real vyVarianceOld = probeData.variances[indexVyLast];
@@ -288,24 +288,27 @@ void Probe::addLevelData(int level)
         }
     }
 
-    uint numberOfQuantities = 4;
+    printf("here\n");
+    const uint numberOfQuantities = 4;
 
     ProbeData probeDataH(enableComputationInstantaneous, enableComputationMeans, enableComputationVariances,
                          static_cast<uint>(indices.size()), numberOfQuantities, getNumberOfTimestepsInTimeseries(level));
 
     ProbeData probeDataD = probeDataH;
-
+    const uint sizeData = probeDataH.numberOfPoints * probeDataH.numberOfTimesteps * numberOfQuantities;
 
     levelDatas.emplace_back(probeDataH, probeDataD, coordinatesX, coordinatesY, coordinatesZ);
 
     cudaMemoryManager->cudaAllocProbeData(this, level);
 
-    if (probeDataH.computeInstantaneoues)
-        std::fill_n(probeDataH.instantaneous, probeDataH.numberOfPoints * probeDataH.numberOfPoints, c0o1);
-    if (probeDataH.computeMean)
-        std::fill_n(probeDataH.means, probeDataH.numberOfPoints * probeDataH.numberOfPoints, c0o1);
-    if (probeDataH.computeVariance)
-        std::fill_n(probeDataH.variances, probeDataH.numberOfPoints * probeDataH.numberOfPoints, c0o1);
+    std::copy(indices.begin(), indices.end(), levelDatas[level].probeDataH.indices);
+
+    if (enableComputationInstantaneous)
+        std::fill_n(levelDatas[level].probeDataH.instantaneous, sizeData, c0o1);
+    if (enableComputationMeans)
+        std::fill_n(levelDatas[level].probeDataH.means, sizeData, c0o1);
+    if (enableComputationVariances)
+        std::fill_n(levelDatas[level].probeDataH.variances, sizeData, c0o1);
 
     cudaMemoryManager->cudaCopyProbeDataHtoD(this, level);
 }

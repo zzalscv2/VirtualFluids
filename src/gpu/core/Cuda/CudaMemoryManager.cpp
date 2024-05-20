@@ -2332,19 +2332,19 @@ void CudaMemoryManager::cudaAllocProbeData(Probe* probe, int level)
     checkCudaErrors( cudaMallocHost((void**) &probeDataH->indices, sizeIndices) );
     checkCudaErrors( cudaMalloc((void**) &probeDataD->indices, sizeIndices) );
     
-    if(probeDataH->computeInstantaneoues)
+    if(probeDataH->computeInstantaneous)
     {
         checkCudaErrors( cudaMallocHost((void**) &probeDataH->instantaneous, sizeData) );
         checkCudaErrors( cudaMalloc((void**) &probeDataD->instantaneous, sizeData) );
         totalSize += sizeData;
     }
-    if(probeDataH->computeMean)
+    if(probeDataH->computeMeans)
     {
         checkCudaErrors( cudaMallocHost((void**) &probeDataH->means, sizeData) );
         checkCudaErrors( cudaMalloc((void**) &probeDataD->means, sizeData) );
         totalSize += sizeData;
     }
-    if(probeDataH->computeVariance)
+    if(probeDataH->computeVariances)
     {
         checkCudaErrors( cudaMallocHost((void**) &probeDataH->variances, sizeData) );
         checkCudaErrors( cudaMalloc((void**) &probeDataD->variances, sizeData) );
@@ -2363,15 +2363,15 @@ void CudaMemoryManager::cudaCopyProbeDataHtoD(Probe* probe, int level)
 
     checkCudaErrors( cudaMemcpy(probeDataD->indices, probeDataH->indices, sizeIndices, cudaMemcpyHostToDevice) );
 
-    if(probeDataH->computeInstantaneoues)
+    if(probeDataH->computeInstantaneous)
     {
         checkCudaErrors( cudaMemcpy(probeDataD->instantaneous, probeDataH->instantaneous, sizeData, cudaMemcpyHostToDevice) );
     }
-    if(probeDataH->computeMean)
+    if(probeDataH->computeMeans)
     {
         checkCudaErrors( cudaMemcpy(probeDataD->means, probeDataH->means, sizeData, cudaMemcpyHostToDevice) );
     }
-    if(probeDataH->computeVariance)
+    if(probeDataH->computeVariances)
     {
         checkCudaErrors( cudaMemcpy(probeDataD->variances, probeDataH->variances, sizeData, cudaMemcpyHostToDevice) );
     }
@@ -2382,15 +2382,15 @@ void CudaMemoryManager::cudaCopyProbeDataDtoH(Probe* probe, int level)
     auto probeDataH = &probe->getLevelData(level)->probeDataH;
     auto probeDataD = &probe->getLevelData(level)->probeDataD;
     const size_t sizeData = sizeof(real)*probeDataH->numberOfPoints*probeDataH->numberOfTimesteps;
-    if(probeDataH->computeInstantaneoues)
+    if(probeDataH->computeInstantaneous)
     {
         checkCudaErrors( cudaMemcpy(probeDataH->instantaneous, probeDataD->instantaneous, sizeData, cudaMemcpyDeviceToHost) );
     }
-    if(probeDataH->computeMean)
+    if(probeDataH->computeMeans)
     {
         checkCudaErrors( cudaMemcpy(probeDataH->means, probeDataD->means, sizeData, cudaMemcpyDeviceToHost) );
     }
-    if(probeDataH->computeVariance)
+    if(probeDataH->computeVariances)
     {
         checkCudaErrors( cudaMemcpy(probeDataH->variances, probeDataD->variances, sizeData, cudaMemcpyDeviceToHost) );
     }
@@ -2403,17 +2403,17 @@ void CudaMemoryManager::cudaFreeProbeData(Probe* probe, int level)
     checkCudaErrors( cudaFreeHost(probeDataH->indices) );
     checkCudaErrors( cudaFree(probeDataD->indices) );
 
-    if(probeDataH->computeInstantaneoues)
+    if(probeDataH->computeInstantaneous)
     {
         checkCudaErrors( cudaFreeHost(probeDataH->instantaneous) );
         checkCudaErrors( cudaFree(probeDataD->instantaneous) );
     }
-    if(probeDataH->computeMean)
+    if(probeDataH->computeMeans)
     {
         checkCudaErrors( cudaFreeHost(probeDataH->means) );
         checkCudaErrors( cudaFree(probeDataD->means) );
     }
-    if(probeDataH->computeVariance)
+    if(probeDataH->computeVariances)
     {
         checkCudaErrors( cudaFreeHost(probeDataH->variances) );
         checkCudaErrors( cudaFree(probeDataD->variances) );
