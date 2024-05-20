@@ -213,7 +213,7 @@ void run(const vf::basics::ConfigurationFile& config)
         const std::string name = "planeProbe_" + std::to_string(i);
         auto planeProbe =
             std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), name, timeStepStartTemporalAveraging,
-                                    numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false);
+                                    numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false, false);
         planeProbe->addProbePlane(turbinePositionsX[0] + planePositions[i], -0.5 * lengthY, -0.5 * lengthZ, deltaX, lengthY,
                                   lengthZ);
         planeProbe->addStatistic(Probe::Statistic::Means);
@@ -224,7 +224,7 @@ void run(const vf::basics::ConfigurationFile& config)
 
     auto planeProbeVertical = std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), "planeProbeVertical",
                                                       timeStepStartTemporalAveraging, numberOfAvergingTimeSteps,
-                                                      timeStepStartOutProbe, timeStepOutProbe, false);
+                                                      timeStepStartOutProbe, timeStepOutProbe, false, false);
     planeProbeVertical->addProbePlane(0, turbinePositionsY[0], -0.5 * lengthZ, lengthX, deltaX, lengthZ);
     planeProbeVertical->addStatistic(Probe::Statistic::Means);
     planeProbeVertical->addStatistic(Probe::Statistic::Variances);
@@ -233,7 +233,7 @@ void run(const vf::basics::ConfigurationFile& config)
 
     auto planeProbeHorizontal = std::make_shared<Probe>(
         para, cudaMemoryManager, para->getOutputPath(), "planeProbeHorizontal", timeStepStartTemporalAveraging,
-        numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false);
+        numberOfAvergingTimeSteps, timeStepStartOutProbe, timeStepOutProbe, false, false);
     planeProbeHorizontal->addProbePlane(0, -0.5 * lengthY, turbinePositionsZ[0], lengthX, lengthY, deltaX);
     planeProbeHorizontal->addStatistic(Probe::Statistic::Means);
     planeProbeHorizontal->addStatistic(Probe::Statistic::Variances);
@@ -243,7 +243,7 @@ void run(const vf::basics::ConfigurationFile& config)
     if (probePositionsX.size() > 0) {
         auto timeseriesProbe = std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), "timeProbe",
                                                        timeStepStartTemporalAveraging, timeStepAverageTimeSeriesProbe,
-                                                       timeStepStartOutProbe, timeStepOutProbe, true);
+                                                       timeStepStartOutProbe, timeStepOutProbe, true, false);
         timeseriesProbe->addProbePointsFromList(probePositionsX, probePositionsY, probePositionsZ);
         timeseriesProbe->addStatistic(Probe::Statistic::Instantaneous);
         timeseriesProbe->addStatistic(Probe::Statistic::Means);
