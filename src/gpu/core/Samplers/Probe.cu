@@ -50,7 +50,6 @@
 #include "gpu/cuda_helper/CudaGrid.h"
 #include "gpu/cuda_helper/CudaIndexCalculation.h"
 
-#include "TimeseriesFileWriter.h"
 #include "Utilities.h"
 
 using namespace vf::basics::constant;
