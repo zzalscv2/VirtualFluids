@@ -41,12 +41,12 @@
 #include <basics/DataTypes.h>
 #include <basics/constants/NumericConstants.h>
 
+#include "gpu/core/Calculation/Calculation.h"
 #include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/DataStructureInitializer/GridProvider.h"
 #include "gpu/core/Output/FilePartCalculator.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/Utilities/GeometryUtils.h"
-#include "gpu/core/Calculation/Calculation.h"
 #include "gpu/cuda_helper/CudaGrid.h"
 #include "gpu/cuda_helper/CudaIndexCalculation.h"
 
@@ -265,7 +265,7 @@ void Probe::addLevelData(int level)
         }
     }
 
-    const uint numberOfQuantities = 4;
+    const uint numberOfQuantities = static_cast<uint>(getPostProcessingVariables(Statistic::Instantaneous, 0).size());
 
     ProbeData probeData(enableComputationInstantaneous, enableComputationMeans, enableComputationVariances,
                         static_cast<uint>(indices.size()), numberOfQuantities, getNumberOfTimestepsInTimeseries(level));
@@ -317,7 +317,7 @@ void Probe::sample(int level, uint t)
         if (outputTimeSeries) {
             const uint lastTimestep = calcOldTimestep(levelData->timeseriesParams.currentTimestep,
                                                       levelData->timeseriesParams.lastTimestepInOldTimeseries);
-            const uint currentTimestep = levelData->timeseriesParams.currentTimestep + 1;
+            const uint currentTimestep = levelData->timeseriesParams.currentTimestep;
             calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(levelData->numberOfAveragedValues, gridParams,
                                                                    levelData->probeDataD, currentTimestep, lastTimestep);
             if (tLevel >= tStartOutLevel)
@@ -326,23 +326,20 @@ void Probe::sample(int level, uint t)
             calculateQuantitiesKernel<<<grid.grid, grid.threads>>>(levelData->numberOfAveragedValues, gridParams,
                                                                    levelData->probeDataD, 0, 0);
         }
-
         levelData->numberOfAveragedValues++;
-
-        //! output only in synchronous timesteps
-        if ((t > this->tStartWritingOutput) && (tAfterStartOut % tOutLevel == 0)) {
-
-            cudaMemoryManager->cudaCopyProbeDataDtoH(this, level);
-            if (outputTimeSeries) {
-                this->appendTimeseriesFile(level, t);
-                levelData->timeseriesParams.lastTimestepInOldTimeseries =
-                    levelData->timeseriesParams.currentTimestep > 0 ? levelData->timeseriesParams.currentTimestep - 1 : 0;
-                levelData->timeseriesParams.currentTimestep = 0;
-            } else {
-                this->writeGridFiles(level, t);
-                if (level == 0)
-                    this->writeParallelFile(t);
-            }
+    }
+    //! output only in synchronous timesteps
+    if ((t > this->tStartWritingOutput) && (tAfterStartOut % tOutLevel == 0)) {
+        cudaMemoryManager->cudaCopyProbeDataDtoH(this, level);
+        if (outputTimeSeries) {
+            this->appendTimeseriesFile(level, t);
+            levelData->timeseriesParams.lastTimestepInOldTimeseries =
+                levelData->timeseriesParams.currentTimestep > 0 ? levelData->timeseriesParams.currentTimestep - 1 : 0;
+            levelData->timeseriesParams.currentTimestep = 0;
+        } else {
+            this->writeGridFiles(level, t);
+            if (level == 0)
+                this->writeParallelFile(t);
         }
     }
 }
