@@ -34,8 +34,8 @@
 #ifndef COMMUNICATION_NODE_FINDER_H
 #define COMMUNICATION_NODE_FINDER_H
 
-#include <vector>
 #include <array>
+#include <vector>
 
 #include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
@@ -82,7 +82,8 @@ private:
     bool isSendNode(uint level, int index) const;
     bool isReceiveNode(uint level, int index) const;
 
-    static void repairCommunicationIndicesForLevel(int direction, CommunicationIndicesForLevel& communicationIndicesForLevel);
+    static void repairCommunicationIndicesForLevel(int direction,
+                                                   CommunicationIndicesForLevel& communicationIndicesForLevel);
 
     std::vector<CommunicationIndicesForLevel> communicationIndices;
 };

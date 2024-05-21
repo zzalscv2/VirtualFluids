@@ -90,16 +90,16 @@ void CommunicationNodeFinder::findCommunicationIndicesForLevel(int direction, co
 void CommunicationNodeFinder::findCommunicationIndex(uint index, real coordinate, real limit, int direction, real delta,
                                                      CommunicationIndicesForLevel& communicationIndicesForLevel)
 {
+    // the following code adds an index to the communication indices, when the coordinate is around + or - 0.5 * delta from
+    // the limit
+
     // negative direction get a negative sign
+    real sign = (direction % 2 == 0) ? (-1.0) : (1.0);
 
-    // the following code adds an index to the communication indices, when the coordinate is around + or - 0.5 * delta from the limit
-
-    real s = (direction % 2 == 0) ? (-1.0) : (1.0);
-
-    if (std::abs(coordinate - (limit + s * 0.5 * delta)) < 0.1 * delta)
+    if (std::abs(coordinate - (limit + sign * 0.5 * delta)) < 0.1 * delta)
         communicationIndicesForLevel[direction].receiveIndices.push_back(index);
 
-    if (std::abs(coordinate - (limit - s * 0.5 * delta)) < 0.1 * delta)
+    if (std::abs(coordinate - (limit - sign * 0.5 * delta)) < 0.1 * delta)
         communicationIndicesForLevel[direction].sendIndices.push_back(index);
 }
 
