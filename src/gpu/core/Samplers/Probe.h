@@ -44,9 +44,9 @@
 #include <stdexcept>
 #include <string>
 
-#include <basics/writer/WbWriterVtkXmlBinary.h>
 #include <basics/DataTypes.h>
 #include <basics/PointerDefinitions.h>
+#include <basics/writer/WbWriterVtkXmlBinary.h>
 #include <logger/Logger.h>
 
 struct LBMSimulationParameter;
@@ -54,23 +54,23 @@ class Parameter;
 class CudaMemoryManager;
 
 //! \brief Computes statistics of pointwise data. Data can be written to vtk-file or timeseries file.
-//! All points and planes are written to the same file. Use different probes to write to separate files. 
+//! All points and planes are written to the same file. Use different probes to write to separate files.
 //! Data is sampled in synchronous timestep, unless averageEveryTimestep is set to true.
 class Probe : public Sampler
 {
 public:
-
     enum class Statistic { Instantaneous, Means, Variances };
 
     Probe(SPtr<Parameter> para, SPtr<CudaMemoryManager> cudaMemoryManager, std::string outputPath, std::string probeName,
-          uint tStartAveraging, uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting, bool outputTimeSeries, bool averageEveryTimestep)
+          uint tStartAveraging, uint tBetweenAverages, uint tStartWritingOutput, uint tBetweenWriting, bool outputTimeSeries,
+          bool averageEveryTimestep)
         : para(para), cudaMemoryManager(cudaMemoryManager), tStartAveraging(tStartAveraging),
           tBetweenAverages(tBetweenAverages), tStartWritingOutput(tStartWritingOutput), tBetweenWriting(tBetweenWriting),
           outputTimeSeries(outputTimeSeries), averageEveryTimestep(averageEveryTimestep), Sampler(outputPath, probeName)
     {
         if (tStartWritingOutput < tStartAveraging)
             throw std::runtime_error("Probe: tStartWritingOutput must be larger than tStartAveraging!");
-        if(averageEveryTimestep)
+        if (averageEveryTimestep)
             VF_LOG_INFO("Probe: averageEveryTimestep is true, ignoring tBetweenAverages");
     }
 
@@ -78,6 +78,8 @@ public:
 
     void init() override;
     void sample(int level, uint t) override;
+    void getTaggedFluidNodes(GridProvider* gridProvider) override;
+
     void addProbePlane(real startX, real startY, real startZ, real length, real width, real height)
     {
         planes.emplace_back(Plane { startX, startY, startZ, length, width, height });
@@ -87,6 +89,28 @@ public:
     {
         points.emplace_back(Point { x, y, z });
     }
+
+    void addProbePointsFromList(std::vector<real> coordsX, std::vector<real> coordY, std::vector<real> coordZ)
+    {
+        if (coordsX.size() != coordY.size() || coordsX.size() != coordZ.size())
+            throw std::runtime_error("Probe: Point coordinates must have the same size!");
+        for (uint i = 0; i < coordsX.size(); i++)
+            addProbePoint(coordsX[i], coordY[i], coordZ[i]);
+    }
+
+    void addStatistic(Probe::Statistic variable);
+    void addAllAvailableStatistics()
+    {
+        addStatistic(Probe::Statistic::Instantaneous);
+        addStatistic(Probe::Statistic::Means);
+        addStatistic(Probe::Statistic::Variances);
+    }
+
+    void setFileNameToNOut()
+    {
+        this->fileNameLU = false;
+    }
+
     struct PostProcessingVariable
     {
         std::string name;
@@ -102,7 +126,8 @@ public:
         bool computeInstantaneous, computeMeans, computeVariances;
         uint numberOfPoints, numberOfQuantities, numberOfTimesteps;
         uint* indices;
-        __device__ __host__ ProbeData(bool computeInstantaneous, bool computeMeans, bool computeVariance, uint numberOfPoints, uint numberOfQuantities, uint numberOfTimesteps)
+        __device__ __host__ ProbeData(bool computeInstantaneous, bool computeMeans, bool computeVariance,
+                                      uint numberOfPoints, uint numberOfQuantities, uint numberOfTimesteps)
             : computeInstantaneous(computeInstantaneous), computeMeans(computeMeans), computeVariances(computeVariance),
               numberOfPoints(numberOfPoints), numberOfQuantities(numberOfQuantities), numberOfTimesteps(numberOfTimesteps)
         {
@@ -118,20 +143,27 @@ public:
     {
         ProbeData probeDataH, probeDataD;
         TimeseriesParams timeseriesParams;
-        std::vector<real> coordinatesX , coordinatesY , coordinatesZ ;
+        std::vector<real> coordinatesX, coordinatesY, coordinatesZ;
         uint numberOfAveragedValues {};
-        LevelData(ProbeData probeDataH, ProbeData probeDataD, std::vector<real> coordinatesX, std::vector<real> coordinatesY, std::vector<real> coordinatesZ)
-            : probeDataH(probeDataH), probeDataD(probeDataD), coordinatesX(coordinatesX), coordinatesY(coordinatesY), coordinatesZ(coordinatesZ)
+        LevelData(ProbeData probeDataH, ProbeData probeDataD, std::vector<real> coordinatesX, std::vector<real> coordinatesY,
+                  std::vector<real> coordinatesZ)
+            : probeDataH(probeDataH), probeDataD(probeDataD), coordinatesX(coordinatesX), coordinatesY(coordinatesY),
+              coordinatesZ(coordinatesZ)
         {
         }
     };
+
+    LevelData* getLevelData(int level)
+    {
+        return &levelDatas[level];
+    }
 
     struct GridParams
     {
         real *velocityX, *velocityY, *velocityZ, *density;
     };
 
-    GridParams getGridParams(LBMSimulationParameter* para);
+    static GridParams getGridParams(LBMSimulationParameter* para);
 
     struct Plane
     {
@@ -145,34 +177,6 @@ public:
     };
 
 
-    void addProbePointsFromList(std::vector<real> coordsX, std::vector<real> coordY, std::vector<real> coordZ)
-    {
-        if (coordsX.size() != coordY.size() || coordsX.size() != coordZ.size())
-            throw std::runtime_error("Probe: Point coordinates must have the same size!");
-        for (uint i = 0; i < coordsX.size(); i++)
-            points.emplace_back(Point { coordsX[i], coordY[i], coordZ[i] });
-    }
-
-    void getTaggedFluidNodes(GridProvider* gridProvider) override;
-
-    void addStatistic(Probe::Statistic variable);
-    void addAllAvailableStatistics()
-    {
-        addStatistic(Probe::Statistic::Instantaneous);
-        addStatistic(Probe::Statistic::Means);
-        addStatistic(Probe::Statistic::Variances);
-    }
-
-    void setFileNameToNOut()
-    {
-        this->fileNameLU = false;
-    }
-
-    LevelData* getLevelData(int level)
-    {
-        return &levelDatas[level];
-    }
-
 private:
     void addLevelData(int level);
     void addPointsToLevelData(LevelData& levelData, std::vector<uint>& indices, int level);
@@ -181,8 +185,8 @@ private:
     {
         return WbWriterVtkXmlBinary::getInstance();
     };
-    std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable, int level);
-    std::vector<PostProcessingVariable> getAllPostProcessingVariables(int level);
+    std::vector<PostProcessingVariable> getPostProcessingVariables(Statistic variable, int level) const;
+    std::vector<PostProcessingVariable> getAllPostProcessingVariables(int level) const;
 
     void writeParallelFile(int t);
     void writeGridFiles(int level, int t);
@@ -198,7 +202,7 @@ private:
 
     uint getNumberOfTimestepsInTimeseries(int level)
     {
-        if(outputTimeSeries)
+        if (outputTimeSeries)
             return tBetweenWriting * exp2(level);
         return 1;
     }

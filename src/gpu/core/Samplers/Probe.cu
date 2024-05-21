@@ -35,25 +35,23 @@
 #include "Probe.h"
 
 #include <cmath>
-#include <filesystem>
-#include <fstream>
 #include <stdexcept>
 #include <string>
 
 #include <basics/DataTypes.h>
-#include <basics/StringUtilities/StringUtil.h>
 #include <basics/constants/NumericConstants.h>
 
-#include "TimeseriesFileWriter.h"
-#include "Utilities.h"
-#include "cuda_helper/CudaGrid.h"
-#include "cuda_helper/CudaIndexCalculation.h"
 #include "gpu/core/Cuda/CudaMemoryManager.h"
 #include "gpu/core/DataStructureInitializer/GridProvider.h"
 #include "gpu/core/Output/FilePartCalculator.h"
 #include "gpu/core/Parameter/Parameter.h"
 #include "gpu/core/Utilities/GeometryUtils.h"
-#include "gpu/core/Utilities/KernelUtilities.h"
+#include "gpu/core/Calculation/Calculation.h"
+#include "gpu/cuda_helper/CudaGrid.h"
+#include "gpu/cuda_helper/CudaIndexCalculation.h"
+
+#include "TimeseriesFileWriter.h"
+#include "Utilities.h"
 
 using namespace vf::basics::constant;
 
@@ -108,6 +106,28 @@ __host__ __device__ real computeAndSaveVariance(real* quantityArray, real oldVar
     return newVariance;
 }
 
+__forceinline__ __device__ void computeStatistics(uint nAveragedValues, uint currentTimestep, uint lastTimestep,
+                                                  uint nPoints, uint nodeIndex, bool computeInstant, bool computeMean,
+                                                  bool computeVariance, uint iQuantity, real currentValue,
+                                                  const Probe::ProbeData& probeData, real invCount)
+{
+    const uint indexCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, probeData.numberOfTimesteps, iQuantity);
+    const uint indexLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, probeData.numberOfTimesteps, iQuantity);
+    if (computeInstant)
+        probeData.instantaneous[indexCurrent] = currentValue;
+    if (computeMean) {
+        const real meanOld = probeData.means[indexLast];
+        const real meanNew = computeAndSaveMean(probeData.means, meanOld, indexCurrent, currentValue, invCount);
+        if (nAveragedValues == 0)
+            return;
+        if (computeVariance) {
+            const real varianceOld = probeData.variances[indexLast];
+            computeAndSaveVariance(probeData.variances, varianceOld, indexCurrent, currentValue, meanOld, meanNew,
+                                   nAveragedValues, invCount);
+        }
+    }
+}
+
 __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::GridParams gridParams,
                                           Probe::ProbeData probeData, uint currentTimestep, uint lastTimestep)
 {
@@ -118,65 +138,24 @@ __global__ void calculateQuantitiesKernel(uint numberOfAveragedValues, Probe::Gr
 
     const uint gridNodeIndex = probeData.indices[nodeIndex];
 
-    const real vx = gridParams.velocityX[gridNodeIndex];
-    const real vy = gridParams.velocityY[gridNodeIndex];
-    const real vz = gridParams.velocityZ[gridNodeIndex];
-    const real rho = gridParams.density[gridNodeIndex];
-
-    const uint nTimesteps = probeData.numberOfTimesteps;
     const real invCount = c1o1 / real(numberOfAveragedValues + 1);
     const real nPoints = probeData.numberOfPoints;
-    const uint indexVxCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 0);
-    const uint indexVyCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 1);
-    const uint indexVzCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 2);
-    const uint indexRhoCurrent = calcArrayIndex(nodeIndex, nPoints, currentTimestep, nTimesteps, 3);
 
-    const uint indexVxLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 0);
-    const uint indexVyLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 1);
-    const uint indexVzLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 2);
-    const uint indexRhoLast = calcArrayIndex(nodeIndex, nPoints, lastTimestep, nTimesteps, 3);
-
-    if (probeData.computeInstantaneous) {
-        probeData.instantaneous[indexVxCurrent] = vx;
-        probeData.instantaneous[indexVyCurrent] = vy;
-        probeData.instantaneous[indexVzCurrent] = vz;
-        probeData.instantaneous[indexRhoCurrent] = rho;
-    }
-
-    if (probeData.computeMeans) {
-        const real vxMeanOld = probeData.means[indexVxLast];
-        const real vyMeanOld = probeData.means[indexVyLast];
-        const real vzMeanOld = probeData.means[indexVzLast];
-        const real rhoMeanOld = probeData.means[indexRhoLast];
-
-        const real vxMeanNew = computeAndSaveMean(probeData.means, vxMeanOld, indexVxCurrent, vx, invCount);
-        const real vyMeanNew = computeAndSaveMean(probeData.means, vyMeanOld, indexVyCurrent, vy, invCount);
-        const real vzMeanNew = computeAndSaveMean(probeData.means, vzMeanOld, indexVzCurrent, vz, invCount);
-        const real rhoMeanNew = computeAndSaveMean(probeData.means, rhoMeanOld, indexRhoCurrent, rho, invCount);
-
-        if (numberOfAveragedValues == 0)
-            return;
-
-        if (probeData.computeVariances) {
-
-            const real vxVarianceOld = probeData.variances[indexVxLast];
-            const real vyVarianceOld = probeData.variances[indexVyLast];
-            const real vzVarianceOld = probeData.variances[indexVzLast];
-            const real rhoVarianceOld = probeData.variances[indexRhoLast];
-
-            computeAndSaveVariance(probeData.variances, vxVarianceOld, indexVxCurrent, vx, vxMeanOld, vxMeanNew,
-                                   numberOfAveragedValues, invCount);
-            computeAndSaveVariance(probeData.variances, vyVarianceOld, indexVxCurrent, vy, vyMeanOld, vyMeanNew,
-                                   numberOfAveragedValues, invCount);
-            computeAndSaveVariance(probeData.variances, vzVarianceOld, indexVxCurrent, vz, vzMeanOld, vzMeanNew,
-                                   numberOfAveragedValues, invCount);
-            computeAndSaveVariance(probeData.variances, rhoVarianceOld, indexRhoCurrent, rho, rhoMeanOld, rhoMeanNew,
-                                   numberOfAveragedValues, invCount);
-        }
-    }
+    computeStatistics(numberOfAveragedValues, currentTimestep, lastTimestep, nPoints, nodeIndex,
+                      probeData.computeInstantaneous, probeData.computeMeans, probeData.computeVariances, 0,
+                      gridParams.velocityX[gridNodeIndex], probeData, invCount);
+    computeStatistics(numberOfAveragedValues, currentTimestep, lastTimestep, nPoints, nodeIndex,
+                      probeData.computeInstantaneous, probeData.computeMeans, probeData.computeVariances, 1,
+                      gridParams.velocityY[gridNodeIndex], probeData, invCount);
+    computeStatistics(numberOfAveragedValues, currentTimestep, lastTimestep, nPoints, nodeIndex,
+                      probeData.computeInstantaneous, probeData.computeMeans, probeData.computeVariances, 2,
+                      gridParams.velocityZ[gridNodeIndex], probeData, invCount);
+    computeStatistics(numberOfAveragedValues, currentTimestep, lastTimestep, nPoints, nodeIndex,
+                      probeData.computeInstantaneous, probeData.computeMeans, probeData.computeVariances, 3,
+                      gridParams.density[gridNodeIndex], probeData, invCount);
 }
 
-std::vector<Probe::PostProcessingVariable> Probe::getPostProcessingVariables(Statistic statistic, int level)
+std::vector<Probe::PostProcessingVariable> Probe::getPostProcessingVariables(Statistic statistic, int level) const
 {
     const real velocityRatio = para->getScaledVelocityRatio(level);
     const real stressRatio = para->getScaledStressRatio(level);
@@ -209,7 +188,7 @@ std::vector<Probe::PostProcessingVariable> Probe::getPostProcessingVariables(Sta
     return postProcessingVariables;
 }
 
-std::vector<Probe::PostProcessingVariable> Probe::getAllPostProcessingVariables(int level)
+std::vector<Probe::PostProcessingVariable> Probe::getAllPostProcessingVariables(int level) const
 {
     std::vector<PostProcessingVariable> postProcessingVariables;
     if (enableComputationInstantaneous) {
@@ -288,13 +267,12 @@ void Probe::addLevelData(int level)
 
     const uint numberOfQuantities = 4;
 
-    ProbeData probeDataH(enableComputationInstantaneous, enableComputationMeans, enableComputationVariances,
-                         static_cast<uint>(indices.size()), numberOfQuantities, getNumberOfTimestepsInTimeseries(level));
+    ProbeData probeData(enableComputationInstantaneous, enableComputationMeans, enableComputationVariances,
+                        static_cast<uint>(indices.size()), numberOfQuantities, getNumberOfTimestepsInTimeseries(level));
 
-    ProbeData probeDataD = probeDataH;
-    const uint sizeData = probeDataH.numberOfPoints * probeDataH.numberOfTimesteps * numberOfQuantities;
+    const uint sizeData = probeData.numberOfPoints * probeData.numberOfTimesteps * numberOfQuantities;
 
-    levelDatas.emplace_back(probeDataH, probeDataD, coordinatesX, coordinatesY, coordinatesZ);
+    levelDatas.emplace_back(probeData, probeData, coordinatesX, coordinatesY, coordinatesZ);
 
     cudaMemoryManager->cudaAllocProbeData(this, level);
 
