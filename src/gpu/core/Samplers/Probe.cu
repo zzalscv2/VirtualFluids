@@ -26,7 +26,7 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_PreCollisionInteractor PreCollisionInteractor
+//! \addtogroup gpu_Samplers
 //! \ingroup gpu_core core
 //! \{
 //! \author Henry Korb, Henrik Asmuth

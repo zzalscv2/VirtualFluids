@@ -26,7 +26,7 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_PreCollisionInteractor PreCollisionInteractor
+//! \addtogroup gpu_Samplers
 //! \ingroup gpu_core core
 //! \{
 //! \author Henry Korb, Henrik Asmuth
@@ -85,12 +85,11 @@ struct PrecursorStruct
     cudaStream_t stream;
 };
 
-class PrecursorWriter : public Sampler
 //! \brief Probe writing planes of data to be used as inflow data in successor simulation using PrecursorBC
-//!
 //! The probe writes out yz-planes at a specific x position ( \param xPos ) of either velocity or distributions 
 //! that can be read by PrecursorBC as inflow data.
 //!
+class PrecursorWriter : public Sampler
 {
 public:
     PrecursorWriter(

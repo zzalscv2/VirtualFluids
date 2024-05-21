@@ -26,16 +26,14 @@
 //  SPDX-License-Identifier: GPL-3.0-or-later
 //  SPDX-FileCopyrightText: Copyright © VirtualFluids Project contributors, see AUTHORS.md in root folder
 //
-//! \addtogroup gpu_PreCollisionInteractor PreCollisionInteractor
+//! \addtogroup gpu_Samplers Samplers
 //! \ingroup gpu_core core
 //! \{
 //! \author Henrik Asmuth
 //! \date 13/05/2022
 //! \brief Probe computing statistics across planes spanning the entire domain
 //!
-//! Computes spatial statistics across x, y or z-normal planes defined by planeNormal.
-//! The planes include all points of the domain at each respective position along that normal direction.
-//! The spatial statistics can additionally be averaged in time.
+
 //!
 //=======================================================================================
 
@@ -61,6 +59,10 @@ struct PlanarAverageProbeLevelData
     std::vector<std::vector<real>> timeAverages;
 };
 
+
+//! \brief Computes spatial statistics across x, y or z-normal planes defined by planeNormal.
+//! The planes include all points of the domain at each respective position along that normal direction.
+//! The spatial statistics can additionally be averaged in time.
 class PlanarAverageProbe : public Sampler
 {
 public:

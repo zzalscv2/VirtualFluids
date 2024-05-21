@@ -50,6 +50,8 @@ inline std::string fixOutputPath(const std::string path)
     return path + "/";
 }
 
+
+//! \brief Base class for all samplers
 class Sampler
 {
 public:
