@@ -625,7 +625,7 @@ void MultipleGridBuilder::findCommunicationIndices(int direction, bool doShift)
 
     if (this->subDomainBox)
         for (size_t i = 0; i < grids.size(); i++)
-            communicationNodeFinder->findCommunicationIndices(direction, this->subDomainBox, doShift, grids[i].get());
+            communicationNodeFinder->findCommunicationIndices(direction, *this->subDomainBox.get(), doShift, grids);
 
     VF_LOG_TRACE("Done findCommunicationIndices()");
 }

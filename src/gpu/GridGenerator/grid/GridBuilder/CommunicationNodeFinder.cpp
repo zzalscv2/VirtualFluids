@@ -46,12 +46,23 @@ CommunicationNodeFinder::CommunicationNodeFinder(uint numberOfLevels)
         communicationIndices.emplace_back();
 }
 
-void CommunicationNodeFinder::findCommunicationIndices(int direction, SPtr<BoundingBox> subDomainBox, bool doShift, const Grid* grid)
+void CommunicationNodeFinder::findCommunicationIndices(int direction, BoundingBox& subDomainBox, bool doShift,
+                                                       const std::vector<SPtr<Grid>>& grids)
 {
-    for( uint index = 0; index < grid->getSize(); index++ ){
+    for (uint level = 0; level < (uint)grids.size(); level++) {
+        findCommunicationIndicesForLevel(direction, subDomainBox, doShift, grids.at(level).get(),
+                                         communicationIndices.at(level));
+    }
+}
+
+void CommunicationNodeFinder::findCommunicationIndicesForLevel(int direction, const BoundingBox& subDomainBox, bool doShift,
+                                                               const Grid* grid,
+                                                               CommunicationIndicesForLevel& communicationIndicesForLevel)
+{
+    for (uint index = 0; index < grid->getSize(); index++) {
 
         int shiftedIndex = doShift ? grid->getShiftedCommunicationIndex(index, direction) : index;
-        
+
         const char fieldEntry = grid->getFieldEntry(shiftedIndex);
         if( fieldEntry == INVALID_OUT_OF_GRID ||
             fieldEntry == INVALID_SOLID ||
@@ -59,34 +70,30 @@ void CommunicationNodeFinder::findCommunicationIndices(int direction, SPtr<Bound
             fieldEntry == STOPPER_OUT_OF_GRID ||
             fieldEntry == STOPPER_COARSE_UNDER_FINE ||
             fieldEntry == STOPPER_OUT_OF_GRID_BOUNDARY ||
-            fieldEntry == STOPPER_SOLID ) continue;
+            fieldEntry == STOPPER_SOLID)
+            continue;
 
         real x, y, z;
         grid->transIndexToCoords(shiftedIndex, x, y, z);
 
-        switch(direction)
-        {
-            case CommunicationDirections::MX: findCommunicationIndex( shiftedIndex, x, subDomainBox->minX, direction, grid->getDelta()); break;
-            case CommunicationDirections::PX: findCommunicationIndex( shiftedIndex, x, subDomainBox->maxX, direction, grid->getDelta()); break;
-            case CommunicationDirections::MY: findCommunicationIndex( shiftedIndex, y, subDomainBox->minY, direction, grid->getDelta()); break;
-            case CommunicationDirections::PY: findCommunicationIndex( shiftedIndex, y, subDomainBox->maxY, direction, grid->getDelta()); break;
-            case CommunicationDirections::MZ: findCommunicationIndex( shiftedIndex, z, subDomainBox->minZ, direction, grid->getDelta()); break;
-            case CommunicationDirections::PZ: findCommunicationIndex( shiftedIndex, z, subDomainBox->maxZ, direction, grid->getDelta()); break;
+        switch (direction) {
+            case CommunicationDirections::MX: findCommunicationIndex( shiftedIndex, x, subDomainBox.minX, direction, grid->getDelta(), communicationIndicesForLevel); break;
+            case CommunicationDirections::PX: findCommunicationIndex( shiftedIndex, x, subDomainBox.maxX, direction, grid->getDelta(), communicationIndicesForLevel); break;
+            case CommunicationDirections::MY: findCommunicationIndex( shiftedIndex, y, subDomainBox.minY, direction, grid->getDelta(), communicationIndicesForLevel); break;
+            case CommunicationDirections::PY: findCommunicationIndex( shiftedIndex, y, subDomainBox.maxY, direction, grid->getDelta(), communicationIndicesForLevel); break;
+            case CommunicationDirections::MZ: findCommunicationIndex( shiftedIndex, z, subDomainBox.minZ, direction, grid->getDelta(), communicationIndicesForLevel); break;
+            case CommunicationDirections::PZ: findCommunicationIndex( shiftedIndex, z, subDomainBox.maxZ, direction, grid->getDelta(), communicationIndicesForLevel); break;
         }
     }
 }
 
-void CommunicationNodeFinder::findCommunicationIndex(uint index, real coordinate, real limit, int direction, real delta)
-{
-    for (auto& communicationIndicesForLevel : communicationIndices)
-        findCommunicationIndexForLevel(index, coordinate, limit, direction, delta, communicationIndicesForLevel);
-}
-
-void CommunicationNodeFinder::findCommunicationIndexForLevel(uint index, real coordinate, real limit, int direction,
-                                                             real delta,
-                                                             CommunicationIndicesForLevel& communicationIndicesForLevel)
+void CommunicationNodeFinder::findCommunicationIndex(uint index, real coordinate, real limit, int direction, real delta,
+                                                     CommunicationIndicesForLevel& communicationIndicesForLevel)
 {
     // negative direction get a negative sign
+
+    // the following code adds an index to the communication indices, when the coordinate is around + or - 0.5 * delta from the limit
+
     real s = (direction % 2 == 0) ? (-1.0) : (1.0);
 
     if (std::abs(coordinate - (limit + s * 0.5 * delta)) < 0.1 * delta)
@@ -99,9 +106,10 @@ void CommunicationNodeFinder::findCommunicationIndexForLevel(uint index, real co
 bool CommunicationNodeFinder::isSendNode(uint level, int index) const
 {
     bool isSendNode = false;
-    for (const CommunicationIndicesOfDirection& communicationIndicesForDirection: this->communicationIndices[level])
+    for (const CommunicationIndicesOfDirection& communicationIndicesForDirection : this->communicationIndices[level])
         if (std::find(communicationIndicesForDirection.sendIndices.begin(),
-                      communicationIndicesForDirection.sendIndices.end(), index) != communicationIndicesForDirection.sendIndices.end())
+                      communicationIndicesForDirection.sendIndices.end(),
+                      index) != communicationIndicesForDirection.sendIndices.end())
             isSendNode = true;
     return isSendNode;
 }
@@ -109,7 +117,7 @@ bool CommunicationNodeFinder::isSendNode(uint level, int index) const
 bool CommunicationNodeFinder::isReceiveNode(uint level, int index) const
 {
     bool isReceiveNode = false;
-    for (const CommunicationIndicesOfDirection& communicationIndicesForDirection: this->communicationIndices[level])
+    for (const CommunicationIndicesOfDirection& communicationIndicesForDirection : this->communicationIndices[level])
         if (std::find(communicationIndicesForDirection.receiveIndices.begin(),
                       communicationIndicesForDirection.receiveIndices.end(),
                       index) != communicationIndicesForDirection.receiveIndices.end())
@@ -117,19 +125,17 @@ bool CommunicationNodeFinder::isReceiveNode(uint level, int index) const
     return isReceiveNode;
 }
 
-void CommunicationNodeFinder::getSendIndices(int * sendIndices, int direction, int level, const Grid* grid) const
+void CommunicationNodeFinder::getSendIndices(int* sendIndices, int direction, int level, const Grid* grid) const
 {
-    for( uint i = 0; i < getNumberOfSendIndices(direction, level); i++ )
-    {
+    for (uint i = 0; i < getNumberOfSendIndices(level, direction); i++) {
         sendIndices[i] = grid->getSparseIndex(getSendIndex(level, direction, i)) + 1;
     }
 }
 
-void CommunicationNodeFinder::getReceiveIndices(int * receiveIndices, int direction, int level, const Grid* grid) const
+void CommunicationNodeFinder::getReceiveIndices(int* receiveIndices, int direction, int level, const Grid* grid) const
 {
-    for( uint i = 0; i < getNumberOfReceiveIndices(direction, level); i++ )
-    {
-        receiveIndices[i] = grid->getSparseIndex(getReceiveIndex(level, direction, i) ) + 1;
+    for (uint i = 0; i < getNumberOfReceiveIndices(level, direction); i++) {
+        receiveIndices[i] = grid->getSparseIndex(getReceiveIndex(level, direction, i)) + 1;
     }
 }
 

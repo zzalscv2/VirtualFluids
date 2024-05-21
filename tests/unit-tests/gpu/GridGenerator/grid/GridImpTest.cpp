@@ -834,7 +834,7 @@ class PeriodicBoundaryShiftMultiGPUIntegrationTest : public ::testing::TestWithP
 {
 protected:
     SPtr<MultipleGridBuilder> gridBuilder;
-    SPtr<BoundingBox> subdomain;
+    BoundingBox subdomain;
     const real dx{1.0};
     const int nx{5}, ny{std::get<0>(GetParam())}, nz{5};
     const int direction{std::get<1>(GetParam())};
@@ -847,7 +847,7 @@ protected:
         gridBuilder = std::make_shared<MultipleGridBuilder>();
         gridBuilder->addCoarseGrid(0.0, 0.0, 0.0, (nx+2)*dx, (ny+2)*dx, (nz+2)*dx, dx);
         gridBuilder->setPeriodicBoundaryCondition(true, true, true);
-        subdomain = std::make_shared<BoundingBox>(dx, (nx+1)*dx, dx, (ny+1)*dx, dx,  (nz+1)*dx);
+        subdomain = BoundingBox(dx, (nx+1)*dx, dx, (ny+1)*dx, dx,  (nz+1)*dx);
     }
 };
 
@@ -870,7 +870,8 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PX)
     gridBuilder->buildGrids();
     auto level = 0;
     auto grid = gridBuilder->getGrid(level);
-    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PX, subdomain, direction!=6, grid.get());
+    std::vector<SPtr<Grid>> grids = {grid};
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PX, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
@@ -903,7 +904,8 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MX)
     }
     gridBuilder->buildGrids();
     auto grid = gridBuilder->getGrid(level);
-    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MX, subdomain, direction!=6, grid.get());
+    std::vector<SPtr<Grid>> grids = {grid};
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MX, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
@@ -938,7 +940,8 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PY)
 
     gridBuilder->buildGrids();
     auto grid = gridBuilder->getGrid(level);
-    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PY, subdomain, direction!=6, grid.get());
+    std::vector<SPtr<Grid>> grids = { grid };
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PY, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){
@@ -971,7 +974,8 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MY)
     }
     gridBuilder->buildGrids();
     auto grid = gridBuilder->getGrid(level);
-    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MY, subdomain, direction!=6, grid.get());
+        std::vector<SPtr<Grid>> grids = {grid};
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MY, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){
@@ -1006,7 +1010,8 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PZ)
 
     gridBuilder->buildGrids();
     auto grid = gridBuilder->getGrid(level);
-    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PZ, subdomain, direction!=6, grid.get());
+    std::vector<SPtr<Grid>> grids = { grid };
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PZ, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){
@@ -1039,7 +1044,8 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MZ)
     }
     gridBuilder->buildGrids();
     auto grid = gridBuilder->getGrid(level);
-    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MZ, subdomain, direction!=6, grid.get());
+    std::vector<SPtr<Grid>> grids = { grid };
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MZ, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){

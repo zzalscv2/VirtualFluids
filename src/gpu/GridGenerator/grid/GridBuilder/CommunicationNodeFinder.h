@@ -58,7 +58,8 @@ public:
     CommunicationNodeFinder(uint numberOfLevels);
     virtual ~CommunicationNodeFinder() = default;
 
-    void findCommunicationIndices(int direction, SPtr<BoundingBox> subDomainBox, bool doShift, const Grid* grid);
+    void findCommunicationIndices(int direction, BoundingBox& subDomainBox, bool doShift,
+                                  const std::vector<SPtr<Grid>>& grids);
 
     uint getNumberOfSendNodes(uint level, int direction) const;
     uint getNumberOfReceiveNodes(uint level, int direction) const;
@@ -72,13 +73,16 @@ public:
     const std::vector<CommunicationIndicesForLevel>& getCommunicationIndices() const;
 
 private:
-    void findCommunicationIndex(uint index, real coordinate, real limit, int direction, real delta);
-    void findCommunicationIndexForLevel( uint index, real coordinate, real limit, int direction, real delta, CommunicationIndicesForLevel& communicationIndicesForLevel);
+    static void findCommunicationIndicesForLevel(int direction, const BoundingBox& subDomainBox, bool doShift,
+                                                 const Grid* grid,
+                                                 CommunicationIndicesForLevel& communicationIndicesForLevel);
+    static void findCommunicationIndex(uint index, real coordinate, real limit, int direction, real delta,
+                                       CommunicationIndicesForLevel& communicationIndicesForLevel);
 
     bool isSendNode(uint level, int index) const;
     bool isReceiveNode(uint level, int index) const;
 
-    void repairCommunicationIndicesForLevel(int direction, CommunicationIndicesForLevel& communicationIndicesForLevel);
+    static void repairCommunicationIndicesForLevel(int direction, CommunicationIndicesForLevel& communicationIndicesForLevel);
 
     std::vector<CommunicationIndicesForLevel> communicationIndices;
 };
