@@ -361,16 +361,16 @@ void run(const vf::basics::ConfigurationFile& config)
     }
 
     auto crossStreamPlane = std::make_shared<Probe>(para, cudaMemoryManager, para->getOutputPath(), "crossStreamPlane",
-                                                         timeStartAveraging / deltaT, averagingTimestepsPlaneProbes,
-                                                         timeStepStartOutProbe, timeOutProbe / deltaT, false, false);
+                                                         timeStepStartAveraging, averagingTimestepsPlaneProbes,
+                                                         timeStepStartOutProbe, timeStepOutProbe, false, false);
     crossStreamPlane->addProbePlane(c1o2 * lengthX, c0o1, c0o1, deltaX, lengthY, lengthZ);
     crossStreamPlane->addAllAvailableStatistics();
     para->addSampler(crossStreamPlane);
 
     if (usePrecursorInflow) {
         auto streamwisePlane = std::make_shared<Probe>(
-            para, cudaMemoryManager, para->getOutputPath(), "streamwisePlane", timeStartAveraging / deltaT,
-            averagingTimestepsPlaneProbes, timeStepStartOutProbe, timeOutProbe / deltaT, false, false);
+            para, cudaMemoryManager, para->getOutputPath(), "streamwisePlane", timeStepStartAveraging,
+            averagingTimestepsPlaneProbes, timeStepStartOutProbe, timeStepOutProbe, false, false);
         streamwisePlane->addProbePlane(c0o1, c1o2 * lengthY, c0o1, lengthX, deltaX, lengthZ);
         streamwisePlane->addAllAvailableStatistics();
         para->addSampler(streamwisePlane);
