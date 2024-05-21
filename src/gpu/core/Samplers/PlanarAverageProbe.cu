@@ -220,8 +220,7 @@ void PlanarAverageProbe::init()
     }
 
     for (int level = 0; level <= para->getMaxLevel(); level++) {
-        levelData.emplace_back();
-        auto data = &levelData.back();
+        auto data = &levelData.emplace_back();
         std::vector<unsigned long long> indices = findIndicesInPlane(level);
         findCoordinatesForPlanes(level, data->coordinateX, data->coordinateY, data->coordinateZ);
         data->numberOfPlanes = static_cast<uint>(data->coordinateX.size());
@@ -386,7 +385,7 @@ Skewnesses computeSkewnesses(Means means, Covariances covariances, iterPair vx, 
 real computeFlatness(iterPair x, real mean, real covariance, real invNPointsPerPlane)
 {
     return thrust::transform_reduce(x.first, x.second, flatness(mean), c0o1, thrust::plus<real>()) * invNPointsPerPlane *
-           pow(covariance, -2.0f);
+           pow(covariance, -c2o1);
 }
 
 Flatnesses computeFlatnesses(iterPair vx, iterPair vy, iterPair vz, Means means, Covariances covariances,
