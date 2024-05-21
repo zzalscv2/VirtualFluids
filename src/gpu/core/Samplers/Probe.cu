@@ -297,15 +297,15 @@ void Probe::sample(int level, uint t)
 
     const uint levelFactor = exp2(level);
 
-    const uint tAvgLevel = this->tBetweenAverages * levelFactor;
-    const uint tOutLevel = this->tBetweenWriting * levelFactor;
-    const uint tStartOutLevel = this->tStartWritingOutput * levelFactor;
     const uint tStartAvgLevel = this->tStartAveraging * levelFactor;
-
     const uint tAfterStartAvg = tLevel - tStartAvgLevel;
-    const uint tAfterStartOut = tLevel - tStartOutLevel;
-
+    const uint tAvgLevel = this->tBetweenAverages * levelFactor;
     const bool averageThisTimestep = this->averageEveryTimestep || (tAfterStartAvg % tAvgLevel == 0);
+
+    const uint tStartOutLevel = this->tStartWritingOutput * levelFactor;
+    const uint tAfterStartOut = tLevel - tStartOutLevel;
+    const uint tOutLevel = this->tBetweenWriting * levelFactor;
+    const bool outputThisTimestep = tAfterStartOut % tOutLevel == 0;
 
     auto levelData = &levelDatas[level];
 
@@ -329,7 +329,7 @@ void Probe::sample(int level, uint t)
         levelData->numberOfAveragedValues++;
     }
     //! output only in synchronous timesteps
-    if ((t > this->tStartWritingOutput) && (tAfterStartOut % tOutLevel == 0)) {
+    if ((t > this->tStartWritingOutput) && outputThisTimestep) {
         cudaMemoryManager->cudaCopyProbeDataDtoH(this, level);
         if (outputTimeSeries) {
             this->appendTimeseriesFile(level, t);
