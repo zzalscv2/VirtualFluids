@@ -290,6 +290,9 @@ void Probe::addLevelData(int level)
 
 void Probe::sample(int level, uint t)
 {
+    auto levelData = &levelDatas[level];
+    if(levelData->probeDataH.numberOfPoints == 0)
+        return;
     const uint tLevel = para->getTimeStep(level, t, false);
 
     //! if averageEveryTimestep the probe will be evaluated in every sub-timestep of each respective level
@@ -307,7 +310,6 @@ void Probe::sample(int level, uint t)
     const uint tOutLevel = this->tBetweenWriting * levelFactor;
     const bool outputThisTimestep = tAfterStartOut % tOutLevel == 0;
 
-    auto levelData = &levelDatas[level];
 
     auto gridParams = getGridParams(para->getParD(level).get());
 
