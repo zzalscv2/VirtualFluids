@@ -105,7 +105,7 @@ void WallModelProbe::init()
 
     for (int level = 0; level <= para->getMaxLevel(); level++) {
         const std::string fileName = outputPath + makeTimeseriesFileName(probeName, level, para->getMyProcessID());
-        TimeseriesFileWriter::writeHeader(fileName, 1, variableNames, x, y, z);
+        writeTimeseriesFileHeader(fileName, 1, variableNames, x, y, z);
         const uint numberOfFluidNodes = evaluatePressureGradient ? countFluidNodes(level) : 0;
         levelData.emplace_back(fileName, numberOfFluidNodes);
         levelData.back().averagedData.push_back(std::vector<real>(numberOfQuantities, 0));
@@ -262,7 +262,7 @@ void WallModelProbe::write(int level)
         dataToWrite.push_back(row);
     }
 
-    TimeseriesFileWriter::appendData(data->timeseriesFileName, dataToWrite);
+    appendDataToTimeseriesFile(data->timeseriesFileName, dataToWrite);
 
     data->timestepTime.clear();
     data->instantaneousData.clear();

@@ -50,8 +50,6 @@ inline std::string fixOutputPath(const std::string path)
     return path + "/";
 }
 
-
-
 class Sampler
 {
 public:

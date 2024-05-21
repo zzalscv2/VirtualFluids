@@ -215,9 +215,9 @@ void Probe::init()
             auto levelData = levelDatas[level];
             const std::string fileName = makeTimeseriesFileName(probeName, level, para->getMyProcessID());
             auto variableNames = getVarNames();
-            TimeseriesFileWriter::writeHeader(fileName, levelData.probeDataH.numberOfPoints, variableNames,
-                                              levelData.coordinatesX.data(), levelData.coordinatesY.data(),
-                                              levelData.coordinatesZ.data());
+            writeTimeseriesFileHeader(fileName, levelData.probeDataH.numberOfPoints, variableNames,
+                                      levelData.coordinatesX.data(), levelData.coordinatesY.data(),
+                                      levelData.coordinatesZ.data());
             timeseriesFileNames.push_back(fileName);
         }
     }
@@ -291,7 +291,7 @@ void Probe::addLevelData(int level)
 void Probe::sample(int level, uint t)
 {
     auto levelData = &levelDatas[level];
-    if(levelData->probeDataH.numberOfPoints == 0)
+    if (levelData->probeDataH.numberOfPoints == 0)
         return;
     const uint tLevel = para->getTimeStep(level, t, false);
 
@@ -309,7 +309,6 @@ void Probe::sample(int level, uint t)
     const uint tAfterStartOut = tLevel - tStartOutLevel;
     const uint tOutLevel = this->tBetweenWriting * levelFactor;
     const bool outputThisTimestep = tAfterStartOut % tOutLevel == 0;
-
 
     auto gridParams = getGridParams(para->getParD(level).get());
 
@@ -494,7 +493,7 @@ void Probe::appendTimeseriesFile(int level, int t)
         const real time = tStart + timestep * deltaT;
         timestepData.push_back(this->getTimestepData(time, timestep, level));
     }
-    TimeseriesFileWriter::appendData(this->timeseriesFileNames[level], timestepData);
+    appendDataToTimeseriesFile(this->timeseriesFileNames[level], timestepData);
     levelData.timeseriesParams.lastTimestepInOldTimeseries = levelData.timeseriesParams.currentTimestep;
     levelData.timeseriesParams.currentTimestep = 0;
 }
