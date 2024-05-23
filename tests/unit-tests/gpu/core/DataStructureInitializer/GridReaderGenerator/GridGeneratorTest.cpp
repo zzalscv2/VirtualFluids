@@ -83,12 +83,12 @@ public:
     {
     }
 
-    uint getNumberOfSendIndices(uint level, int direction) const override
+    uint getNumberOfSendNodes(uint level, int direction) const override
     {
         return numberOfSendIndices;
     }
 
-    uint getNumberOfReceiveIndices(uint level, int direction) const override
+    uint getNumberOfReceiveNodes(uint level, int direction) const override
     {
         return 0;
     }

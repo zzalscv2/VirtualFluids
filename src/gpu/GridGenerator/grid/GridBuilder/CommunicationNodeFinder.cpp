@@ -127,28 +127,17 @@ bool CommunicationNodeFinder::isReceiveNode(uint level, int index) const
 
 void CommunicationNodeFinder::getSendIndices(int* sendIndices, int direction, int level, const Grid* grid) const
 {
-    for (uint i = 0; i < getNumberOfSendIndices(level, direction); i++) {
+    for (uint i = 0; i < getNumberOfSendNodes(level, direction); i++) {
         sendIndices[i] = grid->getSparseIndex(getSendIndex(level, direction, i)) + 1;
     }
 }
 
 void CommunicationNodeFinder::getReceiveIndices(int* receiveIndices, int direction, int level, const Grid* grid) const
 {
-    for (uint i = 0; i < getNumberOfReceiveIndices(level, direction); i++) {
+    for (uint i = 0; i < getNumberOfReceiveNodes(level, direction); i++) {
         receiveIndices[i] = grid->getSparseIndex(getReceiveIndex(level, direction, i)) + 1;
     }
 }
-
-uint CommunicationNodeFinder::getNumberOfSendIndices(uint level, int direction) const
-{
-    return getNumberOfSendNodes(level, direction);
-}
-
-uint CommunicationNodeFinder::getNumberOfReceiveIndices(uint level, int direction) const
-{
-    return getNumberOfReceiveNodes(level, direction);
-}
-
 uint CommunicationNodeFinder::getNumberOfSendNodes(uint level, int direction) const
 {
     return (uint)communicationIndices[level][direction].sendIndices.size();

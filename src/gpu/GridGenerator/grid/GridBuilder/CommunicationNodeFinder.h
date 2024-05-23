@@ -61,14 +61,12 @@ public:
     void findCommunicationIndices(int direction, BoundingBox& subDomainBox, bool doShift,
                                   const std::vector<SPtr<Grid>>& grids);
 
-    uint getNumberOfSendNodes(uint level, int direction) const;
-    uint getNumberOfReceiveNodes(uint level, int direction) const;
+    virtual uint getNumberOfSendNodes(uint level, int direction) const;
+    virtual uint getNumberOfReceiveNodes(uint level, int direction) const;
     uint getSendIndex(uint level, int direction, uint index) const;
     uint getReceiveIndex(uint level, int direction, uint index) const;
     virtual void getSendIndices(int* sendIndices, int direction, int level, const Grid* grid) const;
     virtual void getReceiveIndices(int* receiveIndices, int direction, int level, const Grid* grid) const;
-    virtual uint getNumberOfSendIndices(uint level, int direction) const;
-    virtual uint getNumberOfReceiveIndices(uint level, int direction) const;
 
     const std::vector<CommunicationIndicesForLevel>& getCommunicationIndices() const;
 

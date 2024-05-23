@@ -568,8 +568,8 @@ void GridGenerator::initalValuesDomainDecompostion()
 
             for (uint level = 0; level < builder->getNumberOfGridLevels(); level++) {
                 if (direction == CommunicationDirections::MX || direction == CommunicationDirections::PX) {
-                    int tempSend = communicationNodeFinder.getNumberOfSendIndices(level, direction);
-                    int tempRecv = communicationNodeFinder.getNumberOfReceiveIndices(level, direction);
+                    int tempSend = communicationNodeFinder.getNumberOfSendNodes(level, direction);
+                    int tempRecv = communicationNodeFinder.getNumberOfReceiveNodes(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborX.size();
@@ -638,8 +638,8 @@ void GridGenerator::initalValuesDomainDecompostion()
                 }
 
                 if (direction == CommunicationDirections::MY || direction == CommunicationDirections::PY) {
-                    int tempSend = communicationNodeFinder.getNumberOfSendIndices(level, direction);
-                    int tempRecv = communicationNodeFinder.getNumberOfReceiveIndices(level, direction);
+                    int tempSend = communicationNodeFinder.getNumberOfSendNodes(level, direction);
+                    int tempRecv = communicationNodeFinder.getNumberOfReceiveNodes(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborY.size();
@@ -708,8 +708,8 @@ void GridGenerator::initalValuesDomainDecompostion()
                 }
 
                 if (direction == CommunicationDirections::MZ || direction == CommunicationDirections::PZ) {
-                    int tempSend = communicationNodeFinder.getNumberOfSendIndices(level, direction);
-                    int tempRecv = communicationNodeFinder.getNumberOfReceiveIndices(level, direction);
+                    int tempSend = communicationNodeFinder.getNumberOfSendNodes(level, direction);
+                    int tempRecv = communicationNodeFinder.getNumberOfReceiveNodes(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborZ.size();
