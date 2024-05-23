@@ -833,9 +833,9 @@ SPtr<GeometryBoundaryCondition> LevelGridBuilder::getGeometryBoundaryCondition(u
     return this->boundaryConditions[level]->geometryBoundaryCondition;
 }
 
-const CommunicationNodeFinder& LevelGridBuilder::getCommunicationNodeFinder() const
+const CommunicationNodeFinder* LevelGridBuilder::getCommunicationNodeFinder() const
 {
-    return *communicationNodeFinder.get();
+    return communicationNodeFinder.get();
 }
 
 SPtr<FluidNodeClassificator> LevelGridBuilder::getFluidNodeClassificator()

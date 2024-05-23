@@ -697,19 +697,19 @@ void SimulationFileWriter::writeCommunicationFiles(SPtr<GridBuilder> builder)
 
         for (uint level = 0; level < numberOfLevel; level++){
 
-            uint numberOfSendNodes = builder->getCommunicationNodeFinder().getNumberOfSendNodes(level, direction);
-            uint numberOfReceiveNodes = builder->getCommunicationNodeFinder().getNumberOfReceiveNodes(level, direction);
+            uint numberOfSendNodes = builder->getCommunicationNodeFinder()->getNumberOfSendNodes(level, direction);
+            uint numberOfReceiveNodes = builder->getCommunicationNodeFinder()->getNumberOfReceiveNodes(level, direction);
 
             sendFiles[direction] <<    numberOfSendNodes    << "\n";
             receiveFiles[direction] << numberOfReceiveNodes << "\n";
 
             for( uint index = 0; index < numberOfSendNodes; index++ )
                 // + 1 for numbering shift between GridGenerator and VF_GPU
-                sendFiles[direction]    << builder->getGrid(level)->getSparseIndex( builder->getCommunicationNodeFinder().getSendIndex(level, direction, index) ) + 1 << "\n";
+                sendFiles[direction]    << builder->getGrid(level)->getSparseIndex( builder->getCommunicationNodeFinder()->getSendIndex(level, direction, index) ) + 1 << "\n";
 
             for( uint index = 0; index < numberOfReceiveNodes; index++ )
                 // + 1 for numbering shift between GridGenerator and VF_GPU
-                receiveFiles[direction] << builder->getGrid(level)->getSparseIndex( builder->getCommunicationNodeFinder().getReceiveIndex(level, direction, index) ) + 1 << "\n";
+                receiveFiles[direction] << builder->getGrid(level)->getSparseIndex( builder->getCommunicationNodeFinder()->getReceiveIndex(level, direction, index) ) + 1 << "\n";
 
         }
     }

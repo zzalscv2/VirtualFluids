@@ -221,7 +221,7 @@ public:
     void getOffsetFC(real* xOffCf, real* yOffCf, real* zOffCf, int level) override;
     void getOffsetCF(real* xOffFc, real* yOffFc, real* zOffFc, int level) override;
 
-    const CommunicationNodeFinder& getCommunicationNodeFinder() const override;
+    const CommunicationNodeFinder* getCommunicationNodeFinder() const override;
     void createFluidNodeClassificator() override;
     SPtr<FluidNodeClassificator> getFluidNodeClassificator() override;
 

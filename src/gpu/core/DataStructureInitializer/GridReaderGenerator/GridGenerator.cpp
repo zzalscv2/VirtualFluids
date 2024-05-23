@@ -560,7 +560,7 @@ void GridGenerator::initalValuesDomainDecompostion()
             }
         }
 
-        const CommunicationNodeFinder& communicationNodeFinder = builder->getCommunicationNodeFinder();
+        const CommunicationNodeFinder* communicationNodeFinder = builder->getCommunicationNodeFinder();
 
         for (int direction : fillOrder) {
             if (builder->getCommunicationProcess(direction) == INVALID_INDEX)
@@ -568,8 +568,8 @@ void GridGenerator::initalValuesDomainDecompostion()
 
             for (uint level = 0; level < builder->getNumberOfGridLevels(); level++) {
                 if (direction == CommunicationDirections::MX || direction == CommunicationDirections::PX) {
-                    int tempSend = communicationNodeFinder.getNumberOfSendNodes(level, direction);
-                    int tempRecv = communicationNodeFinder.getNumberOfReceiveNodes(level, direction);
+                    int tempSend = communicationNodeFinder->getNumberOfSendNodes(level, direction);
+                    int tempRecv = communicationNodeFinder->getNumberOfReceiveNodes(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborX.size();
@@ -623,10 +623,10 @@ void GridGenerator::initalValuesDomainDecompostion()
                         cudaMemoryManager->cudaAllocProcessNeighborX(level, indexProcessNeighbor);
                         ////////////////////////////////////////////////////////////////////////////////////////
                         // init index arrays
-                        communicationNodeFinder.getSendIndices(
+                        communicationNodeFinder->getSendIndices(
                             para->getParH(level)->sendProcessNeighborX[indexProcessNeighbor].index, direction, level,
                             builder->getGrid(level).get());
-                        communicationNodeFinder.getReceiveIndices(
+                        communicationNodeFinder->getReceiveIndices(
                             para->getParH(level)->recvProcessNeighborX[indexProcessNeighbor].index, direction, level,
                             builder->getGrid(level).get());
                         if (level != builder->getNumberOfGridLevels() - 1 && para->useReducedCommunicationAfterFtoC)
@@ -638,8 +638,8 @@ void GridGenerator::initalValuesDomainDecompostion()
                 }
 
                 if (direction == CommunicationDirections::MY || direction == CommunicationDirections::PY) {
-                    int tempSend = communicationNodeFinder.getNumberOfSendNodes(level, direction);
-                    int tempRecv = communicationNodeFinder.getNumberOfReceiveNodes(level, direction);
+                    int tempSend = communicationNodeFinder->getNumberOfSendNodes(level, direction);
+                    int tempRecv = communicationNodeFinder->getNumberOfReceiveNodes(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborY.size();
@@ -693,10 +693,10 @@ void GridGenerator::initalValuesDomainDecompostion()
                         cudaMemoryManager->cudaAllocProcessNeighborY(level, indexProcessNeighbor);
                         ////////////////////////////////////////////////////////////////////////////////////////
                         // init index arrays
-                        communicationNodeFinder.getSendIndices(
+                        communicationNodeFinder->getSendIndices(
                             para->getParH(level)->sendProcessNeighborX[indexProcessNeighbor].index, direction, level,
                             builder->getGrid(level).get());
-                        communicationNodeFinder.getReceiveIndices(
+                        communicationNodeFinder->getReceiveIndices(
                             para->getParH(level)->recvProcessNeighborX[indexProcessNeighbor].index, direction, level,
                             builder->getGrid(level).get());
                         if (level != builder->getNumberOfGridLevels() - 1 && para->useReducedCommunicationAfterFtoC)
@@ -708,8 +708,8 @@ void GridGenerator::initalValuesDomainDecompostion()
                 }
 
                 if (direction == CommunicationDirections::MZ || direction == CommunicationDirections::PZ) {
-                    int tempSend = communicationNodeFinder.getNumberOfSendNodes(level, direction);
-                    int tempRecv = communicationNodeFinder.getNumberOfReceiveNodes(level, direction);
+                    int tempSend = communicationNodeFinder->getNumberOfSendNodes(level, direction);
+                    int tempRecv = communicationNodeFinder->getNumberOfReceiveNodes(level, direction);
 
                     if (tempSend > 0) {
                         int indexProcessNeighbor = (int)para->getParH(level)->sendProcessNeighborZ.size();
@@ -763,10 +763,10 @@ void GridGenerator::initalValuesDomainDecompostion()
                         cudaMemoryManager->cudaAllocProcessNeighborZ(level, indexProcessNeighbor);
                         ////////////////////////////////////////////////////////////////////////////////////////
                         // init index arrays
-                        communicationNodeFinder.getSendIndices(
+                        communicationNodeFinder->getSendIndices(
                             para->getParH(level)->sendProcessNeighborX[indexProcessNeighbor].index, direction, level,
                             builder->getGrid(level).get());
-                        communicationNodeFinder.getReceiveIndices(
+                        communicationNodeFinder->getReceiveIndices(
                             para->getParH(level)->recvProcessNeighborX[indexProcessNeighbor].index, direction, level,
                             builder->getGrid(level).get());
                         if (level != builder->getNumberOfGridLevels() - 1 && para->useReducedCommunicationAfterFtoC)

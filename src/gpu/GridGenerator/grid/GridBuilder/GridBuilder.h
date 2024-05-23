@@ -145,7 +145,7 @@ public:
 
     virtual uint getCommunicationProcess(int direction) = 0;
 
-    virtual const CommunicationNodeFinder& getCommunicationNodeFinder() const = 0;
+    virtual const CommunicationNodeFinder* getCommunicationNodeFinder() const = 0;
     virtual void createFluidNodeClassificator() = 0;
     virtual SPtr<FluidNodeClassificator> getFluidNodeClassificator() = 0;
 
