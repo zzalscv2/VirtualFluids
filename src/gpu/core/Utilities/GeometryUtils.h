@@ -38,18 +38,21 @@
 #include <cuda_runtime.h>
 
 #include <basics/DataTypes.h>
+#include <basics/constants/NumericConstants.h>
 
-__inline__ __host__ __device__ void getNeighborIndicesOfBSW(  uint k, //index of dMMM node
-                                        uint &ke, uint &kn, uint &kt, uint &kne, uint &kte,uint &ktn, uint &ktne,
-                                        const uint* neighborX, const uint* neighborY, const uint* neighborZ)
+using namespace vf::basics::constant;
+
+__inline__ __host__ __device__ void getNeighborIndicesOfBSW(uint k_MMM, uint& k_PMM, uint& k_MPM, uint& k_MMP, uint& k_PPM,
+                                                            uint& k_PMP, uint& k_MPP, uint& k_PPP, const uint* neighborX,
+                                                            const uint* neighborY, const uint* neighborZ)
 {
-    ke   = neighborX[k];
-    kn   = neighborY[k];
-    kt   = neighborZ[k];
-    kne  = neighborY[ke];
-    kte  = neighborZ[ke];
-    ktn  = neighborZ[kn];
-    ktne = neighborX[ktn];
+    k_PMM = neighborX[k_MMM];
+    k_MPM = neighborY[k_MMM];
+    k_MMP = neighborZ[k_MMM];
+    k_PPM = neighborY[k_PMM];
+    k_PMP = neighborZ[k_PMM];
+    k_MPP = neighborZ[k_MPM];
+    k_PPP = neighborX[k_MPP];
 }
 
 __inline__ __host__ __device__ uint findNearestCellBSW(const uint index, 
@@ -76,25 +79,17 @@ __inline__ __host__ __device__ uint findNearestCellBSW(const uint index,
     return neighborsWSB[new_index];
 }
 
-__inline__ __host__ __device__ void getInterpolationWeights(real &dW, real &dE, real &dN, real &dS, real &dT, real &dB,
-                                        real tmpX, real tmpY, real tmpZ)
-{
-    dW = tmpX;      
-    dE = 1.f - dW;        
-    dS = tmpY;    
-    dN = 1.f - dS;      
-    dB = tmpZ;         
-    dT = 1.f - dB;     
-}
-
-__inline__ __host__ __device__ real trilinearInterpolation( real dW, real dE, real dN, real dS, real dT, real dB,
-                                        uint k,  uint ke, uint kn, uint kt, uint kne, uint kte, uint ktn, uint ktne,
+__inline__ __host__ __device__ real trilinearInterpolation( real dXM, real dYM, real dZM,
+                                        uint kMMM,  uint kPMM, uint kMPM, uint kMMP, uint kPPM, uint kPMP, uint kMPP, uint kPPP,
                                         const real* quantity )
 {
-    return  (   dE*dN*dT*quantity[k]    + dW*dN*dT*quantity[ke]
-              + dE*dS*dT*quantity[kn]   + dW*dS*dT*quantity[kne]
-              + dE*dN*dB*quantity[kt]   + dW*dN*dB*quantity[kte]
-              + dE*dS*dB*quantity[ktn]  + dW*dS*dB*quantity[ktne] );
+    const real dXP = c1o1 - dXM;
+    const real dYP = c1o1 - dYM;
+    const real dZP = c1o1 - dZM;
+    return (dXP*dYP*dZP*quantity[kMMM] + dXM*dYP*dZP*quantity[kPMM]
+          + dXP*dYM*dZP*quantity[kMPM] + dXM*dYM*dZP*quantity[kPPM]
+          + dXP*dYP*dZM*quantity[kMMP] + dXM*dYP*dZM*quantity[kPMP]
+          + dXP*dYM*dZM*quantity[kMPP] + dXM*dYM*dZM*quantity[kPPP]);
 }
 
 __inline__ __host__ __device__ void translate2D(real posX, real posY, real &newPosX, real &newPosY, real translationX, real translationY)
