@@ -35,6 +35,7 @@
 
 #include "Parameter/Parameter.h"
 #include <GridGenerator/grid/Grid.h>
+#include <GridGenerator/grid/GridBuilder/FluidNodeClassificator.h>
 #include <GridGenerator/grid/GridBuilder/GridBuilder.h>
 
 InterpolationCellGrouper::InterpolationCellGrouper(const LBMSimulationParameters &parHs,
@@ -63,7 +64,6 @@ void InterpolationCellGrouper::reorderFineToCoarseIntoBorderAndBulk(uint level) 
     // create some local variables for better readability
     uint *fineToCoarseCoarseAll = parHs[level]->fineToCoarse.coarseCellIndices;
     uint *fineToCoarseFineAll = parHs[level]->fineToCoarse.fineCellIndices;
-    auto grid = this->builder->getGrid(level);
 
     std::vector<uint> fineToCoarseCoarseBorderVector;
     std::vector<uint> fineToCoarseCoarseBulkVector;
@@ -78,7 +78,7 @@ void InterpolationCellGrouper::reorderFineToCoarseIntoBorderAndBulk(uint level) 
 
     // fill border and bulk vectors with interpolation cells fine to coarse
     for (uint i = 0; i < parHs[level]->fineToCoarse.numberOfCells; i++)
-        if (grid->isSparseIndexInFluidNodeIndicesBorder(fineToCoarseCoarseAll[i])) {
+        if (this->builder->getFluidNodeClassificator()->isSparseIndexInFluidNodeIndicesBorder(fineToCoarseCoarseAll[i], level)) {
             fineToCoarseCoarseBorderVector.push_back(fineToCoarseCoarseAll[i]);
             fineToCoarseFineBorderVector.push_back(fineToCoarseFineAll[i]);
             neighborXBorder.push_back(parHs[level]->neighborFineToCoarse.x[i]);
@@ -144,7 +144,7 @@ void InterpolationCellGrouper::reorderCoarseToFineIntoBorderAndBulk(uint level) 
     uint *neighborX = this->parHs[level]->neighborX;
     uint *neighborY = this->parHs[level]->neighborY;
     uint *neighborZ = this->parHs[level]->neighborZ;
-    auto grid = this->builder->getGrid(level);
+    auto fluidNodeClassificator = this->builder->getFluidNodeClassificator();
 
     std::vector<uint> coarseToFineCoarseBorderVector;
     std::vector<uint> coarseToFineCoarseBulkVector;
@@ -162,14 +162,14 @@ void InterpolationCellGrouper::reorderCoarseToFineIntoBorderAndBulk(uint level) 
     for (uint i = 0; i < parHs[level]->coarseToFine.numberOfCells; i++) {
         sparseIndexOfICellBSW = coarseToFineCoarseAll[i];
 
-        if (grid->isSparseIndexInFluidNodeIndicesBorder(sparseIndexOfICellBSW) ||
-            grid->isSparseIndexInFluidNodeIndicesBorder(neighborX[sparseIndexOfICellBSW]) ||
-            grid->isSparseIndexInFluidNodeIndicesBorder(neighborY[sparseIndexOfICellBSW]) ||
-            grid->isSparseIndexInFluidNodeIndicesBorder(neighborZ[sparseIndexOfICellBSW]) ||
-            grid->isSparseIndexInFluidNodeIndicesBorder(neighborY[neighborX[sparseIndexOfICellBSW]]) ||
-            grid->isSparseIndexInFluidNodeIndicesBorder(neighborZ[neighborX[sparseIndexOfICellBSW]]) ||
-            grid->isSparseIndexInFluidNodeIndicesBorder(neighborZ[neighborY[sparseIndexOfICellBSW]]) ||
-            grid->isSparseIndexInFluidNodeIndicesBorder(neighborZ[neighborY[neighborX[sparseIndexOfICellBSW]]])) {
+        if (fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(sparseIndexOfICellBSW, level) ||
+            fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(neighborX[sparseIndexOfICellBSW], level) ||
+            fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(neighborY[sparseIndexOfICellBSW], level) ||
+            fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(neighborZ[sparseIndexOfICellBSW], level) ||
+            fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(neighborY[neighborX[sparseIndexOfICellBSW]], level) ||
+            fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(neighborZ[neighborX[sparseIndexOfICellBSW]], level) ||
+            fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(neighborZ[neighborY[sparseIndexOfICellBSW]], level) ||
+            fluidNodeClassificator->isSparseIndexInFluidNodeIndicesBorder(neighborZ[neighborY[neighborX[sparseIndexOfICellBSW]]], level)) {
 
             coarseToFineCoarseBorderVector.push_back(coarseToFineCoarseAll[i]);
             coarseToFineFineBorderVector.push_back(coarseToFineFineAll[i]);

@@ -44,6 +44,7 @@
 #include "PointerDefinitions.h"
 #include "grid/Field.h"
 #include "grid/GridBuilder/MultipleGridBuilder.h"
+#include "grid/GridBuilder/CommunicationNodeFinder.h"
 #include "grid/distributions/Distribution.h"
 #include "geometries/BoundingBox/BoundingBox.h"
 #include "utilities/communication.h"
@@ -209,6 +210,7 @@ protected:
 
     void SetUp() override
     {
+        spdlog::set_level(spdlog::level::warn);
         gridBuilder = std::make_shared<MultipleGridBuilder>();
     }
 };
@@ -298,6 +300,7 @@ protected:
 
     void SetUp() override
     {
+        spdlog::set_level(spdlog::level::warn);
         gridBuilder = std::make_shared<MultipleGridBuilder>();
         gridBuilder->addCoarseGrid(0.0, 0.0, 0.0, nx*dx, ny*dx, nz*dx, dx);
     }
@@ -831,17 +834,20 @@ class PeriodicBoundaryShiftMultiGPUIntegrationTest : public ::testing::TestWithP
 {
 protected:
     SPtr<MultipleGridBuilder> gridBuilder;
-    SPtr<BoundingBox> subdomain;
+    BoundingBox subdomain;
     const real dx{1.0};
     const int nx{5}, ny{std::get<0>(GetParam())}, nz{5};
     const int direction{std::get<1>(GetParam())};
+    uint level = 0;
+    CommunicationNodeFinder communicationNodeFinder = CommunicationNodeFinder(level + 1);
 
     void SetUp() override
     {
+        spdlog::set_level(spdlog::level::warn);
         gridBuilder = std::make_shared<MultipleGridBuilder>();
         gridBuilder->addCoarseGrid(0.0, 0.0, 0.0, (nx+2)*dx, (ny+2)*dx, (nz+2)*dx, dx);
         gridBuilder->setPeriodicBoundaryCondition(true, true, true);
-        subdomain = std::make_shared<BoundingBox>(dx, (nx+1)*dx, dx, (ny+1)*dx, dx,  (nz+1)*dx);
+        subdomain = BoundingBox(dx, (nx+1)*dx, dx, (ny+1)*dx, dx,  (nz+1)*dx);
     }
 };
 
@@ -862,8 +868,10 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PX)
     }
 
     gridBuilder->buildGrids();
-    auto grid = gridBuilder->getGrid(0);
-    grid->findCommunicationIndices(CommunicationDirections::PX, subdomain, direction!=6);
+    auto level = 0;
+    auto grid = gridBuilder->getGrid(level);
+    std::vector<SPtr<Grid>> grids = {grid};
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PX, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
@@ -873,12 +881,12 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PX)
             y = wrap(y+shift, (ny+2)*dx);
         if(direction==1)
             z = wrap(z+shift, (nz+2)*dx);
-        compareNodeToCoordinates(grid, grid->getSendIndex(CommunicationDirections::PX, nodeIndex), x, y, z, "Send");
-        compareNodeToCoordinates(grid, grid->getReceiveIndex(CommunicationDirections::PX, nodeIndex), x+dx, y, z, "Receive");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getSendIndex(level, CommunicationDirections::PX, nodeIndex), x, y, z, "Send");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getReceiveIndex(level, CommunicationDirections::PX, nodeIndex), x+dx, y, z, "Receive");
         nodeIndex++;
     }}; 
-    EXPECT_EQ(nodeIndex, grid->getNumberOfSendNodes(CommunicationDirections::PX));
-    EXPECT_EQ(nodeIndex, grid->getNumberOfReceiveNodes(CommunicationDirections::PX));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfSendNodes(level, CommunicationDirections::PX));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfReceiveNodes(level, CommunicationDirections::PX));
 }
 
 TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MX)
@@ -895,8 +903,9 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MX)
         case 6: break;
     }
     gridBuilder->buildGrids();
-    auto grid = gridBuilder->getGrid(0);
-    grid->findCommunicationIndices(CommunicationDirections::MX, subdomain, direction!=6);
+    auto grid = gridBuilder->getGrid(level);
+    std::vector<SPtr<Grid>> grids = {grid};
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MX, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
@@ -906,12 +915,12 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MX)
             y = wrap(y-shift, (ny+2)*dx);
         if(direction==1)
             z = wrap(z-shift, (nz+2)*dx);
-        compareNodeToCoordinates(grid, grid->getSendIndex(CommunicationDirections::MX, nodeIndex), x, y, z, "Send");
-        compareNodeToCoordinates(grid, grid->getReceiveIndex(CommunicationDirections::MX, nodeIndex), x-dx, y, z, "Receive");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getSendIndex(level, CommunicationDirections::MX, nodeIndex), x, y, z, "Send");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getReceiveIndex(level, CommunicationDirections::MX, nodeIndex), x-dx, y, z, "Receive");
         nodeIndex++;
     }};
-    EXPECT_EQ(nodeIndex, grid->getNumberOfSendNodes(CommunicationDirections::MX));
-    EXPECT_EQ(nodeIndex, grid->getNumberOfReceiveNodes(CommunicationDirections::MX));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfSendNodes(level, CommunicationDirections::MX));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfReceiveNodes(level, CommunicationDirections::MX));
 }
 
 TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PY)
@@ -930,8 +939,9 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PY)
     }
 
     gridBuilder->buildGrids();
-    auto grid = gridBuilder->getGrid(0);
-    grid->findCommunicationIndices(CommunicationDirections::PY, subdomain, direction!=6);
+    auto grid = gridBuilder->getGrid(level);
+    std::vector<SPtr<Grid>> grids = { grid };
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PY, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){
@@ -941,12 +951,12 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PY)
             x = wrap(x+shift, (nx+2)*dx);
         if(direction==3)
             z = wrap(z+shift, (nz+2)*dx);
-        compareNodeToCoordinates(grid, grid->getSendIndex(CommunicationDirections::PY, nodeIndex), x, y, z, "Send");
-        compareNodeToCoordinates(grid, grid->getReceiveIndex(CommunicationDirections::PY, nodeIndex), x, y+dx, z, "Receive");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getSendIndex(level, CommunicationDirections::PY, nodeIndex), x, y, z, "Send");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getReceiveIndex(level, CommunicationDirections::PY, nodeIndex), x, y+dx, z, "Receive");
         nodeIndex++;
     }}; 
-    EXPECT_EQ(nodeIndex, grid->getNumberOfSendNodes(CommunicationDirections::PY));
-    EXPECT_EQ(nodeIndex, grid->getNumberOfReceiveNodes(CommunicationDirections::PY));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfSendNodes(level, CommunicationDirections::PY));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfReceiveNodes(level, CommunicationDirections::PY));
 }
 
 TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MY)
@@ -963,8 +973,9 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MY)
         case 6: break;
     }
     gridBuilder->buildGrids();
-    auto grid = gridBuilder->getGrid(0);
-    grid->findCommunicationIndices(CommunicationDirections::MY, subdomain, direction!=6);
+    auto grid = gridBuilder->getGrid(level);
+        std::vector<SPtr<Grid>> grids = {grid};
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MY, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iz=1; iz<grid->getNumberOfNodesZ()-1; iz++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){
@@ -974,12 +985,12 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MY)
             x = wrap(x-shift, (nx+2)*dx);
         if(direction==3)
             z = wrap(z-shift, (nz+2)*dx);
-        compareNodeToCoordinates(grid, grid->getSendIndex(CommunicationDirections::MY, nodeIndex), x, y, z, "Send");
-        compareNodeToCoordinates(grid, grid->getReceiveIndex(CommunicationDirections::MY, nodeIndex), x, y-dx, z, "Receive");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getSendIndex(level, CommunicationDirections::MY, nodeIndex), x, y, z, "Send");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getReceiveIndex(level, CommunicationDirections::MY, nodeIndex), x, y-dx, z, "Receive");
         nodeIndex++;
     }};
-    EXPECT_EQ(nodeIndex, grid->getNumberOfSendNodes(CommunicationDirections::MY));
-    EXPECT_EQ(nodeIndex, grid->getNumberOfReceiveNodes(CommunicationDirections::MY));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfSendNodes(level, CommunicationDirections::MY));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfReceiveNodes(level, CommunicationDirections::MY));
 }
 
 TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PZ)
@@ -998,8 +1009,9 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PZ)
     }
 
     gridBuilder->buildGrids();
-    auto grid = gridBuilder->getGrid(0);
-    grid->findCommunicationIndices(CommunicationDirections::PZ, subdomain, direction!=6);
+    auto grid = gridBuilder->getGrid(level);
+    std::vector<SPtr<Grid>> grids = { grid };
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::PZ, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){
@@ -1009,12 +1021,12 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, PZ)
             x = wrap(x+shift, (nx+2)*dx);
         if(direction==5)
             y = wrap(y+shift, (ny+2)*dx);
-        compareNodeToCoordinates(grid, grid->getSendIndex(CommunicationDirections::PZ, nodeIndex), x, y, z, "Send");
-        compareNodeToCoordinates(grid, grid->getReceiveIndex(CommunicationDirections::PZ, nodeIndex), x, y, z+dx, "Receive");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getSendIndex(level, CommunicationDirections::PZ, nodeIndex), x, y, z, "Send");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getReceiveIndex(level, CommunicationDirections::PZ, nodeIndex), x, y, z+dx, "Receive");
         nodeIndex++;
     }}; 
-    EXPECT_EQ(nodeIndex, grid->getNumberOfSendNodes(CommunicationDirections::PZ));
-    EXPECT_EQ(nodeIndex, grid->getNumberOfReceiveNodes(CommunicationDirections::PZ));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfSendNodes(level, CommunicationDirections::PZ));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfReceiveNodes(level, CommunicationDirections::PZ));
 }
 
 TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MZ)
@@ -1031,8 +1043,9 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MZ)
         case 6: break;
     }
     gridBuilder->buildGrids();
-    auto grid = gridBuilder->getGrid(0);
-    grid->findCommunicationIndices(CommunicationDirections::MZ, subdomain, direction!=6);
+    auto grid = gridBuilder->getGrid(level);
+    std::vector<SPtr<Grid>> grids = { grid };
+    communicationNodeFinder.findCommunicationIndices(CommunicationDirections::MZ, subdomain, direction!=6, grids);
     uint nodeIndex=0;
     for(uint iy=1; iy<grid->getNumberOfNodesY()-1; iy++){
     for(uint ix=1; ix<grid->getNumberOfNodesX()-1; ix++){
@@ -1042,12 +1055,12 @@ TEST_P(PeriodicBoundaryShiftMultiGPUIntegrationTest, MZ)
             x = wrap(x-shift, (nx+2)*dx);
         if(direction==5)
             y = wrap(y-shift, (ny+2)*dx);
-        compareNodeToCoordinates(grid, grid->getSendIndex(CommunicationDirections::MZ, nodeIndex), x, y, z, "Send");
-        compareNodeToCoordinates(grid, grid->getReceiveIndex(CommunicationDirections::MZ, nodeIndex), x, y, z-dx, "Receive");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getSendIndex(level, CommunicationDirections::MZ, nodeIndex), x, y, z, "Send");
+        compareNodeToCoordinates(grid, communicationNodeFinder.getReceiveIndex(level, CommunicationDirections::MZ, nodeIndex), x, y, z-dx, "Receive");
         nodeIndex++;
     }};
-    EXPECT_EQ(nodeIndex, grid->getNumberOfSendNodes(CommunicationDirections::MZ));
-    EXPECT_EQ(nodeIndex, grid->getNumberOfReceiveNodes(CommunicationDirections::MZ));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfSendNodes(level, CommunicationDirections::MZ));
+    EXPECT_EQ(nodeIndex, communicationNodeFinder.getNumberOfReceiveNodes(level, CommunicationDirections::MZ));
 }
 INSTANTIATE_TEST_SUITE_P(PeriodicBoundaryShiftMultiGPUIntegration, PeriodicBoundaryShiftMultiGPUIntegrationTest, testing::Combine(testing::Values(5), testing::Range(0,7)));
 

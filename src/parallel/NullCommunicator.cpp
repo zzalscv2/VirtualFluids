@@ -186,11 +186,11 @@ void NullCommunicator::receiveSend(uint *buffer_receive, int size_buffer_recv, i
 {
 }
 
-void NullCommunicator::send(real *sbuf, int count_s, int nb_rank) const {};
+void NullCommunicator::send(real *sbuf, int count_s, int nb_rank) const {}
 double NullCommunicator::reduceSum(double /*quantityPerProcess*/) const
 {
     return 0.0;
-};
+}
 int NullCommunicator::mapCudaDevicesOnHosts(const std::vector<unsigned int> &devices, int numberOfDevices) const
 {
     return 0;

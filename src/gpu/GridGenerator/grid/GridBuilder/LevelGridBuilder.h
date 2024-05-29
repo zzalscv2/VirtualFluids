@@ -65,6 +65,8 @@ class PressureBoundaryCondition;
 class GeometryBoundaryCondition;
 class PrecursorBoundaryCondition;
 enum class SideType;
+class CommunicationNodeFinder;
+class FluidNodeClassificator;
 
 class TransientBCInputFileReader;
 class FileCollection;
@@ -108,11 +110,6 @@ public:
     std::shared_ptr<Grid> getGrid(int level, int box);
 
     virtual unsigned int getNumberOfNodes(unsigned int level) const override;
-
-    virtual uint getNumberOfFluidNodes(unsigned int level) const override;
-    virtual void getFluidNodeIndices(uint* fluidNodeIndices, const int level) const override;
-    virtual uint getNumberOfFluidNodesBorder(unsigned int level) const override;
-    virtual void getFluidNodeIndicesBorder(uint *fluidNodeIndices, const int level) const override;
 
     virtual void getNodeValues(real *xCoords, real *yCoords, real *zCoords,
                                          uint *neighborX, uint *neighborY, uint *neighborZ, uint *neighborNegative,
@@ -195,6 +192,9 @@ protected:
 
     void checkLevel(int level);
 
+    UPtr<CommunicationNodeFinder> communicationNodeFinder;
+    SPtr<FluidNodeClassificator> fluidNodeClassificator;
+
 protected:
     void setVelocityGeometryBoundaryCondition(real vx, real vy, real vz);
     void setNoSlipGeometryBoundaryCondition();
@@ -221,29 +221,11 @@ public:
     void getOffsetFC(real* xOffCf, real* yOffCf, real* zOffCf, int level) override;
     void getOffsetCF(real* xOffFc, real* yOffFc, real* zOffFc, int level) override;
 
-    virtual uint getNumberOfSendIndices(int direction, uint level) override;
-    virtual uint getNumberOfReceiveIndices(int direction, uint level) override;
-    virtual void getSendIndices(int *sendIndices, int direction, int level) override;
-    virtual void getReceiveIndices(int *sendIndices, int direction, int level) override;
+    const CommunicationNodeFinder* getCommunicationNodeFinder() const override;
+    void createFluidNodeClassificator() override;
+    SPtr<FluidNodeClassificator> getFluidNodeClassificator() override;
 
-
-    // needed for CUDA Streams MultiGPU (Communication Hiding)
     void findFluidNodes(bool splitDomain) override;
-
-    void addFluidNodeIndicesMacroVars(const std::vector<uint>& fluidNodeIndicesMacroVars, uint level) override;
-    void addFluidNodeIndicesApplyBodyForce(const std::vector<uint>& fluidNodeIndicesApplyBodyForce, uint level) override;
-    void addFluidNodeIndicesAllFeatures(const std::vector<uint>& fluidNodeIndicesAllFeatures, uint level) override;
-
-    void sortFluidNodeIndicesMacroVars(uint level) override;
-    void sortFluidNodeIndicesApplyBodyForce(uint level) override;
-    void sortFluidNodeIndicesAllFeatures(uint level) override;
-
-    uint getNumberOfFluidNodesMacroVars(unsigned int level) const override;
-    void getFluidNodeIndicesMacroVars(uint *fluidNodeIndicesMacroVars, const int level) const override;
-    uint getNumberOfFluidNodesApplyBodyForce(unsigned int level) const override;
-    void getFluidNodeIndicesApplyBodyForce(uint *fluidNodeIndicesApplyBodyForce, const int level) const override;
-    uint getNumberOfFluidNodesAllFeatures(unsigned int level) const override;
-    void getFluidNodeIndicesAllFeatures(uint *fluidNodeIndicesAllFeatures, const int level) const override;
 };
 
 #endif

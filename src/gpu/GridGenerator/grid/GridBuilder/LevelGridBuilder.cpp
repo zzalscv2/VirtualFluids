@@ -44,7 +44,10 @@
 
 #include "grid/BoundaryConditions/BoundaryCondition.h"
 #include "grid/BoundaryConditions/Side.h"
+#include "grid/GridBuilder/CommunicationNodeFinder.h"
 #include "grid/Grid.h"
+#include "grid/GridBuilder/FluidNodeClassificator.h"
+#include "grid/FluidNodeTagger.h"
 #include "grid/GridFactory.h"
 #include "grid/GridInterface.h"
 #include "grid/NodeValues.h"
@@ -57,6 +60,7 @@
 
 #include "utilities/communication.h"
 #include "utilities/transformator/ArrowTransformator.h"
+
 
 #define GEOFLUID 19
 #define GEOSOLID 16
@@ -421,34 +425,6 @@ void LevelGridBuilder::getOffsetCF(real * xOffCF, real * yOffCF, real * zOffCF, 
     }
 }
 
-uint LevelGridBuilder::getNumberOfSendIndices(int direction, uint level)
-{
-    return this->grids[level]->getNumberOfSendNodes(direction);
-}
-
-uint LevelGridBuilder::getNumberOfReceiveIndices(int direction, uint level)
-{
-    return this->grids[level]->getNumberOfReceiveNodes(direction);
-}
-
-void LevelGridBuilder::getSendIndices(int * sendIndices, int direction, int level)
-{
-    SPtr<Grid> grid = this->grids[level];
-    for( uint i = 0; i < getNumberOfSendIndices(direction, level); i++ )
-    {
-        sendIndices[i] = grid->getSparseIndex( grid->getSendIndex(direction, i) ) + 1;
-    }
-}
-
-void LevelGridBuilder::getReceiveIndices(int * receiveIndices, int direction, int level)
-{
-    SPtr<Grid> grid = this->grids[level];
-    for( uint i = 0; i < getNumberOfReceiveIndices(direction, level); i++ )
-    {
-        receiveIndices[i] = grid->getSparseIndex( grid->getReceiveIndex(direction, i) ) + 1;
-    }
-}
-
 uint LevelGridBuilder::getNumberOfNodes(unsigned int level) const
 {
     return grids[level]->getSparseSize();
@@ -482,26 +458,6 @@ void LevelGridBuilder::getNodeValues(real *xCoords, real *yCoords, real *zCoords
     grids[level]->getNodeValues(xCoords, yCoords, zCoords, neighborX, neighborY, neighborZ, neighborNegative, geo);
 }
 
-
-void LevelGridBuilder::getFluidNodeIndices(uint *fluidNodeIndices, const int level) const
-{
-    grids[level]->getFluidNodeIndices(fluidNodeIndices);
-}
-
-void LevelGridBuilder::getFluidNodeIndicesBorder(uint *fluidNodeIndices, const int level) const
-{
-    grids[level]->getFluidNodeIndicesBorder(fluidNodeIndices);
-}
-
-uint LevelGridBuilder::getNumberOfFluidNodes(unsigned int level) const
-{
-    return grids[level]->getNumberOfFluidNodes();
-}
-
-uint LevelGridBuilder::getNumberOfFluidNodesBorder(unsigned int level) const
-{
-    return grids[level]->getNumberOfFluidNodesBorder();
-}
 
 uint LevelGridBuilder::getSlipSize(int level) const
 {
@@ -721,7 +677,7 @@ void LevelGridBuilder::getPressureQs(real* qs[27], uint level, uint indexInBound
 size_t LevelGridBuilder::getPressureBoundaryConditionDirection(uint level, uint indexInBoundaryConditionVector) const
 {
     return boundaryConditions[level]->pressureBoundaryConditions[indexInBoundaryConditionVector]->side->getD3Q27Direction();
-};
+}
 
 uint LevelGridBuilder::getPrecursorSize(int level) const
 {
@@ -877,73 +833,28 @@ SPtr<GeometryBoundaryCondition> LevelGridBuilder::getGeometryBoundaryCondition(u
     return this->boundaryConditions[level]->geometryBoundaryCondition;
 }
 
+const CommunicationNodeFinder* LevelGridBuilder::getCommunicationNodeFinder() const
+{
+    return communicationNodeFinder.get();
+}
+
+SPtr<FluidNodeClassificator> LevelGridBuilder::getFluidNodeClassificator()
+{
+    return fluidNodeClassificator;
+}
+
+void LevelGridBuilder::createFluidNodeClassificator()
+{
+    fluidNodeClassificator = std::make_shared<FluidNodeClassificator>(getNumberOfGridLevels());
+}
+
 void LevelGridBuilder::findFluidNodes(bool splitDomain)
 {
-    VF_LOG_TRACE("Start findFluidNodes()");
-    for (uint i = 0; i < grids.size(); i++)
-        grids[i]->findFluidNodeIndices(splitDomain);
-    VF_LOG_TRACE("Done findFluidNodes()");
-}
+    if (!fluidNodeClassificator) {
+        throw std::runtime_error("No FluidNodeClassificator was not initialized befor calling findFluidNodes");
+    }
 
-
-void LevelGridBuilder::addFluidNodeIndicesMacroVars(const std::vector<uint>& fluidNodeIndicesMacroVars, uint level)
-{
-    grids[level]->addFluidNodeIndicesMacroVars(fluidNodeIndicesMacroVars);
-}
-
-void LevelGridBuilder::addFluidNodeIndicesApplyBodyForce(const std::vector<uint>& fluidNodeIndicesApplyBodyForce, uint level)
-{
-    grids[level]->addFluidNodeIndicesApplyBodyForce(fluidNodeIndicesApplyBodyForce);
-}
-
-void LevelGridBuilder::addFluidNodeIndicesAllFeatures(const std::vector<uint>& fluidNodeIndicesAllFeatures, uint level)
-{
-    grids[level]->addFluidNodeIndicesAllFeatures(fluidNodeIndicesAllFeatures);
-}
-
-void LevelGridBuilder::sortFluidNodeIndicesMacroVars(uint level)
-{
-    grids[level]->sortFluidNodeIndicesMacroVars();
-}
-
-void LevelGridBuilder::sortFluidNodeIndicesApplyBodyForce(uint level)
-{
-    grids[level]->sortFluidNodeIndicesApplyBodyForce();
-}
-
-void LevelGridBuilder::sortFluidNodeIndicesAllFeatures(uint level)
-{
-    grids[level]->sortFluidNodeIndicesAllFeatures();
-}
-
-uint LevelGridBuilder::getNumberOfFluidNodesMacroVars(unsigned int level) const
-{
-    return grids[level]->getNumberOfFluidNodeIndicesMacroVars();
-}
-
-void LevelGridBuilder::getFluidNodeIndicesMacroVars(uint *fluidNodeIndicesMacroVars, const int level) const
-{
-    grids[level]->getFluidNodeIndicesMacroVars(fluidNodeIndicesMacroVars);
-}
-
-uint LevelGridBuilder::getNumberOfFluidNodesApplyBodyForce(unsigned int level) const
-{
-    return grids[level]->getNumberOfFluidNodeIndicesApplyBodyForce();
-}
-
-void LevelGridBuilder::getFluidNodeIndicesApplyBodyForce(uint *fluidNodeIndicesApplyBodyForce, const int level) const
-{
-    grids[level]->getFluidNodeIndicesApplyBodyForce(fluidNodeIndicesApplyBodyForce);
-}
-
-uint LevelGridBuilder::getNumberOfFluidNodesAllFeatures(unsigned int level) const
-{
-    return grids[level]->getNumberOfFluidNodeIndicesAllFeatures();
-}
-
-void LevelGridBuilder::getFluidNodeIndicesAllFeatures(uint *fluidNodeIndicesAllFeatures, const int level) const
-{
-    grids[level]->getFluidNodeIndicesAllFeatures(fluidNodeIndicesAllFeatures);
+    fluidNodeClassificator->findFluidNodes(splitDomain, grids, communicationNodeFinder->getCommunicationIndices());
 }
 
 //! \}

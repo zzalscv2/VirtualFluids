@@ -49,6 +49,8 @@
 #include "io/GridVTKWriter/GridVTKWriter.h"
 #include "io/STLReaderWriter/STLWriter.h"
 
+#include "grid/GridBuilder/CommunicationNodeFinder.h"
+
 
 MultipleGridBuilder::MultipleGridBuilder() : LevelGridBuilder(), numberOfLayersFine(12), numberOfLayersBetweenLevels(8), subDomainBox(nullptr)
 {
@@ -596,6 +598,8 @@ void MultipleGridBuilder::buildGrids(bool enableThinWalls )
     grids[grids.size() - 1]->findSparseIndices(nullptr);
 
     //////////////////////////////////////////////////////////////////////////
+
+    communicationNodeFinder = std::make_unique<CommunicationNodeFinder>(this->getNumberOfGridLevels());
 }
 
 void MultipleGridBuilder::setNumberOfLayers(uint numberOfLayersFine, uint numberOfLayersBetweenLevels)
@@ -619,9 +623,8 @@ void MultipleGridBuilder::findCommunicationIndices(int direction, bool doShift)
 {
     VF_LOG_TRACE("Start findCommunicationIndices()");
 
-    if( this->subDomainBox )
-        for (size_t i = 0; i < grids.size(); i++)
-            grids[i]->findCommunicationIndices(direction, this->subDomainBox, doShift);
+    if (this->subDomainBox)
+        communicationNodeFinder->findCommunicationIndices(direction, *this->subDomainBox.get(), doShift, grids);
 
     VF_LOG_TRACE("Done findCommunicationIndices()");
 }

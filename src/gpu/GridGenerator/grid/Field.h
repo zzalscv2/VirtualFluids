@@ -53,9 +53,11 @@ public:
     bool isCoarseToFineNode(uint index) const;
     bool isFineToCoarseNode(uint index) const;
     bool isFluid(uint index) const;
+    static bool isFluidType(const char& type);
     bool isInvalidSolid(uint index) const;
     bool isQ(uint index) const;
     bool isBoundaryConditionNode(uint index) const;
+    static bool isBoundaryConditionType(const char& type);
     bool isInvalidCoarseUnderFine(uint index) const;
     bool isStopperOutOfGrid(uint index) const;
     bool isStopperCoarseUnderFine(uint index) const;

@@ -45,8 +45,8 @@ static constexpr char FLUID_CFF = 2;
 static constexpr char FLUID_FCC = 3;
 static constexpr char FLUID_FCF = 4;
 
-static constexpr char MULTI_GPU_SEND    = 10;
-static constexpr char MULTI_GPU_RECIEVE = 11;
+// static constexpr char MULTI_GPU_SEND    = 10; // unused (08.05.2024)
+// static constexpr char MULTI_GPU_RECIEVE = 11;
 
 static constexpr char BC_PRESSURE = 20;
 static constexpr char BC_VELOCITY = 21;
